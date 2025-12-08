@@ -1,0 +1,153 @@
+{
+  "name": "happyhub_reserva",
+  "nodes": [
+    {
+      "id": "webhook_reserva",
+      "type": "n8n-nodes-base.webhook",
+      "position": [300, 300],
+      "parameters": {
+        "path": "reserva-happyhub",
+        "options": {
+          "responseMode": "onReceived"
+        },
+        "httpMethod": "POST"
+      },
+      "name": "Webhook Reserva"
+    },
+    {
+      "id": "normalize",
+      "type": "n8n-nodes-base.function",
+      "position": [600, 300],
+      "name": "Normalizar Datos",
+      "parameters": {
+        "functionCode": "const body = items[0].json;\nreturn [{ json: {\n  nombre: body.nombre,\n  email: body.email,\n  telefono: body.telefono,\n  fecha: body.fecha,\n  hora: body.hora,\n  pax: body.pax,\n  extras: body.extras || [],\n  tipoEvento: body.tipoEvento\n}}];"
+      }
+    },
+    {
+      "id": "calendar",
+      "type": "n8n-nodes-base.googleCalendar",
+      "position": [900, 150],
+      "name": "Crear Evento Calendario",
+      "parameters": {
+        "operation": "create",
+        "calendarId": "primary",
+        "start": "={{$json[\"fecha\"] + \"T\" + $json[\"hora\"]}}",
+        "end": "={{$json[\"fecha\"] + \"T\" + $json[\"hora\"]}}",
+        "summary": "Reserva HappyHub - {{$json[\"nombre\"]}}"
+      },
+      "credentials": {
+        "googleApi": "Google Calendar HappyHub"
+      }
+    },
+    {
+      "id": "airtable",
+      "type": "n8n-nodes-base.airtable",
+      "position": [900, 450],
+      "name": "Guardar en Airtable",
+      "parameters": {
+        "operation": "create",
+        "baseId": "appXXXXXXXXXXXX",
+        "tableId": "tblXXXXXXXXXXXX",
+        "fields": {
+          "Nombre": "={{$json[\"nombre\"]}}",
+          "Email": "={{$json[\"email\"]}}",
+          "Teléfono": "={{$json[\"telefono\"]}}",
+          "Fecha": "={{$json[\"fecha\"]}}",
+          "Hora": "={{$json[\"hora\"]}}",
+          "Personas": "={{$json[\"pax\"]}}",
+          "Extras": "={{$json[\"extras\"]}}",
+          "TipoEvento": "={{$json[\"tipoEvento\"]}}"
+        }
+      },
+      "credentials": {
+        "airtableApi": "Airtable HappyHub"
+      }
+    },
+    {
+      "id": "stripe_payment",
+      "type": "n8n-nodes-base.stripe",
+      "position": [1200, 150],
+      "name": "Crear Payment Link",
+      "parameters": {
+        "operation": "createPaymentLink",
+        "amount": 50000,
+        "currency": "eur",
+        "description": "Reserva HappyHub",
+        "afterCompletionType": "redirect",
+        "afterCompletionUrl": "https://happyhub.es/gracias"
+      },
+      "credentials": {
+        "stripeApi": "Stripe HappyHub"
+      }
+    },
+    {
+      "id": "anthropic",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1200, 450],
+      "name": "Generar mensaje IA (Claude)",
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "headerAuth",
+        "sendBody": true,
+        "jsonParameters": true,
+        "headerParametersJson": "{ \"x-api-key\": \"={{$credentials.claudeApi}}\", \"anthropic-version\": \"2023-06-01\" }",
+        "bodyParametersJson": "{ \"model\": \"claude-3-sonnet-20240229\", \"max_tokens\": 200, \"messages\": [{ \"role\": \"user\", \"content\": \"Genera un mensaje amable confirmando la reserva en HappyHub para {{ $json[\\\"nombre\\\"] }}, el día {{ $json[\\\"fecha\\\"] }} a las {{ $json[\\\"hora\\\"] }}. Incluye instrucciones simples y el enlace de pago: {{ $item(0).$node[\\\"Crear Payment Link\\\"].json.url }}\" }] }"
+      },
+      "credentials": {
+        "headerAuth": "Claude API Key"
+      }
+    },
+    {
+      "id": "email",
+      "type": "n8n-nodes-base.emailSend",
+      "position": [1500, 450],
+      "name": "Enviar Email Confirmación",
+      "parameters": {
+        "fromEmail": "no-reply@happyhub.es",
+        "toEmail": "={{$json[\"email\"]}}",
+        "subject": "Confirmación de tu reserva en HappyHub",
+        "text": "={{$json[\"content\"]}}"
+      },
+      "credentials": {
+        "smtp": "SMTP HappyHub"
+      }
+    },
+    {
+      "id": "response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [1500, 150],
+      "name": "Responder al Frontend",
+      "parameters": {
+        "responseBody": "={{\"status\":\"ok\",\"paymentLink\":\"\" + $item(0).$node[\"Crear Payment Link\"].json.url}}"
+      }
+    }
+  ],
+  "connections": {
+"Webhook Reserva": {
+"main": [[{ "node": "Normalizar Datos", "type": "main", "index": 0 }]]
+},
+"Normalizar Datos": {
+"main": [
+[
+{ "node": "Crear Evento Calendario", "type": "main", "index": 0 },
+{ "node": "Guardar en Airtable", "type": "main", "index": 0 }
+]
+]
+},
+"Crear Evento Calendario": {
+"main": [[{ "node": "Crear Payment Link", "type": "main", "index": 0 }]]
+},
+"Crear Payment Link": {
+"main": [
+[
+{ "node": "Generar mensaje IA (Claude)", "type": "main", "index": 0 },
+{ "node": "Responder al Frontend", "type": "main", "index": 0 }
+]
+]
+},
+"Generar mensaje IA (Claude)": {
+"main": [[{ "node": "Enviar Email Confirmación", "type": "main", "index": 0 }]]
+}
+}
+}
