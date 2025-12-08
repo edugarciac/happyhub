@@ -31,16 +31,15 @@ export default function ComingSoon() {
         {/* Secret clickable area on orange dot (top-right of yellow emoji) */}
         <button
           onClick={handleSecretClick}
-          className="absolute cursor-pointer opacity-0 hover:opacity-10 hover:bg-white/20 transition-opacity duration-300 rounded-full"
+          className="absolute cursor-pointer bg-red-500/50 hover:bg-red-500/80 transition-all duration-300 rounded-full border-2 border-white"
           style={{
-            top: '28%',
-            left: '54%',
-            width: '3%',
-            height: '5%',
-            minWidth: '30px',
-            minHeight: '30px',
+            top: '26%',
+            left: '52%',
+            width: '50px',
+            height: '50px',
           }}
           aria-label="Secret access"
+          title="Click aquí para acceder"
         />
       </div>
     </>
