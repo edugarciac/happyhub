@@ -1,4 +1,5 @@
 import { ArrowRight, Star, Sparkles, ChevronDown } from 'lucide-react';
+import Image from 'next/image';
 
 interface HeroProps {
   title?: string;
@@ -81,37 +82,22 @@ export default function Hero({
             )}
           </div>
 
-          {/* Right column - Hero Video */}
+          {/* Right column - Hero Image */}
           <div className="relative animate-scale-in">
             <div className="relative rounded-3xl overflow-hidden shadow-2xl">
-              {/* Video background */}
-              <div className="aspect-[4/5] relative bg-black">
-                <video
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  className="absolute inset-0 w-full h-full object-cover"
-                >
-                  <source src="/hero-celebration.mp4" type="video/mp4" />
-                  {/* Fallback si no hay video */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary-400 via-ocean-400 to-accent-400 flex items-center justify-center text-white">
-                    <div className="text-center p-8">
-                      <div className="text-7xl mb-6 animate-float">🎉</div>
-                      <p className="text-3xl font-bold mb-3">Tu Espacio Ideal</p>
-                      <p className="text-lg opacity-90">Cumpleaños • Comuniones • Bautizos</p>
-                    </div>
-                  </div>
-                </video>
+              {/* Hero Image */}
+              <div className="aspect-[4/5] relative">
+                <Image
+                  src="/happyhub_home.png"
+                  alt="HappyHub - Espacio de celebraciones"
+                  fill
+                  priority
+                  className="object-cover"
+                  quality={95}
+                />
 
-                {/* Gradient overlay for better readability */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20"></div>
-
-                {/* Optional overlay text */}
-                <div className="absolute bottom-8 left-8 right-8 text-white z-10">
-                  <p className="text-2xl font-bold mb-2 drop-shadow-lg">Espacio Polivalente</p>
-                  <p className="text-sm opacity-90 drop-shadow-md">Para celebraciones familiares, con amigos, de colegio y trabajo</p>
-                </div>
+                {/* Subtle gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"></div>
               </div>
 
               {/* Floating badge */}
