@@ -28,18 +28,17 @@ export default function ComingSoon() {
           quality={100}
         />
 
-        {/* Secret clickable area on orange dot (top-right of yellow emoji) */}
+        {/* Secret clickable area on winking eye of emoji */}
         <button
           onClick={handleSecretClick}
-          className="absolute cursor-pointer bg-red-500/50 hover:bg-red-500/80 transition-all duration-300 rounded-full border-2 border-white"
+          className="absolute cursor-pointer opacity-0 hover:opacity-5 hover:bg-white/10 transition-opacity duration-300 rounded-full"
           style={{
-            top: '26%',
-            left: '52%',
+            top: '24.5%',
+            left: '50.5%',
             width: '50px',
             height: '50px',
           }}
           aria-label="Secret access"
-          title="Click aquí para acceder"
         />
       </div>
     </>
