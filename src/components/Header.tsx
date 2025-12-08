@@ -51,9 +51,9 @@ export default function Header() {
             onClick={() => scrollToSection('hero')}
             className="flex items-center space-x-3 group"
           >
-            <div className="relative w-10 h-10 rounded-xl overflow-hidden">
+            <div className="relative w-10 h-10 rounded-xl overflow-hidden bg-white p-1">
               <Image
-                src="/src/logo/logo-happyhub-black.jpeg"
+                src="/logo-happyhub-black.jpeg"
                 alt="HappyHub Logo"
                 width={40}
                 height={40}

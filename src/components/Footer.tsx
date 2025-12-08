@@ -25,9 +25,9 @@ export default function Footer() {
           {/* Brand column */}
           <div className="lg:col-span-1">
             <div className="flex items-center space-x-3 mb-6">
-              <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-white p-1">
+              <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-white p-1.5">
                 <Image
-                  src="/src/logo/logo-happyhub-black.jpeg"
+                  src="/logo-happyhub-black.jpeg"
                   alt="HappyHub Logo"
                   width={48}
                   height={48}
@@ -143,18 +143,18 @@ export default function Footer() {
             <ul className="space-y-4">
               <li className="flex items-start space-x-3 group">
                 <MapPin className="w-5 h-5 text-primary-400 flex-shrink-0 mt-1 group-hover:scale-110 transition-transform" />
-                <span className="text-gray-400">Calle Ejemplo 123, 28001 Madrid, España</span>
+                <span className="text-gray-400">Calle Rovellat, 27<br />08950 Esplugues de Llobregat</span>
               </li>
               <li className="flex items-center space-x-3 group">
                 <Phone className="w-5 h-5 text-primary-400 flex-shrink-0 group-hover:scale-110 transition-transform" />
-                <a href="tel:+34900123456" className="text-gray-400 hover:text-primary-400 transition-colors">
-                  +34 900 123 456
+                <a href="tel:+34638390600" className="text-gray-400 hover:text-primary-400 transition-colors">
+                  +34 638 390 600
                 </a>
               </li>
               <li className="flex items-center space-x-3 group">
                 <Mail className="w-5 h-5 text-primary-400 flex-shrink-0 group-hover:scale-110 transition-transform" />
-                <a href="mailto:info@happyhub.es" className="text-gray-400 hover:text-primary-400 transition-colors">
-                  info@happyhub.es
+                <a href="mailto:happyhub-rovellat@gmail.com" className="text-gray-400 hover:text-primary-400 transition-colors">
+                  happyhub-rovellat@gmail.com
                 </a>
               </li>
             </ul>
@@ -169,7 +169,7 @@ export default function Footer() {
               <Heart className="w-4 h-4 ml-2 text-red-500 fill-current" />
             </p>
             <p className="text-gray-500 text-sm">
-              Hecho con pasión en Madrid
+              Hecho con pasión en Barcelona
             </p>
           </div>
         </div>

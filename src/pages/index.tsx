@@ -15,8 +15,8 @@ export default function Home() {
     },
     {
       icon: Users,
-      title: 'Hasta 150 personas',
-      description: 'Espacio amplio, flexible y completamente equipado para eventos de cualquier tamaño.',
+      title: 'Hasta 50 personas',
+      description: 'Espacio íntimo y acogedor, perfectamente equipado para celebraciones memorables.',
     },
     {
       icon: Sparkles,

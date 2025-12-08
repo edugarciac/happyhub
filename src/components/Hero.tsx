@@ -74,34 +74,48 @@ export default function Hero({
                   <div className="text-sm text-gray-600 mt-2 font-medium">Valoración media</div>
                 </div>
                 <div className="animate-fade-in" style={{ animationDelay: '0.6s' }}>
-                  <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary-600 to-ocean-600 bg-clip-text text-transparent">150</div>
+                  <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary-600 to-ocean-600 bg-clip-text text-transparent">50</div>
                   <div className="text-sm text-gray-600 mt-2 font-medium">Capacidad máxima</div>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Right column - Hero Image */}
+          {/* Right column - Hero Video */}
           <div className="relative animate-scale-in">
             <div className="relative rounded-3xl overflow-hidden shadow-2xl">
-              {/* Placeholder for hero image - replace with actual image */}
-              <div className="aspect-[4/5] bg-gradient-to-br from-primary-400 via-ocean-400 to-accent-400 relative">
-                {/* Replace this div with: */}
-                {/* <Image src="/hero-celebration.jpg" alt="Happy celebration" fill className="object-cover" /> */}
-                <div className="absolute inset-0 flex items-center justify-center text-white text-center p-8">
-                  <div>
-                    <div className="text-7xl mb-6 animate-float">🎉</div>
-                    <p className="text-3xl font-bold mb-3">Tu Espacio Ideal</p>
-                    <p className="text-lg opacity-90">Cumpleaños • Comuniones • Bautizos</p>
+              {/* Video background */}
+              <div className="aspect-[4/5] relative bg-black">
+                <video
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="absolute inset-0 w-full h-full object-cover"
+                >
+                  <source src="/hero-celebration.mp4" type="video/mp4" />
+                  {/* Fallback si no hay video */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary-400 via-ocean-400 to-accent-400 flex items-center justify-center text-white">
+                    <div className="text-center p-8">
+                      <div className="text-7xl mb-6 animate-float">🎉</div>
+                      <p className="text-3xl font-bold mb-3">Tu Espacio Ideal</p>
+                      <p className="text-lg opacity-90">Cumpleaños • Comuniones • Bautizos</p>
+                    </div>
                   </div>
-                </div>
+                </video>
 
-                {/* Gradient overlay for when real image is added */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                {/* Gradient overlay for better readability */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20"></div>
+
+                {/* Optional overlay text */}
+                <div className="absolute bottom-8 left-8 right-8 text-white z-10">
+                  <p className="text-2xl font-bold mb-2 drop-shadow-lg">Experiencias Inolvidables</p>
+                  <p className="text-sm opacity-90 drop-shadow-md">Donde cada celebración se convierte en un recuerdo mágico</p>
+                </div>
               </div>
 
               {/* Floating badge */}
-              <div className="absolute bottom-6 right-6 bg-white p-5 rounded-2xl shadow-2xl animate-float backdrop-blur-sm">
+              <div className="absolute top-6 right-6 bg-white p-5 rounded-2xl shadow-2xl animate-float backdrop-blur-sm">
                 <div className="flex items-center space-x-4">
                   <div className="bg-gradient-to-br from-green-400 to-emerald-500 text-white p-3 rounded-xl">
                     <Star className="w-7 h-7 fill-current" />
