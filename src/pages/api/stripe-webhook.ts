@@ -23,7 +23,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: 'No signature provided' });
     }
 
-    const event = constructWebhookEvent(buf.toString(), signature);
+    // Ensure signature is a string (headers can be string or string[])
+    const signatureStr = Array.isArray(signature) ? signature[0] : signature;
+
+    const event = constructWebhookEvent(buf.toString(), signatureStr);
 
     console.log('Evento de Stripe recibido:', event.type);
 
