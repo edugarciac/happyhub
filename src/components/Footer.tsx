@@ -25,16 +25,19 @@ export default function Footer() {
           {/* Brand column */}
           <div className="lg:col-span-1">
             <div className="flex items-center space-x-3 mb-6">
-              <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-white p-1.5">
+              <div className="relative w-12 h-12">
                 <Image
-                  src="/logo-happyhub-black.jpeg"
+                  src="/logo-happyhub-white smal.jpeg"
                   alt="HappyHub Logo"
                   width={48}
                   height={48}
                   className="object-contain"
                 />
               </div>
-              <span className="text-2xl font-bold">HappyHub</span>
+              <span className="text-2xl font-bold">
+                <span className="text-[#FF6B35]">Happy</span>
+                <span className="text-[#00BCD4]">Hub</span>
+              </span>
             </div>
             <p className="text-gray-400 mb-6 leading-relaxed">
               El espacio perfecto donde tus celebraciones cobran vida. Creamos momentos inolvidables con pasión y dedicación.

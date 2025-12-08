@@ -9,7 +9,7 @@ interface HeroProps {
 
 export default function Hero({
   title = 'Celebra Momentos Inolvidables',
-  subtitle = 'Transforma tus eventos en experiencias mágicas. El espacio perfecto donde cada detalle cobra vida y los recuerdos se vuelven eternos.',
+  subtitle = 'Espacio polivalente para todo tipo de celebraciones. Cumpleaños, eventos familiares, con amigos, o de colegio y trabajo. Cada detalle cobra vida y los recuerdos se vuelven eternos.',
   ctaText = 'Reserva tu fecha',
   showStats = true,
 }: HeroProps) {
@@ -109,8 +109,8 @@ export default function Hero({
 
                 {/* Optional overlay text */}
                 <div className="absolute bottom-8 left-8 right-8 text-white z-10">
-                  <p className="text-2xl font-bold mb-2 drop-shadow-lg">Experiencias Inolvidables</p>
-                  <p className="text-sm opacity-90 drop-shadow-md">Donde cada celebración se convierte en un recuerdo mágico</p>
+                  <p className="text-2xl font-bold mb-2 drop-shadow-lg">Espacio Polivalente</p>
+                  <p className="text-sm opacity-90 drop-shadow-md">Para celebraciones familiares, con amigos, de colegio y trabajo</p>
                 </div>
               </div>
 

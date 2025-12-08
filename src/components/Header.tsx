@@ -51,17 +51,18 @@ export default function Header() {
             onClick={() => scrollToSection('hero')}
             className="flex items-center space-x-3 group"
           >
-            <div className="relative w-10 h-10 rounded-xl overflow-hidden bg-white p-1">
+            <div className="relative w-10 h-10">
               <Image
-                src="/logo-happyhub-black.jpeg"
+                src="/logo-happyhub-white smal.jpeg"
                 alt="HappyHub Logo"
                 width={40}
                 height={40}
                 className="object-contain"
               />
             </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-primary-700 to-ocean-700 bg-clip-text text-transparent">
-              HappyHub
+            <span className="text-2xl font-bold">
+              <span className="text-[#FF6B35]">Happy</span>
+              <span className="text-[#00BCD4]">Hub</span>
             </span>
           </button>
 
