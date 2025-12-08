@@ -1,89 +1,134 @@
-import Link from 'next/link';
-import { ArrowRight, Star } from 'lucide-react';
+import { ArrowRight, Star, Sparkles, ChevronDown } from 'lucide-react';
 
 interface HeroProps {
   title?: string;
   subtitle?: string;
   ctaText?: string;
-  ctaLink?: string;
   showStats?: boolean;
 }
 
 export default function Hero({
-  title = 'El Espacio Perfecto para tus Celebraciones',
-  subtitle = 'Organiza cumpleaños, comuniones, bautizos y eventos únicos con todo incluido. Reserva en minutos y nosotros nos encargamos del resto.',
-  ctaText = 'Reservar ahora',
-  ctaLink = '/reservas',
+  title = 'Celebra Momentos Inolvidables',
+  subtitle = 'Transforma tus eventos en experiencias mágicas. El espacio perfecto donde cada detalle cobra vida y los recuerdos se vuelven eternos.',
+  ctaText = 'Reserva tu fecha',
   showStats = true,
 }: HeroProps) {
+  const scrollToFeatures = () => {
+    const element = document.getElementById('features');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
-    <section className="bg-gradient-to-br from-primary-50 via-white to-secondary-50 py-20">
-      <div className="container-custom">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <div>
-            <div className="inline-flex items-center space-x-2 bg-primary-100 text-primary-700 px-4 py-2 rounded-full mb-6">
-              <Star className="w-4 h-4 fill-current" />
-              <span className="text-sm font-semibold">Valoración 4.9/5 por nuestros clientes</span>
+    <section id="hero" className="relative min-h-screen flex items-center pt-20 bg-gradient-to-br from-primary-50 via-white to-ocean-50 overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-primary-200/30 rounded-full blur-3xl animate-float"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-ocean-200/30 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-accent-200/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }}></div>
+      </div>
+
+      <div className="container-custom relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          {/* Left column - Content */}
+          <div className="animate-slide-up">
+            <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-primary-100 to-ocean-100 text-primary-700 px-5 py-2.5 rounded-full mb-8 shadow-sm">
+              <Star className="w-4 h-4 fill-current animate-pulse" />
+              <span className="text-sm font-semibold">4.9/5 - Más de 500 eventos exitosos</span>
             </div>
 
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-8 leading-[1.1]">
               {title}
             </h1>
 
-            <p className="text-lg md:text-xl text-gray-600 mb-8">{subtitle}</p>
+            <p className="text-xl md:text-2xl text-gray-600 mb-10 leading-relaxed max-w-xl">
+              {subtitle}
+            </p>
 
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link href={ctaLink} className="btn-primary inline-flex items-center justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 mb-12">
+              <a
+                href="/reservas"
+                className="btn-primary group"
+              >
                 {ctaText}
-                <ArrowRight className="ml-2 w-5 h-5" />
-              </Link>
-              <Link href="/disponibilidad" className="btn-outline inline-flex items-center justify-center">
+                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </a>
+              <a
+                href="/disponibilidad"
+                className="btn-outline group"
+              >
                 Ver disponibilidad
-              </Link>
+                <Sparkles className="ml-2 w-5 h-5 group-hover:rotate-12 transition-transform" />
+              </a>
             </div>
 
             {showStats && (
-              <div className="grid grid-cols-3 gap-6 mt-12">
-                <div>
-                  <div className="text-3xl font-bold text-primary-600">500+</div>
-                  <div className="text-sm text-gray-600">Eventos realizados</div>
+              <div className="grid grid-cols-3 gap-8">
+                <div className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
+                  <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary-600 to-ocean-600 bg-clip-text text-transparent">500+</div>
+                  <div className="text-sm text-gray-600 mt-2 font-medium">Eventos realizados</div>
                 </div>
-                <div>
-                  <div className="text-3xl font-bold text-primary-600">4.9/5</div>
-                  <div className="text-sm text-gray-600">Valoración media</div>
+                <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
+                  <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary-600 to-ocean-600 bg-clip-text text-transparent">4.9</div>
+                  <div className="text-sm text-gray-600 mt-2 font-medium">Valoración media</div>
                 </div>
-                <div>
-                  <div className="text-3xl font-bold text-primary-600">150</div>
-                  <div className="text-sm text-gray-600">Capacidad máxima</div>
+                <div className="animate-fade-in" style={{ animationDelay: '0.6s' }}>
+                  <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary-600 to-ocean-600 bg-clip-text text-transparent">150</div>
+                  <div className="text-sm text-gray-600 mt-2 font-medium">Capacidad máxima</div>
                 </div>
               </div>
             )}
           </div>
 
-          <div className="relative">
-            <div className="aspect-square rounded-2xl bg-gradient-to-br from-primary-400 to-secondary-400 shadow-2xl transform rotate-3 transition-transform hover:rotate-6">
-              <div className="absolute inset-0 flex items-center justify-center text-white text-center p-8">
-                <div>
-                  <div className="text-6xl font-bold mb-4">🎉</div>
-                  <p className="text-xl font-semibold">Espacio de eventos</p>
-                  <p className="text-sm opacity-90 mt-2">Cumpleaños • Comuniones • Bautizos</p>
+          {/* Right column - Hero Image */}
+          <div className="relative animate-scale-in">
+            <div className="relative rounded-3xl overflow-hidden shadow-2xl">
+              {/* Placeholder for hero image - replace with actual image */}
+              <div className="aspect-[4/5] bg-gradient-to-br from-primary-400 via-ocean-400 to-accent-400 relative">
+                {/* Replace this div with: */}
+                {/* <Image src="/hero-celebration.jpg" alt="Happy celebration" fill className="object-cover" /> */}
+                <div className="absolute inset-0 flex items-center justify-center text-white text-center p-8">
+                  <div>
+                    <div className="text-7xl mb-6 animate-float">🎉</div>
+                    <p className="text-3xl font-bold mb-3">Tu Espacio Ideal</p>
+                    <p className="text-lg opacity-90">Cumpleaños • Comuniones • Bautizos</p>
+                  </div>
+                </div>
+
+                {/* Gradient overlay for when real image is added */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+              </div>
+
+              {/* Floating badge */}
+              <div className="absolute bottom-6 right-6 bg-white p-5 rounded-2xl shadow-2xl animate-float backdrop-blur-sm">
+                <div className="flex items-center space-x-4">
+                  <div className="bg-gradient-to-br from-green-400 to-emerald-500 text-white p-3 rounded-xl">
+                    <Star className="w-7 h-7 fill-current" />
+                  </div>
+                  <div>
+                    <div className="font-bold text-gray-900 text-lg">Disponible ya</div>
+                    <div className="text-sm text-gray-600">Reserva fácil y rápida</div>
+                  </div>
                 </div>
               </div>
             </div>
-            <div className="absolute -bottom-6 -right-6 bg-white p-6 rounded-xl shadow-xl">
-              <div className="flex items-center space-x-3">
-                <div className="bg-green-100 text-green-600 p-3 rounded-full">
-                  <Star className="w-6 h-6 fill-current" />
-                </div>
-                <div>
-                  <div className="font-bold text-gray-900">Disponible</div>
-                  <div className="text-sm text-gray-600">Reserva fácil</div>
-                </div>
-              </div>
-            </div>
+
+            {/* Decorative elements */}
+            <div className="absolute -top-4 -left-4 w-24 h-24 bg-primary-300/50 rounded-full blur-2xl animate-pulse"></div>
+            <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-ocean-300/50 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '1s' }}></div>
           </div>
         </div>
       </div>
+
+      {/* Scroll indicator */}
+      <button
+        onClick={scrollToFeatures}
+        className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-gray-400 hover:text-primary-600 transition-colors animate-bounce cursor-pointer"
+        aria-label="Scroll to features"
+      >
+        <ChevronDown className="w-8 h-8" />
+      </button>
     </section>
   );
 }

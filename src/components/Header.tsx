@@ -1,48 +1,96 @@
-import Link from 'next/link';
-import { useState } from 'react';
-import { Menu, X, Calendar, User } from 'lucide-react';
+import Image from 'next/image';
+import { useState, useEffect } from 'react';
+import { Menu, X, User } from 'lucide-react';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const offset = 80;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+      setIsMenuOpen(false);
+    }
+  };
 
   const navItems = [
-    { href: '/', label: 'Inicio' },
-    { href: '/servicios', label: 'Servicios' },
-    { href: '/disponibilidad', label: 'Disponibilidad' },
-    { href: '/contacto', label: 'Contacto' },
+    { id: 'features', label: 'Características' },
+    { id: 'events', label: 'Eventos' },
+    { id: 'services', label: 'Servicios' },
+    { id: 'testimonials', label: 'Opiniones' },
+    { id: 'contact', label: 'Contacto' },
   ];
 
   return (
-    <header className="bg-white shadow-md sticky top-0 z-50">
+    <header
+      className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+        isScrolled
+          ? 'bg-white/90 backdrop-blur-lg shadow-lg'
+          : 'bg-white/50 backdrop-blur-sm'
+      }`}
+    >
       <nav className="container-custom py-4">
         <div className="flex items-center justify-between">
-          <Link href="/" className="flex items-center space-x-2">
-            <div className="bg-primary-600 text-white p-2 rounded-lg">
-              <Calendar className="w-6 h-6" />
+          <button
+            onClick={() => scrollToSection('hero')}
+            className="flex items-center space-x-3 group"
+          >
+            <div className="relative w-10 h-10 rounded-xl overflow-hidden">
+              <Image
+                src="/src/logo/logo-happyhub-black.jpeg"
+                alt="HappyHub Logo"
+                width={40}
+                height={40}
+                className="object-contain"
+              />
             </div>
-            <span className="text-2xl font-bold text-gray-900">HappyHub</span>
-          </Link>
+            <span className="text-2xl font-bold bg-gradient-to-r from-primary-700 to-ocean-700 bg-clip-text text-transparent">
+              HappyHub
+            </span>
+          </button>
 
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden lg:flex items-center space-x-1">
             {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="text-gray-700 hover:text-primary-600 font-medium transition-colors"
+              <button
+                key={item.id}
+                onClick={() => scrollToSection(item.id)}
+                className="text-gray-700 hover:text-primary-600 font-medium transition-colors px-4 py-2 rounded-xl hover:bg-primary-50"
               >
                 {item.label}
-              </Link>
+              </button>
             ))}
-            <Link href="/mi-reserva" className="text-gray-700 hover:text-primary-600 transition-colors">
+            <a
+              href="/mi-reserva"
+              className="text-gray-700 hover:text-primary-600 transition-colors p-2 rounded-xl hover:bg-primary-50 ml-2"
+            >
               <User className="w-5 h-5" />
-            </Link>
-            <Link href="/reservas" className="btn-primary">
+            </a>
+            <a
+              href="/reservas"
+              className="btn-primary ml-4 !py-2.5 !px-6 text-sm"
+            >
               Reservar ahora
-            </Link>
+            </a>
           </div>
 
           <button
-            className="md:hidden text-gray-700"
+            className="lg:hidden text-gray-700 p-2"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label="Toggle menu"
           >
@@ -51,31 +99,28 @@ export default function Header() {
         </div>
 
         {isMenuOpen && (
-          <div className="md:hidden mt-4 pb-4 space-y-4">
+          <div className="lg:hidden mt-6 pb-4 space-y-2 animate-fade-in">
             {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="block text-gray-700 hover:text-primary-600 font-medium transition-colors"
-                onClick={() => setIsMenuOpen(false)}
+              <button
+                key={item.id}
+                onClick={() => scrollToSection(item.id)}
+                className="block w-full text-left text-gray-700 hover:text-primary-600 font-medium transition-colors px-4 py-3 rounded-xl hover:bg-primary-50"
               >
                 {item.label}
-              </Link>
+              </button>
             ))}
-            <Link
+            <a
               href="/mi-reserva"
-              className="block text-gray-700 hover:text-primary-600 font-medium transition-colors"
-              onClick={() => setIsMenuOpen(false)}
+              className="block text-gray-700 hover:text-primary-600 font-medium transition-colors px-4 py-3 rounded-xl hover:bg-primary-50"
             >
               Mi Reserva
-            </Link>
-            <Link
+            </a>
+            <a
               href="/reservas"
-              className="block btn-primary text-center"
-              onClick={() => setIsMenuOpen(false)}
+              className="block btn-primary text-center mt-4"
             >
               Reservar ahora
-            </Link>
+            </a>
           </div>
         )}
       </nav>
