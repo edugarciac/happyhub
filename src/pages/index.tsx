@@ -28,18 +28,15 @@ export default function ComingSoon() {
           quality={100}
         />
 
-        {/* Secret clickable area on winking eye of emoji */}
-        <button
-          onClick={handleSecretClick}
-          className="absolute cursor-pointer opacity-0 hover:opacity-5 hover:bg-white/10 transition-opacity duration-300 rounded-full"
-          style={{
-            top: '24.5%',
-            left: '50.5%',
-            width: '50px',
-            height: '50px',
-          }}
-          aria-label="Secret access"
-        />
+        {/* Preview access button */}
+        <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2 z-10">
+          <button
+            onClick={handleSecretClick}
+            className="btn-primary px-8 py-3 text-lg font-semibold shadow-2xl hover:scale-105 transition-transform duration-300"
+          >
+            Access to preview website
+          </button>
+        </div>
       </div>
     </>
   );
