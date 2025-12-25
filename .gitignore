@@ -39,3 +39,4 @@ aws-config.local.json
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+aws-credentials-happyhub.json
