@@ -33,6 +33,10 @@ aws-config.local.json
 **/aws-credentials*
 **/aws-config.local*
 
+# Airtable credentials (NEVER commit these)
+airtable-credentials.json
+**/airtable-credentials*
+
 # vercel
 .vercel
 

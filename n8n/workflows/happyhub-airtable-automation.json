@@ -12,12 +12,12 @@
         },
         "base": {
           "__rl": true,
-          "value": "appXXXXXXXXXXXXXX",
+          "value": "appAj3N7bMGIVBagd",
           "mode": "id"
         },
         "table": {
           "__rl": true,
-          "value": "tblYYYYYYYYYYYYYY",
+          "value": "tblGakVr6paaokq9N",
           "mode": "id"
         },
         "options": {
@@ -71,12 +71,12 @@
         "operation": "update",
         "base": {
           "__rl": true,
-          "value": "appXXXXXXXXXXXXXX",
+          "value": "appAj3N7bMGIVBagd",
           "mode": "id"
         },
         "table": {
           "__rl": true,
-          "value": "tblYYYYYYYYYYYYYY",
+          "value": "tblGakVr6paaokq9N",
           "mode": "id"
         },
         "id": "={{$json.recordId}}",
