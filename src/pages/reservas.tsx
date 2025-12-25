@@ -30,16 +30,25 @@ export default function Reservas() {
               </div>
 
               <h1 className="text-3xl font-bold text-gray-900 mb-4">
-                ¡Reserva Confirmada!
+                ¡Solicitud Enviada!
               </h1>
 
               <p className="text-xl text-gray-600 mb-6">
-                Tu reserva se ha procesado correctamente
+                Tu solicitud de reserva ha sido recibida correctamente
               </p>
 
               <div className="bg-primary-50 rounded-lg p-6 mb-8">
-                <p className="text-sm text-gray-600 mb-2">Número de reserva</p>
+                <p className="text-sm text-gray-600 mb-2">Número de solicitud</p>
                 <p className="text-2xl font-bold text-primary-600">{reservationId}</p>
+              </div>
+
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-8">
+                <p className="text-sm text-yellow-800 font-semibold mb-1">
+                  ⏳ Pendiente de aprobación
+                </p>
+                <p className="text-sm text-yellow-700">
+                  Revisaremos tu solicitud manualmente y te contactaremos pronto
+                </p>
               </div>
 
               <div className="space-y-4 text-left mb-8">
@@ -48,9 +57,9 @@ export default function Reservas() {
                     <span className="text-primary-600 font-bold">1</span>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900">Confirmación enviada</h3>
+                    <h3 className="font-semibold text-gray-900">Revisión de solicitud</h3>
                     <p className="text-gray-600 text-sm">
-                      Recibirás un email y WhatsApp con todos los detalles de tu reserva
+                      Nuestro equipo revisará tu solicitud en las próximas 24 horas
                     </p>
                   </div>
                 </div>
@@ -60,9 +69,9 @@ export default function Reservas() {
                     <span className="text-primary-600 font-bold">2</span>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900">Información de pago</h3>
+                    <h3 className="font-semibold text-gray-900">Confirmación personal</h3>
                     <p className="text-gray-600 text-sm">
-                      Te enviaremos las instrucciones para completar el pago
+                      Te contactaremos por teléfono o email para confirmar todos los detalles
                     </p>
                   </div>
                 </div>
@@ -72,9 +81,9 @@ export default function Reservas() {
                     <span className="text-primary-600 font-bold">3</span>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900">Recordatorios</h3>
+                    <h3 className="font-semibold text-gray-900">Enlace de pago</h3>
                     <p className="text-gray-600 text-sm">
-                      Te recordaremos tu evento 48h y 24h antes
+                      Una vez aprobada, recibirás un enlace seguro para realizar el pago
                     </p>
                   </div>
                 </div>

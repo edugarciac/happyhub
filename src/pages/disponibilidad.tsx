@@ -1,24 +1,28 @@
 import { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
-import Calendar from '@/components/Calendar';
+import FullCalendar from '@/components/FullCalendar';
 import { formatDate } from '@/utils/formatters';
-import { getAvailableTimeSlotsWithPricing, type TimeSlot } from '@/utils/pricing';
+import { calculateBasePrice, type TimeSlot } from '@/utils/pricing';
 
 export default function Disponibilidad() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(null);
 
-  const bookedDates = [
-    new Date(2025, 11, 15),
-    new Date(2025, 11, 22),
-    new Date(2025, 11, 25),
-    new Date(2026, 0, 1),
+  // Example booked slots - in production, this would come from your database
+  const bookedSlots = [
+    { date: new Date(2025, 11, 15), timeSlot: 'morning' as TimeSlot },
+    { date: new Date(2025, 11, 15), timeSlot: 'afternoon' as TimeSlot },
+    { date: new Date(2025, 11, 22), timeSlot: 'afternoon' as TimeSlot },
+    { date: new Date(2025, 11, 25), timeSlot: 'morning' as TimeSlot },
+    { date: new Date(2025, 11, 25), timeSlot: 'afternoon' as TimeSlot },
+    { date: new Date(2025, 11, 25), timeSlot: 'night' as TimeSlot },
+    { date: new Date(2026, 0, 1), timeSlot: 'afternoon' as TimeSlot },
   ];
 
-  const handleDateSelect = (date: Date) => {
+  const handleSlotSelect = (date: Date, timeSlot: TimeSlot) => {
     setSelectedDate(date);
-    setSelectedTimeSlot(null); // Reset time slot when date changes
+    setSelectedTimeSlot(timeSlot);
   };
 
   const handleReserve = () => {
@@ -28,8 +32,21 @@ export default function Disponibilidad() {
     }
   };
 
-  // Get available time slots with pricing for selected date
-  const availableTimeSlots = selectedDate ? getAvailableTimeSlotsWithPricing(selectedDate) : [];
+  const getTimeSlotLabel = (slot: TimeSlot): string => {
+    switch (slot) {
+      case 'morning':
+        return 'Mañana (11:00-14:30)';
+      case 'afternoon':
+        return 'Tarde (16:30-20:30)';
+      case 'night':
+        return 'Noche (22:00-02:00)';
+    }
+  };
+
+  const getTimeSlotPrice = (date: Date, slot: TimeSlot): string => {
+    const price = calculateBasePrice(date, slot);
+    return price === 'consult' ? 'A consultar' : `${price}€`;
+  };
 
   return (
     <>
@@ -38,148 +55,64 @@ export default function Disponibilidad() {
         <meta name="description" content="Consulta las fechas disponibles para tu evento en HappyHub" />
       </Head>
 
-      <section className="bg-gradient-to-br from-primary-50 to-secondary-50 py-16">
+      {/* Hero Section */}
+      <section className="bg-gradient-to-br from-primary-50 to-secondary-50 pt-32 pb-8">
         <div className="container-custom text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
             Consulta Disponibilidad
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Selecciona la fecha perfecta para tu celebración. Las fechas en gris no están disponibles.
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-2">
+            Selecciona la fecha y franja horaria perfecta para tu celebración
+          </p>
+          <p className="text-sm text-gray-500">
+            Verde = Disponible | Rojo = Reservado | M = Mañana | T = Tarde | N = Noche
           </p>
         </div>
       </section>
 
-      <section className="py-16 bg-white">
-        <div className="container-custom max-w-7xl">
-          {/* Calendario grande - ocupa todo el ancho inicialmente */}
-          <div className="card mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6 text-center">Selecciona una fecha</h2>
-            <div className="flex justify-center">
-              <div className="w-full max-w-4xl scale-110 md:scale-125 py-8">
-                <Calendar
-                  onDateSelect={handleDateSelect}
-                  bookedDates={bookedDates}
-                  minDate={new Date()}
-                />
-              </div>
-            </div>
-          </div>
+      {/* Full screen calendar */}
+      <section className="py-8 bg-white min-h-screen">
+        <div className="container-custom max-w-[1600px]">
+          <FullCalendar onSlotSelect={handleSlotSelect} bookedSlots={bookedSlots} />
 
-          {/* Horarios y resumen - se muestran solo cuando hay fecha seleccionada */}
-          {selectedDate && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2">
-                <div className="card">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                    Horarios disponibles para {formatDate(selectedDate, 'EEEE, d MMMM yyyy')}
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {availableTimeSlots.map((slot) => (
-                      <button
-                        key={slot.id}
-                        onClick={() => setSelectedTimeSlot(slot.id)}
-                        className={`p-6 border-2 rounded-xl transition-all text-left ${
-                          selectedTimeSlot === slot.id
-                            ? 'border-primary-600 bg-primary-50 shadow-lg scale-105'
-                            : 'border-gray-300 hover:border-primary-400 hover:bg-primary-25'
-                        }`}
-                      >
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="text-xl font-bold text-gray-900">{slot.label}</div>
-                          <div
-                            className={`text-2xl font-bold ${
-                              slot.price === 'consult' ? 'text-secondary-600' : 'text-primary-600'
-                            }`}
-                          >
-                            {slot.priceLabel}
-                          </div>
-                        </div>
-                        <div className="text-sm text-gray-600 mb-2">
-                          {slot.startTime} - {slot.endTime}
-                        </div>
-                        <div className="text-xs text-gray-500">{slot.description}</div>
-                        {slot.price === 'consult' && (
-                          <div className="mt-2 text-xs text-secondary-600 font-semibold">
-                            ℹ️ Contacta con nosotros para consultar disponibilidad y precio
-                          </div>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Información adicional sobre tarifas */}
-                  <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <h4 className="font-semibold text-blue-900 mb-2">ℹ️ Información sobre tarifas</h4>
-                    <ul className="text-sm text-blue-800 space-y-1">
-                      <li>• Apertura anticipada sin coste adicional (ver horarios)</li>
-                      <li>• Los precios NO incluyen servicios extras (catering, decoración, etc.)</li>
-                      <li>• Se requiere depósito del 30% para confirmar la reserva</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              <div className="lg:col-span-1">
-                <div className="card sticky top-24">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Resumen</h2>
-
-                  <div className="space-y-4 mb-6">
-                    <div>
-                      <label className="label">Fecha seleccionada</label>
-                      <div className="text-lg font-semibold text-primary-600">
+          {/* Selection summary */}
+          {selectedDate && selectedTimeSlot && (
+            <div className="mt-8 max-w-3xl mx-auto">
+              <div className="card bg-gradient-to-r from-primary-50 to-secondary-50 border-2 border-primary-300">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                  <div className="flex-1 text-center md:text-left">
+                    <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                      Selección actual
+                    </h3>
+                    <p className="text-lg text-gray-700">
+                      <span className="font-semibold">
                         {formatDate(selectedDate, 'EEEE, d MMMM yyyy')}
+                      </span>
+                    </p>
+                    <p className="text-md text-gray-600 mt-1">
+                      {getTimeSlotLabel(selectedTimeSlot)}
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="text-center">
+                      <div className="text-sm text-gray-600 mb-1">Precio base</div>
+                      <div className="text-4xl font-bold text-primary-600">
+                        {getTimeSlotPrice(selectedDate, selectedTimeSlot)}
                       </div>
                     </div>
-
-                    {selectedTimeSlot && (
-                      <>
-                        <div>
-                          <label className="label">Horario</label>
-                          <div className="text-lg font-semibold text-gray-900">
-                            {availableTimeSlots.find((s) => s.id === selectedTimeSlot)?.label}
-                          </div>
-                          <div className="text-sm text-gray-600">
-                            {availableTimeSlots.find((s) => s.id === selectedTimeSlot)?.startTime} -{' '}
-                            {availableTimeSlots.find((s) => s.id === selectedTimeSlot)?.endTime}
-                          </div>
-                        </div>
-
-                        <div className="border-t pt-4">
-                          <div className="flex justify-between items-center mb-4">
-                            <span className="text-gray-600">Precio base del espacio:</span>
-                            <span className="text-3xl font-bold text-primary-600">
-                              {availableTimeSlots.find((s) => s.id === selectedTimeSlot)?.priceLabel}
-                            </span>
-                          </div>
-                        </div>
-                      </>
-                    )}
-                  </div>
-
-                  {selectedTimeSlot && availableTimeSlots.find((s) => s.id === selectedTimeSlot)?.price !== 'consult' ? (
-                    <>
-                      <button onClick={handleReserve} className="btn-primary w-full">
-                        Continuar con la reserva
+                    {calculateBasePrice(selectedDate, selectedTimeSlot) !== 'consult' ? (
+                      <button
+                        onClick={handleReserve}
+                        className="btn-primary whitespace-nowrap px-8"
+                      >
+                        Solicitar Reserva
                       </button>
-                      <p className="text-sm text-gray-600 mt-4 text-center">
-                        Podrás añadir servicios extras en el siguiente paso
-                      </p>
-                    </>
-                  ) : selectedTimeSlot ? (
-                    <div className="text-center">
-                      <Link href="/contacto" className="btn-secondary w-full">
+                    ) : (
+                      <Link href="/contacto" className="btn-secondary whitespace-nowrap px-8">
                         Consultar disponibilidad
                       </Link>
-                      <p className="text-sm text-gray-600 mt-4">
-                        El horario nocturno requiere consulta previa
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <div className="text-6xl mb-4">⏰</div>
-                      <p className="text-gray-600">Selecciona un horario para continuar</p>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -219,9 +152,12 @@ export default function Disponibilidad() {
               <div className="border-l-4 border-primary-500 pl-4">
                 <h3 className="font-bold text-gray-900 mb-3 text-lg">💳 Forma de Pago</h3>
                 <p className="text-gray-600 mb-2">
-                  Se requiere un <strong>depósito del 30%</strong> para confirmar la reserva.
+                  Una vez aprobada tu solicitud, te enviaremos un enlace de pago seguro.
                 </p>
                 <p className="text-gray-600">
+                  Se requiere un <strong>depósito del 30%</strong> para confirmar la reserva.
+                </p>
+                <p className="text-gray-600 mt-2">
                   El resto se abona el día del evento.
                 </p>
               </div>

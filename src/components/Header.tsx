@@ -1,10 +1,13 @@
 import Image from 'next/image';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { useState, useEffect } from 'react';
 import { Menu, X, User } from 'lucide-react';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -14,27 +17,12 @@ export default function Header() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      const offset = 80;
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - offset;
-
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      });
-      setIsMenuOpen(false);
-    }
-  };
-
   const navItems = [
-    { id: 'features', label: 'Características' },
-    { id: 'events', label: 'Eventos' },
-    { id: 'services', label: 'Servicios' },
-    { id: 'testimonials', label: 'Opiniones' },
-    { id: 'contact', label: 'Contacto' },
+    { href: '/', label: 'Inicio' },
+    { href: '/como-funciona', label: 'Cómo Funciona' },
+    { href: '/servicios', label: 'Servicios' },
+    { href: '/disponibilidad', label: 'Disponibilidad' },
+    { href: '/contacto', label: 'Contacto' },
   ];
 
   return (
@@ -47,10 +35,7 @@ export default function Header() {
     >
       <nav className="container-custom py-4">
         <div className="flex items-center justify-between">
-          <button
-            onClick={() => scrollToSection('hero')}
-            className="flex items-center space-x-3 group"
-          >
+          <Link href="/" className="flex items-center space-x-3 group">
             <div className="relative w-10 h-10">
               <Image
                 src="/logo-happyhub-white smal.jpeg"
@@ -64,30 +49,32 @@ export default function Header() {
               <span className="text-[#FF6B35]">Happy</span>
               <span className="text-[#00BCD4]">Hub</span>
             </span>
-          </button>
+          </Link>
 
           <div className="hidden lg:flex items-center space-x-1">
             {navItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => scrollToSection(item.id)}
-                className="text-gray-700 hover:text-primary-600 font-medium transition-colors px-4 py-2 rounded-xl hover:bg-primary-50"
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`text-gray-700 hover:text-primary-600 font-medium transition-colors px-4 py-2 rounded-xl hover:bg-primary-50 ${
+                  router.pathname === item.href ? 'bg-primary-50 text-primary-600' : ''
+                }`}
               >
                 {item.label}
-              </button>
+              </Link>
             ))}
-            <a
+            <Link
               href="/mi-reserva"
               className="text-gray-700 hover:text-primary-600 transition-colors p-2 rounded-xl hover:bg-primary-50 ml-2"
             >
               <User className="w-5 h-5" />
-            </a>
-            <a
+            </Link>
+            <Link
               href="/reservas"
               className="btn-primary ml-4 !py-2.5 !px-6 text-sm"
             >
-              Reservar ahora
-            </a>
+              Solicitar Reserva
+            </Link>
           </div>
 
           <button
@@ -102,26 +89,31 @@ export default function Header() {
         {isMenuOpen && (
           <div className="lg:hidden mt-6 pb-4 space-y-2 animate-fade-in">
             {navItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => scrollToSection(item.id)}
-                className="block w-full text-left text-gray-700 hover:text-primary-600 font-medium transition-colors px-4 py-3 rounded-xl hover:bg-primary-50"
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setIsMenuOpen(false)}
+                className={`block w-full text-left text-gray-700 hover:text-primary-600 font-medium transition-colors px-4 py-3 rounded-xl hover:bg-primary-50 ${
+                  router.pathname === item.href ? 'bg-primary-50 text-primary-600' : ''
+                }`}
               >
                 {item.label}
-              </button>
+              </Link>
             ))}
-            <a
+            <Link
               href="/mi-reserva"
+              onClick={() => setIsMenuOpen(false)}
               className="block text-gray-700 hover:text-primary-600 font-medium transition-colors px-4 py-3 rounded-xl hover:bg-primary-50"
             >
               Mi Reserva
-            </a>
-            <a
+            </Link>
+            <Link
               href="/reservas"
+              onClick={() => setIsMenuOpen(false)}
               className="block btn-primary text-center mt-4"
             >
-              Reservar ahora
-            </a>
+              Solicitar Reserva
+            </Link>
           </div>
         )}
       </nav>
