@@ -1,0 +1,317 @@
+{
+  "name": "HappyHub - Gestión Completa de Reservas",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "reservation-request",
+        "options": {
+          "responseMode": "responseNode"
+        },
+        "httpMethod": "POST"
+      },
+      "name": "Webhook - Nueva Solicitud",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "happyhub-reservation-request"
+    },
+    {
+      "parameters": {
+        "functionCode": "const requestData = items[0].json.body || items[0].json;\n\n// Formatear fecha para Google Calendar\nconst eventDate = new Date(requestData.date);\nconst timeSlots = {\n  morning: { start: '11:00:00', end: '14:30:00' },\n  afternoon: { start: '16:30:00', end: '20:30:00' },\n  night: { start: '22:00:00', end: '02:00:00' }\n};\n\nconst slot = timeSlots[requestData.timeSlot];\nconst startDateTime = `${requestData.date}T${slot.start}`;\nlet endDateTime = `${requestData.date}T${slot.end}`;\n\n// Si es noche, el final es al día siguiente\nif (requestData.timeSlot === 'night') {\n  const nextDay = new Date(eventDate);\n  nextDay.setDate(nextDay.getDate() + 1);\n  endDateTime = `${nextDay.toISOString().split('T')[0]}T${slot.end}`;\n}\n\nreturn [{\n  json: {\n    ...requestData,\n    startDateTime,\n    endDateTime,\n    calendarId: 'happyhub.rovellat@gmail.com'\n  }\n}];"
+      },
+      "name": "Preparar Datos",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "calendar": "={{$json.calendarId}}",
+        "operation": "get",
+        "options": {
+          "timeMin": "={{$json.startDateTime}}",
+          "timeMax": "={{$json.endDateTime}}"
+        }
+      },
+      "name": "Google Calendar - Verificar Disponibilidad",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1,
+      "position": [650, 300],
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "1",
+          "name": "Google Calendar happyhub.rovellat"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json.items && $json.items.length > 0}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "¿Slot Ocupado?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"success\": false, \"error\": \"Lo siento, la fecha y franja horaria seleccionada ya está reservada. Por favor, selecciona otra fecha u horario.\", \"code\": \"SLOT_OCCUPIED\"}",
+        "options": {
+          "responseCode": 409
+        }
+      },
+      "name": "Respuesta - Slot Ocupado",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1050, 200]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO reservations (name, email, phone, event_type, event_date, time_slot, guests, extras, base_price, total_price, payment_method, customer_message, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'pending') RETURNING id",
+        "additionalFields": {
+          "queryParameters": "={{JSON.stringify([$json.name, $json.email, $json.phone, $json.eventType, $json.date, $json.timeSlot, $json.guests, JSON.stringify($json.extras || []), $json.totalPrice, $json.totalPrice, $json.paymentMethod, $json.message || ''])}}"
+        }
+      },
+      "name": "Aurora - Guardar Solicitud",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [1050, 400],
+      "credentials": {
+        "postgres": {
+          "id": "2",
+          "name": "Aurora PostgreSQL HappyHub"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "const reservationId = items[0].json[0].id;\nconst originalData = items[1].json;\n\nconst timeSlotNames = {\n  morning: 'Mañana (11:00-14:30)',\n  afternoon: 'Tarde (16:30-20:30)',\n  night: 'Noche (22:00-02:00)'\n};\n\nreturn [{\n  json: {\n    reservationId,\n    ...originalData,\n    timeSlotLabel: timeSlotNames[originalData.timeSlot],\n    approvalUrl: `https://happyhub.vercel.app/admin/reservas?id=${reservationId}`,\n    formattedDate: new Date(originalData.date).toLocaleDateString('es-ES', {\n      weekday: 'long',\n      year: 'numeric',\n      month: 'long',\n      day: 'numeric'\n    })\n  }\n}];"
+      },
+      "name": "Preparar Email Aprobación",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1250, 400]
+    },
+    {
+      "parameters": {
+        "fromEmail": "noreply@happyhub.es",
+        "toEmail": "happyhub.rovellat@gmail.com",
+        "subject": "🔔 Nueva Solicitud de Reserva #{{$json.reservationId}} - Requiere Aprobación",
+        "emailType": "html",
+        "message": "<div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb;\">\\n  <div style=\"background: linear-gradient(135deg, #FF6B35 0%, #00BCD4 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;\">\\n    <h1 style=\"color: white; margin: 0; font-size: 28px;\">Nueva Solicitud de Reserva</h1>\\n    <p style=\"color: white; margin: 10px 0 0 0; font-size: 16px;\">ID: #{{$json.reservationId}}</p>\\n  </div>\\n  \\n  <div style=\"background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);\">\\n    <h2 style=\"color: #FF6B35; margin-top: 0;\">📋 Detalles del Evento</h2>\\n    \\n    <table style=\"width: 100%; border-collapse: collapse;\">\\n      <tr>\\n        <td style=\"padding: 10px; border-bottom: 1px solid #e5e7eb; font-weight: bold;\">Fecha:</td>\\n        <td style=\"padding: 10px; border-bottom: 1px solid #e5e7eb;\">{{$json.formattedDate}}</td>\\n      </tr>\\n      <tr>\\n        <td style=\"padding: 10px; border-bottom: 1px solid #e5e7eb; font-weight: bold;\">Franja:</td>\\n        <td style=\"padding: 10px; border-bottom: 1px solid #e5e7eb;\">{{$json.timeSlotLabel}}</td>\\n      </tr>\\n      <tr>\\n        <td style=\"padding: 10px; border-bottom: 1px solid #e5e7eb; font-weight: bold;\">Tipo:</td>\\n        <td style=\"padding: 10px; border-bottom: 1px solid #e5e7eb;\">{{$json.eventType}}</td>\\n      </tr>\\n      <tr>\\n        <td style=\"padding: 10px; border-bottom: 1px solid #e5e7eb; font-weight: bold;\">Invitados:</td>\\n        <td style=\"padding: 10px; border-bottom: 1px solid #e5e7eb;\">{{$json.guests}} personas</td>\\n      </tr>\\n      <tr>\\n        <td style=\"padding: 10px; border-bottom: 1px solid #e5e7eb; font-weight: bold;\">Precio:</td>\\n        <td style=\"padding: 10px; border-bottom: 1px solid #e5e7eb; color: #FF6B35; font-size: 18px; font-weight: bold;\">{{$json.totalPrice}}€</td>\\n      </tr>\\n    </table>\\n    \\n    <h2 style=\"color: #FF6B35; margin-top: 30px;\">👤 Información del Cliente</h2>\\n    <table style=\"width: 100%; border-collapse: collapse;\">\\n      <tr>\\n        <td style=\"padding: 10px; border-bottom: 1px solid #e5e7eb; font-weight: bold;\">Nombre:</td>\\n        <td style=\"padding: 10px; border-bottom: 1px solid #e5e7eb;\">{{$json.name}}</td>\\n      </tr>\\n      <tr>\\n        <td style=\"padding: 10px; border-bottom: 1px solid #e5e7eb; font-weight: bold;\">Email:</td>\\n        <td style=\"padding: 10px; border-bottom: 1px solid #e5e7eb;\"><a href=\"mailto:{{$json.email}}\">{{$json.email}}</a></td>\\n      </tr>\\n      <tr>\\n        <td style=\"padding: 10px; border-bottom: 1px solid #e5e7eb; font-weight: bold;\">Teléfono:</td>\\n        <td style=\"padding: 10px; border-bottom: 1px solid #e5e7eb;\"><a href=\"tel:{{$json.phone}}\">{{$json.phone}}</a></td>\\n      </tr>\\n      <tr>\\n        <td style=\"padding: 10px; border-bottom: 1px solid #e5e7eb; font-weight: bold;\">Pago:</td>\\n        <td style=\"padding: 10px; border-bottom: 1px solid #e5e7eb;\">{{$json.paymentMethod}}</td>\\n      </tr>\\n    </table>\\n    \\n    <div style=\"margin: 30px 0; text-align: center;\">\\n      <a href=\"{{$json.approvalUrl}}\" style=\"display: inline-block; background: linear-gradient(135deg, #FF6B35 0%, #ff8f6b 100%); color: white; padding: 15px 40px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px rgba(255,107,53,0.3);\">✅ Revisar y Aprobar</a>\\n    </div>\\n    \\n    <div style=\"background: #f3f4f6; padding: 15px; border-radius: 8px; margin-top: 20px;\">\\n      <p style=\"margin: 0; color: #6b7280; font-size: 14px; text-align: center;\">Esta solicitud está pendiente de tu aprobación. Una vez aprobada, se creará el evento en Google Calendar y se enviará el enlace de pago al cliente.</p>\\n    </div>\\n  </div>\\n</div>"
+      },
+      "name": "Email - Notificar Admin",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [1450, 400],
+      "credentials": {
+        "smtp": {
+          "id": "3",
+          "name": "SMTP HappyHub"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "noreply@happyhub.es",
+        "toEmail": "={{$json.email}}",
+        "subject": "Solicitud Recibida - HappyHub #{{$json.reservationId}}",
+        "emailType": "html",
+        "message": "<div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;\">\\n  <h1 style=\"color: #FF6B35;\">¡Solicitud Recibida!</h1>\\n  <p>Hola <strong>{{$json.name}}</strong>,</p>\\n  <p>Hemos recibido tu solicitud de reserva correctamente.</p>\\n  <p><strong>Número de solicitud:</strong> #{{$json.reservationId}}</p>\\n  <p>Nuestro equipo revisará tu solicitud en las próximas 24 horas y te contactaremos para confirmar todos los detalles.</p>\\n  <p>Si tienes alguna pregunta, no dudes en contactarnos.</p>\\n  <p>Saludos,<br>El equipo de HappyHub</p>\\n</div>"
+      },
+      "name": "Email - Confirmar Cliente",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [1450, 550]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"success\": true, \"reservationId\": {{$json.reservationId}}, \"message\": \"Solicitud recibida correctamente. Te contactaremos pronto.\"}",
+        "options": {}
+      },
+      "name": "Respuesta - Éxito",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1650, 400]
+    },
+    {
+      "parameters": {
+        "path": "reservation-approval",
+        "options": {
+          "responseMode": "responseNode"
+        },
+        "httpMethod": "POST"
+      },
+      "name": "Webhook - Aprobar/Rechazar",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 700],
+      "webhookId": "happyhub-reservation-approval"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.body.action}}",
+              "value2": "approve"
+            }
+          ]
+        }
+      },
+      "name": "¿Aprobar o Rechazar?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [450, 700]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE reservations SET status = 'approved', admin_comments = $1, reviewed_at = NOW() WHERE id = $2 RETURNING *",
+        "additionalFields": {
+          "queryParameters": "={{JSON.stringify([$json.body.comments || '', $json.body.reservationId])}}"
+        }
+      },
+      "name": "Aurora - Aprobar Reserva",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [650, 600],
+      "credentials": {
+        "postgres": {
+          "id": "2",
+          "name": "Aurora PostgreSQL HappyHub"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "calendar": "happyhub.rovellat@gmail.com",
+        "start": "={{$json.startDateTime}}",
+        "end": "={{$json.endDateTime}}",
+        "summary": "Reserva HappyHub - {{$json.name}}",
+        "description": "Evento: {{$json.event_type}}\\nInvitados: {{$json.guests}}\\nTeléfono: {{$json.phone}}\\nEmail: {{$json.email}}",
+        "options": {}
+      },
+      "name": "Google Calendar - Crear Evento",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1,
+      "position": [850, 600],
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "1",
+          "name": "Google Calendar happyhub.rovellat"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE reservations SET google_calendar_event_id = $1 WHERE id = $2",
+        "additionalFields": {
+          "queryParameters": "={{JSON.stringify([$json.id, $json.body.reservationId])}}"
+        }
+      },
+      "name": "Aurora - Guardar Event ID",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [1050, 600]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"success\": true, \"message\": \"Reserva aprobada y evento creado en calendario\"}",
+        "options": {}
+      },
+      "name": "Respuesta - Aprobado",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1250, 600]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE reservations SET status = 'rejected', rejection_reason = $1, reviewed_at = NOW() WHERE id = $2 RETURNING *",
+        "additionalFields": {
+          "queryParameters": "={{JSON.stringify([$json.body.reason || 'Sin especificar', $json.body.reservationId])}}"
+        }
+      },
+      "name": "Aurora - Rechazar Reserva",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [650, 800]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"success\": true, \"message\": \"Reserva rechazada\"}",
+        "options": {}
+      },
+      "name": "Respuesta - Rechazado",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [850, 800]
+    }
+  ],
+  "connections": {
+    "Webhook - Nueva Solicitud": {
+      "main": [[{"node": "Preparar Datos", "type": "main", "index": 0}]]
+    },
+    "Preparar Datos": {
+      "main": [[{"node": "Google Calendar - Verificar Disponibilidad", "type": "main", "index": 0}]]
+    },
+    "Google Calendar - Verificar Disponibilidad": {
+      "main": [[{"node": "¿Slot Ocupado?", "type": "main", "index": 0}]]
+    },
+    "¿Slot Ocupado?": {
+      "main": [
+        [{"node": "Respuesta - Slot Ocupado", "type": "main", "index": 0}],
+        [{"node": "Aurora - Guardar Solicitud", "type": "main", "index": 0}]
+      ]
+    },
+    "Aurora - Guardar Solicitud": {
+      "main": [[{"node": "Preparar Email Aprobación", "type": "main", "index": 0}]]
+    },
+    "Preparar Email Aprobación": {
+      "main": [[
+        {"node": "Email - Notificar Admin", "type": "main", "index": 0},
+        {"node": "Email - Confirmar Cliente", "type": "main", "index": 0}
+      ]]
+    },
+    "Email - Notificar Admin": {
+      "main": [[{"node": "Respuesta - Éxito", "type": "main", "index": 0}]]
+    },
+    "Webhook - Aprobar/Rechazar": {
+      "main": [[{"node": "¿Aprobar o Rechazar?", "type": "main", "index": 0}]]
+    },
+    "¿Aprobar o Rechazar?": {
+      "main": [
+        [{"node": "Aurora - Aprobar Reserva", "type": "main", "index": 0}],
+        [{"node": "Aurora - Rechazar Reserva", "type": "main", "index": 0}]
+      ]
+    },
+    "Aurora - Aprobar Reserva": {
+      "main": [[{"node": "Google Calendar - Crear Evento", "type": "main", "index": 0}]]
+    },
+    "Google Calendar - Crear Evento": {
+      "main": [[{"node": "Aurora - Guardar Event ID", "type": "main", "index": 0}]]
+    },
+    "Aurora - Guardar Event ID": {
+      "main": [[{"node": "Respuesta - Aprobado", "type": "main", "index": 0}]]
+    },
+    "Aurora - Rechazar Reserva": {
+      "main": [[{"node": "Respuesta - Rechazado", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {},
+  "tags": []
+}

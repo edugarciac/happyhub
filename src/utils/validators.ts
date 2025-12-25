@@ -8,13 +8,12 @@ export const reservationSchema = z.object({
     errorMap: () => ({ message: 'Selecciona un tipo de evento válido' }),
   }),
   date: z.string().min(1, 'Selecciona una fecha'),
-  time: z.string().min(1, 'Selecciona una hora'),
-  guests: z.number().min(1, 'Debe haber al menos 1 invitado').max(150, 'Máximo 150 invitados'),
-  duration: z.enum(['2h', '3h', '4h', '5h'], {
-    errorMap: () => ({ message: 'Selecciona una duración válida' }),
+  timeSlot: z.enum(['morning', 'afternoon', 'night'], {
+    errorMap: () => ({ message: 'Selecciona una franja horaria válida' }),
   }),
+  guests: z.number().min(1, 'Debe haber al menos 1 invitado').max(150, 'Máximo 150 invitados'),
   extras: z.array(z.string()).optional(),
-  paymentMethod: z.enum(['card', 'transfer', 'cash'], {
+  paymentMethod: z.enum(['card', 'bizum', 'cash'], {
     errorMap: () => ({ message: 'Selecciona un método de pago válido' }),
   }),
   message: z.string().optional(),

@@ -1,17 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { reservationSchema, ReservationFormData } from '@/utils/validators';
-import { calculatePrice, formatCurrency } from '@/utils/formatters';
+import { calculateBasePrice, type TimeSlot } from '@/utils/pricing';
 import { createReservation } from '@/lib/apiClient';
 import { Loader2 } from 'lucide-react';
 
 interface ReservationFormProps {
   preselectedDate?: string;
+  preselectedTimeSlot?: TimeSlot;
   onSuccess?: (reservationId: string) => void;
 }
 
-export default function ReservationForm({ preselectedDate, onSuccess }: ReservationFormProps) {
+export default function ReservationForm({
+  preselectedDate,
+  preselectedTimeSlot,
+  onSuccess
+}: ReservationFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [selectedExtras, setSelectedExtras] = useState<string[]>([]);
@@ -20,19 +25,30 @@ export default function ReservationForm({ preselectedDate, onSuccess }: Reservat
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<ReservationFormData>({
     resolver: zodResolver(reservationSchema),
     defaultValues: {
       date: preselectedDate || '',
+      timeSlot: preselectedTimeSlot || undefined,
       extras: [],
+      paymentMethod: 'card',
     },
   });
 
-  const duration = watch('duration');
+  useEffect(() => {
+    if (preselectedTimeSlot) {
+      setValue('timeSlot', preselectedTimeSlot);
+    }
+  }, [preselectedTimeSlot, setValue]);
+
+  const date = watch('date');
+  const timeSlot = watch('timeSlot');
   const guests = watch('guests');
 
-  const totalPrice = duration && guests ? calculatePrice(duration, guests, selectedExtras) : 0;
+  const basePrice = date && timeSlot ? calculateBasePrice(new Date(date), timeSlot) : 0;
+  const totalPrice = typeof basePrice === 'number' ? basePrice : 0;
 
   const handleExtraToggle = (extra: string) => {
     setSelectedExtras((prev) =>
@@ -74,8 +90,25 @@ export default function ReservationForm({ preselectedDate, onSuccess }: Reservat
     { id: 'tarta', name: 'Tarta personalizada', description: '€50 fijo' },
   ];
 
+  const getTimeSlotLabel = (slot: TimeSlot): string => {
+    switch (slot) {
+      case 'morning':
+        return 'Mañana (11:00-14:30)';
+      case 'afternoon':
+        return 'Tarde (16:30-20:30)';
+      case 'night':
+        return 'Noche (22:00-02:00)';
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      {submitError && (
+        <div className="p-4 bg-red-50 border border-red-200 text-red-800 rounded-lg">
+          {submitError}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label className="label">Nombre completo *</label>
@@ -105,7 +138,7 @@ export default function ReservationForm({ preselectedDate, onSuccess }: Reservat
             type="tel"
             {...register('phone')}
             className="input-field"
-            placeholder="600 123 456"
+            placeholder="638 390 600"
           />
           {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone.message}</p>}
         </div>
@@ -129,9 +162,14 @@ export default function ReservationForm({ preselectedDate, onSuccess }: Reservat
         </div>
 
         <div>
-          <label className="label">Hora *</label>
-          <input type="time" {...register('time')} className="input-field" />
-          {errors.time && <p className="text-red-500 text-sm mt-1">{errors.time.message}</p>}
+          <label className="label">Franja horaria *</label>
+          <select {...register('timeSlot')} className="input-field">
+            <option value="">Selecciona franja</option>
+            <option value="morning">{getTimeSlotLabel('morning')}</option>
+            <option value="afternoon">{getTimeSlotLabel('afternoon')}</option>
+            <option value="night">{getTimeSlotLabel('night')}</option>
+          </select>
+          {errors.timeSlot && <p className="text-red-500 text-sm mt-1">{errors.timeSlot.message}</p>}
         </div>
 
         <div>
@@ -148,15 +186,16 @@ export default function ReservationForm({ preselectedDate, onSuccess }: Reservat
         </div>
 
         <div>
-          <label className="label">Duración *</label>
-          <select {...register('duration')} className="input-field">
-            <option value="">Selecciona duración</option>
-            <option value="2h">2 horas - €200</option>
-            <option value="3h">3 horas - €300</option>
-            <option value="4h">4 horas - €400</option>
-            <option value="5h">5 horas - €500</option>
+          <label className="label">Método de pago *</label>
+          <select {...register('paymentMethod')} className="input-field">
+            <option value="">Selecciona método</option>
+            <option value="card">Tarjeta de crédito/débito</option>
+            <option value="bizum">Bizum</option>
+            <option value="cash">Efectivo (en el local)</option>
           </select>
-          {errors.duration && <p className="text-red-500 text-sm mt-1">{errors.duration.message}</p>}
+          {errors.paymentMethod && (
+            <p className="text-red-500 text-sm mt-1">{errors.paymentMethod.message}</p>
+          )}
         </div>
       </div>
 
@@ -184,42 +223,37 @@ export default function ReservationForm({ preselectedDate, onSuccess }: Reservat
       </div>
 
       <div>
-        <label className="label">Método de pago *</label>
-        <select {...register('paymentMethod')} className="input-field">
-          <option value="">Selecciona método</option>
-          <option value="card">Tarjeta de crédito/débito</option>
-          <option value="transfer">Transferencia bancaria</option>
-          <option value="cash">Efectivo (en el local)</option>
-        </select>
-        {errors.paymentMethod && (
-          <p className="text-red-500 text-sm mt-1">{errors.paymentMethod.message}</p>
-        )}
-      </div>
-
-      <div>
         <label className="label">Mensaje adicional (opcional)</label>
         <textarea
           {...register('message')}
           className="input-field resize-none"
           rows={4}
-          placeholder="Cuéntanos más sobre tu evento..."
+          placeholder="Cuéntanos cualquier detalle especial sobre tu evento..."
         />
       </div>
 
       {totalPrice > 0 && (
-        <div className="bg-primary-50 p-6 rounded-lg">
-          <div className="flex justify-between items-center text-lg font-semibold">
-            <span>Total estimado:</span>
-            <span className="text-2xl text-primary-600">{formatCurrency(totalPrice)}</span>
+        <div className="p-6 bg-gradient-to-r from-primary-50 to-secondary-50 rounded-xl border-2 border-primary-300">
+          <div className="flex justify-between items-center mb-4">
+            <span className="text-gray-700 font-medium">Precio base del espacio:</span>
+            <span className="text-3xl font-bold text-primary-600">{totalPrice}€</span>
           </div>
+          <p className="text-sm text-gray-600">
+            * Los servicios extras se calcularán en el presupuesto final<br />
+            * Se requiere un depósito del 30% para confirmar la reserva
+          </p>
         </div>
       )}
 
-      {submitError && (
-        <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg">
-          {submitError}
-        </div>
-      )}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <h4 className="font-semibold text-blue-900 mb-2">ℹ️ Proceso de reserva</h4>
+        <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside">
+          <li>Enviamos tu solicitud para revisión (24h)</li>
+          <li>Te contactamos para confirmar detalles</li>
+          <li>Recibes enlace de pago seguro</li>
+          <li>Confirmas con depósito del 30%</li>
+        </ol>
+      </div>
 
       <button
         type="submit"
@@ -228,25 +262,13 @@ export default function ReservationForm({ preselectedDate, onSuccess }: Reservat
       >
         {isSubmitting ? (
           <>
-            <Loader2 className="animate-spin mr-2" />
-            Procesando...
+            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+            Enviando solicitud...
           </>
         ) : (
-          'Confirmar reserva'
+          'Solicitar Reserva'
         )}
       </button>
-
-      <p className="text-sm text-gray-600 text-center">
-        Al confirmar, aceptas nuestros{' '}
-        <a href="/terminos" className="text-primary-600 hover:underline">
-          términos y condiciones
-        </a>{' '}
-        y{' '}
-        <a href="/politica-privacidad" className="text-primary-600 hover:underline">
-          política de privacidad
-        </a>
-        .
-      </p>
     </form>
   );
 }
