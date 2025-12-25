@@ -1,0 +1,212 @@
+{
+  "name": "HappyHub - Airtable Complete Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "reservation-request",
+        "options": {
+          "responseMode": "responseNode"
+        },
+        "httpMethod": "POST"
+      },
+      "name": "Webhook - Nueva Solicitud",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "happyhub-airtable-reservation"
+    },
+    {
+      "parameters": {
+        "functionCode": "const data = items[0].json.body || items[0].json;\n\n// Formatear fecha para Google Calendar\nconst eventDate = new Date(data.date);\nconst timeSlots = {\n  morning: { start: '11:00:00', end: '14:30:00', label: 'Mañana (11:00-14:30)' },\n  afternoon: { start: '16:30:00', end: '20:30:00', label: 'Tarde (16:30-20:30)' },\n  night: { start: '22:00:00', end: '02:00:00', label: 'Noche (22:00-02:00)' }\n};\n\nconst slot = timeSlots[data.timeSlot];\nconst startDateTime = `${data.date}T${slot.start}`;\nlet endDateTime = `${data.date}T${slot.end}`;\n\nif (data.timeSlot === 'night') {\n  const nextDay = new Date(eventDate);\n  nextDay.setDate(nextDay.getDate() + 1);\n  endDateTime = `${nextDay.toISOString().split('T')[0]}T${slot.end}`;\n}\n\nconst formattedDate = eventDate.toLocaleDateString('es-ES', {\n  weekday: 'long',\n  year: 'numeric',\n  month: 'long',\n  day: 'numeric'\n});\n\nconst paymentLabels = {\n  card: 'Tarjeta',\n  bizum: 'Bizum',\n  cash: 'Efectivo'\n};\n\nconst eventTypeLabels = {\n  'cumpleaños': 'Cumpleaños',\n  'comunion': 'Comunión',\n  'bautizo': 'Bautizo',\n  'otro': 'Otro'\n};\n\nreturn [{\n  json: {\n    ...data,\n    startDateTime,\n    endDateTime,\n    timeSlotLabel: slot.label,\n    formattedDate,\n    paymentMethodLabel: paymentLabels[data.paymentMethod] || data.paymentMethod,\n    eventTypeLabel: eventTypeLabels[data.eventType] || data.eventType,\n    calendarId: 'happyhub.rovellat@gmail.com'\n  }\n}];"
+      },
+      "name": "Preparar Datos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "calendar": "={{$json.calendarId}}",
+        "operation": "getAll",
+        "returnAll": false,
+        "limit": 100,
+        "options": {
+          "timeMin": "={{$json.startDateTime}}",
+          "timeMax": "={{$json.endDateTime}}"
+        }
+      },
+      "name": "Google Calendar - Verificar Disponibilidad",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1,
+      "position": [650, 300],
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "1",
+          "name": "Google Calendar happyhub.rovellat"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json.length > 0}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "¿Slot Ocupado?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\"success\": false, \"error\": \"Lo siento, la fecha y franja horaria seleccionada ya está reservada. Por favor, selecciona otra fecha u horario.\", \"code\": \"SLOT_OCCUPIED\"}",
+        "options": {
+          "responseCode": 409
+        }
+      },
+      "name": "Respuesta - Slot Ocupado",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1050, 200]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "base": {
+          "__rl": true,
+          "value": "appXXXXXXXXXXXXXX",
+          "mode": "id"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblYYYYYYYYYYYYYY",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Status": "pending",
+            "Cliente - Nombre": "={{$json.name}}",
+            "Cliente - Email": "={{$json.email}}",
+            "Cliente - Teléfono": "={{$json.phone}}",
+            "Evento - Tipo": "={{$json.eventTypeLabel}}",
+            "Evento - Fecha": "={{$json.date}}",
+            "Evento - Franja": "={{$json.timeSlotLabel}}",
+            "Evento - Invitados": "={{$json.guests}}",
+            "Extras": "={{$json.extras ? $json.extras.join(', ') : ''}}",
+            "Precio Base": "={{$json.totalPrice}}",
+            "Precio Total": "={{$json.totalPrice}}",
+            "Método Pago": "={{$json.paymentMethodLabel}}",
+            "Mensaje Cliente": "={{$json.message || ''}}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "name": "Airtable - Crear Registro",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [1050, 400],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "1",
+          "name": "Airtable HappyHub"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "const airtableRecord = items[0].json;\nconst originalData = items[1].json;\n\nconst recordId = airtableRecord.id;\nconst recordNumber = airtableRecord.fields['Reservation ID'] || recordId.substring(3, 10);\n\nconst airtableUrl = `https://airtable.com/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_TABLE_ID}/${recordId}`;\n\nreturn [{\n  json: {\n    reservationId: recordNumber,\n    airtableRecordId: recordId,\n    airtableUrl,\n    ...originalData\n  }\n}];"
+      },
+      "name": "Preparar Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1250, 400]
+    },
+    {
+      "parameters": {
+        "fromEmail": "noreply@happyhub.es",
+        "toEmail": "happyhub.rovellat@gmail.com",
+        "subject": "🔔 Nueva Solicitud #{{$json.reservationId}} - Requiere Aprobación",
+        "emailType": "html",
+        "message": "=<div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb;\">\n  <div style=\"background: linear-gradient(135deg, #FF6B35 0%, #00BCD4 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;\">\n    <h1 style=\"color: white; margin: 0; font-size: 28px;\">Nueva Solicitud de Reserva</h1>\n    <p style=\"color: white; margin: 10px 0 0 0; font-size: 16px;\">ID: #{{$json.reservationId}}</p>\n  </div>\n  \n  <div style=\"background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);\">\n    <h2 style=\"color: #FF6B35; margin-top: 0;\">📋 Detalles del Evento</h2>\n    \n    <table style=\"width: 100%; border-collapse: collapse; margin-bottom: 20px;\">\n      <tr style=\"background: #f9fafb;\">\n        <td style=\"padding: 12px; border: 1px solid #e5e7eb; font-weight: bold;\">📅 Fecha:</td>\n        <td style=\"padding: 12px; border: 1px solid #e5e7eb;\">{{$json.formattedDate}}</td>\n      </tr>\n      <tr>\n        <td style=\"padding: 12px; border: 1px solid #e5e7eb; font-weight: bold;\">⏰ Franja:</td>\n        <td style=\"padding: 12px; border: 1px solid #e5e7eb;\">{{$json.timeSlotLabel}}</td>\n      </tr>\n      <tr style=\"background: #f9fafb;\">\n        <td style=\"padding: 12px; border: 1px solid #e5e7eb; font-weight: bold;\">🎉 Tipo:</td>\n        <td style=\"padding: 12px; border: 1px solid #e5e7eb;\">{{$json.eventTypeLabel}}</td>\n      </tr>\n      <tr>\n        <td style=\"padding: 12px; border: 1px solid #e5e7eb; font-weight: bold;\">👥 Invitados:</td>\n        <td style=\"padding: 12px; border: 1px solid #e5e7eb;\">{{$json.guests}} personas</td>\n      </tr>\n      <tr style=\"background: #f9fafb;\">\n        <td style=\"padding: 12px; border: 1px solid #e5e7eb; font-weight: bold;\">💰 Precio:</td>\n        <td style=\"padding: 12px; border: 1px solid #e5e7eb; color: #FF6B35; font-size: 18px; font-weight: bold;\">{{$json.totalPrice}}€</td>\n      </tr>\n    </table>\n    \n    <h2 style=\"color: #FF6B35; margin-top: 30px;\">👤 Información del Cliente</h2>\n    <table style=\"width: 100%; border-collapse: collapse; margin-bottom: 20px;\">\n      <tr style=\"background: #f9fafb;\">\n        <td style=\"padding: 12px; border: 1px solid #e5e7eb; font-weight: bold;\">Nombre:</td>\n        <td style=\"padding: 12px; border: 1px solid #e5e7eb;\">{{$json.name}}</td>\n      </tr>\n      <tr>\n        <td style=\"padding: 12px; border: 1px solid #e5e7eb; font-weight: bold;\">Email:</td>\n        <td style=\"padding: 12px; border: 1px solid #e5e7eb;\"><a href=\"mailto:{{$json.email}}\" style=\"color: #00BCD4;\">{{$json.email}}</a></td>\n      </tr>\n      <tr style=\"background: #f9fafb;\">\n        <td style=\"padding: 12px; border: 1px solid #e5e7eb; font-weight: bold;\">Teléfono:</td>\n        <td style=\"padding: 12px; border: 1px solid #e5e7eb;\"><a href=\"tel:{{$json.phone}}\" style=\"color: #00BCD4;\">{{$json.phone}}</a></td>\n      </tr>\n      <tr>\n        <td style=\"padding: 12px; border: 1px solid #e5e7eb; font-weight: bold;\">Pago:</td>\n        <td style=\"padding: 12px; border: 1px solid #e5e7eb;\">{{$json.paymentMethodLabel}}</td>\n      </tr>\n    </table>\n    \n    <div style=\"margin: 30px 0; text-align: center;\">\n      <a href=\"{{$json.airtableUrl}}\" style=\"display: inline-block; background: linear-gradient(135deg, #FF6B35 0%, #ff8f6b 100%); color: white; padding: 15px 40px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px rgba(255,107,53,0.3);\">✅ Abrir en Airtable</a>\n    </div>\n    \n    <div style=\"background: #f3f4f6; padding: 15px; border-radius: 8px;\">\n      <p style=\"margin: 0; color: #6b7280; font-size: 14px; text-align: center;\">Abre Airtable para aprobar o rechazar esta solicitud. Una vez aprobada, se creará automáticamente el evento en Google Calendar.</p>\n    </div>\n  </div>\n  \n  <div style=\"text-align: center; margin-top: 20px; color: #9ca3af; font-size: 12px;\">\n    <p>HappyHub - C/ Rovellat, 25, Esplugues de Llobregat</p>\n    <p>📞 638 390 600 | 📧 happyhub.rovellat@gmail.com</p>\n  </div>\n</div>",
+        "options": {}
+      },
+      "name": "Email - Notificar Admin",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [1450, 300],
+      "credentials": {
+        "smtp": {
+          "id": "3",
+          "name": "SMTP HappyHub"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "noreply@happyhub.es",
+        "toEmail": "={{$json.email}}",
+        "subject": "✅ Solicitud Recibida - HappyHub #{{$json.reservationId}}",
+        "emailType": "html",
+        "message": "=<div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;\">\n  <div style=\"background: linear-gradient(135deg, #FF6B35 0%, #00BCD4 100%); padding: 30px; border-radius: 10px; text-align: center; margin-bottom: 30px;\">\n    <h1 style=\"color: white; margin: 0; font-size: 32px;\">✅ ¡Solicitud Recibida!</h1>\n  </div>\n  \n  <div style=\"background: white; padding: 30px; border: 1px solid #e5e7eb; border-radius: 10px;\">\n    <p style=\"font-size: 18px; color: #374151;\">Hola <strong style=\"color: #FF6B35;\">{{$json.name}}</strong>,</p>\n    \n    <p style=\"font-size: 16px; color: #6b7280; line-height: 1.6;\">Hemos recibido tu solicitud de reserva correctamente.</p>\n    \n    <div style=\"background: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #FF6B35;\">\n      <p style=\"margin: 0; font-size: 14px; color: #6b7280;\">Número de solicitud</p>\n      <p style=\"margin: 5px 0 0 0; font-size: 24px; font-weight: bold; color: #FF6B35;\">#{{$json.reservationId}}</p>\n    </div>\n    \n    <h3 style=\"color: #FF6B35; margin-top: 30px;\">📋 Resumen de tu solicitud</h3>\n    <ul style=\"color: #6b7280; line-height: 1.8;\">\n      <li><strong>Fecha:</strong> {{$json.formattedDate}}</li>\n      <li><strong>Franja:</strong> {{$json.timeSlotLabel}}</li>\n      <li><strong>Invitados:</strong> {{$json.guests}} personas</li>\n      <li><strong>Tipo de evento:</strong> {{$json.eventTypeLabel}}</li>\n    </ul>\n    \n    <div style=\"background: #fef3c7; padding: 20px; border-radius: 8px; margin: 30px 0; border-left: 4px solid #f59e0b;\">\n      <p style=\"margin: 0; color: #92400e; font-size: 14px; line-height: 1.6;\">\n        <strong>⏳ Pendiente de revisión</strong><br>\n        Nuestro equipo revisará tu solicitud en las próximas <strong>24 horas</strong> y te contactaremos para confirmar todos los detalles.\n      </p>\n    </div>\n    \n    <h3 style=\"color: #00BCD4;\">📝 Próximos pasos</h3>\n    <ol style=\"color: #6b7280; line-height: 1.8;\">\n      <li>Revisaremos tu solicitud</li>\n      <li>Te contactaremos por teléfono o email</li>\n      <li>Te enviaremos el enlace de pago</li>\n      <li>Confirmarás con el depósito del 30%</li>\n    </ol>\n    \n    <p style=\"font-size: 16px; color: #6b7280; margin-top: 30px;\">\n      Si tienes alguna pregunta, no dudes en contactarnos:\n    </p>\n    \n    <div style=\"text-align: center; margin: 30px 0;\">\n      <a href=\"tel:638390600\" style=\"display: inline-block; background: #00BCD4; color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; margin: 5px; font-weight: bold;\">📞 638 390 600</a>\n      <a href=\"mailto:happyhub.rovellat@gmail.com\" style=\"display: inline-block; background: #FF6B35; color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; margin: 5px; font-weight: bold;\">📧 Email</a>\n    </div>\n    \n    <p style=\"font-size: 16px; color: #374151; margin-top: 30px;\">\n      Saludos,<br>\n      <strong style=\"color: #FF6B35;\">El equipo de HappyHub</strong>\n    </p>\n  </div>\n  \n  <div style=\"text-align: center; margin-top: 30px; color: #9ca3af; font-size: 12px;\">\n    <p>HappyHub - Espacios para celebraciones</p>\n    <p>C/ Rovellat, 25, 08950 Esplugues de Llobregat (Barcelona)</p>\n  </div>\n</div>",
+        "options": {}
+      },
+      "name": "Email - Confirmar Cliente",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [1450, 500]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\"success\": true, \"reservationId\": \"{{$json.reservationId}}\", \"message\": \"Solicitud recibida correctamente. Te contactaremos pronto.\"}",
+        "options": {}
+      },
+      "name": "Respuesta - Éxito",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1650, 400]
+    }
+  ],
+  "connections": {
+    "Webhook - Nueva Solicitud": {
+      "main": [[{"node": "Preparar Datos", "type": "main", "index": 0}]]
+    },
+    "Preparar Datos": {
+      "main": [[{"node": "Google Calendar - Verificar Disponibilidad", "type": "main", "index": 0}]]
+    },
+    "Google Calendar - Verificar Disponibilidad": {
+      "main": [[{"node": "¿Slot Ocupado?", "type": "main", "index": 0}]]
+    },
+    "¿Slot Ocupado?": {
+      "main": [
+        [{"node": "Respuesta - Slot Ocupado", "type": "main", "index": 0}],
+        [{"node": "Airtable - Crear Registro", "type": "main", "index": 0}]
+      ]
+    },
+    "Airtable - Crear Registro": {
+      "main": [[{"node": "Preparar Email", "type": "main", "index": 0}]]
+    },
+    "Preparar Email": {
+      "main": [[
+        {"node": "Email - Notificar Admin", "type": "main", "index": 0},
+        {"node": "Email - Confirmar Cliente", "type": "main", "index": 0}
+      ]]
+    },
+    "Email - Notificar Admin": {
+      "main": [[{"node": "Respuesta - Éxito", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": []
+}
