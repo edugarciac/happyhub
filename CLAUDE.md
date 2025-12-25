@@ -6,6 +6,60 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 HappyHub is a Next.js event space rental platform for managing and booking celebration venues (birthdays, communions, baptisms, etc.). The platform integrates with n8n for workflow automation, Stripe for payments, and includes a multi-role system (clients, providers, admin).
 
+## Business Rules - Horarios y Tarifas
+
+### Franjas Horarias Disponibles
+
+**Mañanas** (11:00 - 14:30h)
+- Apertura: 11:00h
+- Cierre: 14:30h
+- Sin coste adicional por apertura anticipada a las 10:00h
+
+**Tardes** (16:30 - 20:30h)
+- Apertura: 16:30h
+- Cierre: 20:30h
+- Sin coste adicional por apertura anticipada a las 15:30h
+
+**Noches** (22:00 - 2:00h)
+- Apertura: 22:00h
+- Cierre: 2:00h (madrugada)
+- Sin coste adicional por apertura anticipada a las 21:30h
+
+### Tarifas Oficiales (Alquiler del Espacio)
+
+**De lunes a viernes - Mañanas:** 110€
+**De lunes a jueves - Tardes:** 110€
+**Viernes y Vísperas de festivos - Tardes:** 140€
+**Sábados, domingos y festivos - Mañanas:** 130€
+**Sábados, domingos y festivos - Tardes:** 170€
+**Nocturno:** A consultar (precio variable)
+
+### Reglas de Negocio para Tarifas
+
+1. **Días laborables (L-J):**
+   - Mañana: 110€
+   - Tarde: 110€
+
+2. **Viernes:**
+   - Mañana: 110€
+   - Tarde: 140€ (víspera de festivo)
+
+3. **Fines de semana (Sá-Do) y festivos:**
+   - Mañana: 130€
+   - Tarde: 170€
+
+4. **Vísperas de festivos:**
+   - Aplica tarifa de 140€ en tarde (igual que viernes)
+
+5. **Horario nocturno:**
+   - Precio a consultar
+   - Requiere validación manual del equipo
+
+### Notas Importantes
+- Los precios NO incluyen servicios extras (catering, decoración, animación, etc.)
+- Las reservas requieren depósito del 30% para confirmar
+- Cancelación gratuita hasta 15 días antes del evento
+
 ## Development Commands
 
 ```bash

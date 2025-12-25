@@ -1,0 +1,404 @@
+{
+  "name": "HappyHub - Gestión de Reservas con Validación",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "reserva-happyhub",
+        "options": {
+          "responseMode": "responseNode"
+        },
+        "httpMethod": "POST"
+      },
+      "id": "webhook_reserva",
+      "name": "Webhook Reserva",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Normalizar y preparar datos de entrada\nconst body = items[0].json.body || items[0].json;\n\n// Extraer datos de reserva\nconst reservationData = {\n  nombre: body.name || body.nombre,\n  email: body.email,\n  telefono: body.phone || body.telefono,\n  fecha: body.date || body.fecha,\n  hora: body.time || body.hora,\n  pax: body.guests || body.pax,\n  duracion: body.duration || body.duracion || '4',\n  extras: body.extras || [],\n  tipoEvento: body.eventType || body.tipoEvento,\n  metodoPago: body.paymentMethod || body.metodoPago,\n  mensaje: body.message || body.mensaje || '',\n  precioTotal: body.totalPrice || body.precioTotal || 0\n};\n\n// Calcular hora de inicio y fin para búsqueda en calendario\nconst [year, month, day] = reservationData.fecha.split('-');\nconst [hours, minutes] = reservationData.hora.split(':');\n\n// Crear fecha/hora de inicio (ISO 8601)\nconst startDateTime = new Date(year, month - 1, day, hours, minutes);\n\n// Calcular fecha/hora de fin (agregar duración en horas)\nconst durationHours = parseInt(reservationData.duracion);\nconst endDateTime = new Date(startDateTime);\nendDateTime.setHours(endDateTime.getHours() + durationHours);\n\n// Formatear para Google Calendar API (RFC3339)\nconst timeMin = startDateTime.toISOString();\nconst timeMax = endDateTime.toISOString();\n\nreturn [{\n  json: {\n    ...reservationData,\n    fechaHoraInicio: startDateTime.toISOString(),\n    fechaHoraFin: endDateTime.toISOString(),\n    timeMin: timeMin,\n    timeMax: timeMax,\n    fechaFormateada: `${day}/${month}/${year}`,\n    horaFormateada: `${hours}:${minutes}h`\n  }\n}];"
+      },
+      "id": "normalize_data",
+      "name": "Normalizar Datos de Reserva",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendarId": "primary",
+        "returnAll": false,
+        "options": {
+          "timeMin": "={{$json.timeMin}}",
+          "timeMax": "={{$json.timeMax}}",
+          "maxResults": 10
+        }
+      },
+      "id": "check_calendar",
+      "name": "Verificar Disponibilidad en Calendar",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1,
+      "position": [650, 300],
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "1",
+          "name": "Google Calendar HappyHub"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json.length || 0}}",
+              "operation": "equal",
+              "value2": 0
+            }
+          ]
+        }
+      },
+      "id": "if_available",
+      "name": "¿Fecha Disponible?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": false,\n  \"error\": \"Lo siento, la fecha y hora indicada ya está reservada.\",\n  \"message\": \"Lo siento, la fecha y hora indicada ya está reservada.\",\n  \"fechaSolicitada\": \"{{$node['Normalizar Datos de Reserva'].json.fechaFormateada}}\",\n  \"horaSolicitada\": \"{{$node['Normalizar Datos de Reserva'].json.horaFormateada}}\"\n}",
+        "options": {
+          "responseCode": 409
+        }
+      },
+      "id": "response_conflict",
+      "name": "Respuesta: Fecha No Disponible",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1050, 450]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "calendarId": "primary",
+        "start": "={{$node['Normalizar Datos de Reserva'].json.fechaHoraInicio}}",
+        "end": "={{$node['Normalizar Datos de Reserva'].json.fechaHoraFin}}",
+        "summary": "Reserva HappyHub - {{$node['Normalizar Datos de Reserva'].json.nombre}}",
+        "description": "Tipo de evento: {{$node['Normalizar Datos de Reserva'].json.tipoEvento}}\\nPersonas: {{$node['Normalizar Datos de Reserva'].json.pax}}\\nTeléfono: {{$node['Normalizar Datos de Reserva'].json.telefono}}\\nEmail: {{$node['Normalizar Datos de Reserva'].json.email}}",
+        "options": {
+          "sendUpdates": "all"
+        }
+      },
+      "id": "create_calendar_event",
+      "name": "Crear Evento en Calendario",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1,
+      "position": [1050, 150],
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "1",
+          "name": "Google Calendar HappyHub"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "baseId": {
+          "__rl": true,
+          "value": "appXXXXXXXXXXXX",
+          "mode": "id"
+        },
+        "tableId": {
+          "__rl": true,
+          "value": "tblXXXXXXXXXXXX",
+          "mode": "id"
+        },
+        "options": {},
+        "fields": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Nombre": "={{$node['Normalizar Datos de Reserva'].json.nombre}}",
+            "Email": "={{$node['Normalizar Datos de Reserva'].json.email}}",
+            "Teléfono": "={{$node['Normalizar Datos de Reserva'].json.telefono}}",
+            "Fecha": "={{$node['Normalizar Datos de Reserva'].json.fecha}}",
+            "Hora": "={{$node['Normalizar Datos de Reserva'].json.hora}}",
+            "Personas": "={{$node['Normalizar Datos de Reserva'].json.pax}}",
+            "Duración": "={{$node['Normalizar Datos de Reserva'].json.duracion}}",
+            "Extras": "={{$node['Normalizar Datos de Reserva'].json.extras.join(', ')}}",
+            "TipoEvento": "={{$node['Normalizar Datos de Reserva'].json.tipoEvento}}",
+            "MétodoPago": "={{$node['Normalizar Datos de Reserva'].json.metodoPago}}",
+            "PrecioTotal": "={{$node['Normalizar Datos de Reserva'].json.precioTotal}}",
+            "Estado": "Pendiente de Pago",
+            "EventoCalendarioID": "={{$json.id}}",
+            "FechaCreación": "={{new Date().toISOString()}}"
+          }
+        }
+      },
+      "id": "save_to_airtable",
+      "name": "Guardar en Airtable",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [1250, 250],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "2",
+          "name": "Airtable HappyHub"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "paymentLink",
+        "operation": "create",
+        "lineItems": {
+          "lineItem": [
+            {
+              "priceId": {
+                "__rl": true,
+                "value": "={{$node['Normalizar Datos de Reserva'].json.precioTotal * 100}}",
+                "mode": "id"
+              },
+              "quantity": 1
+            }
+          ]
+        },
+        "additionalFields": {
+          "afterCompletion": {
+            "afterCompletionFields": {
+              "type": "redirect",
+              "url": "=https://happyhub.es/mi-reserva/{{$json.id}}"
+            }
+          },
+          "metadata": {
+            "metadataProperties": [
+              {
+                "key": "reservationId",
+                "value": "={{$json.id}}"
+              },
+              {
+                "key": "customerName",
+                "value": "={{$node['Normalizar Datos de Reserva'].json.nombre}}"
+              },
+              {
+                "key": "eventDate",
+                "value": "={{$node['Normalizar Datos de Reserva'].json.fecha}}"
+              },
+              {
+                "key": "eventTime",
+                "value": "={{$node['Normalizar Datos de Reserva'].json.hora}}"
+              }
+            ]
+          }
+        }
+      },
+      "id": "create_payment_link",
+      "name": "Crear Link de Pago Stripe",
+      "type": "n8n-nodes-base.stripe",
+      "typeVersion": 1,
+      "position": [1450, 150],
+      "credentials": {
+        "stripeApi": {
+          "id": "3",
+          "name": "Stripe HappyHub"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-3-5-sonnet-20241022\",\n  \"max_tokens\": 300,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"Genera un mensaje de confirmación amable y profesional para una reserva en HappyHub. Datos:\\n- Cliente: {{$node['Normalizar Datos de Reserva'].json.nombre}}\\n- Fecha: {{$node['Normalizar Datos de Reserva'].json.fechaFormateada}}\\n- Hora: {{$node['Normalizar Datos de Reserva'].json.horaFormateada}}\\n- Tipo de evento: {{$node['Normalizar Datos de Reserva'].json.tipoEvento}}\\n- Personas: {{$node['Normalizar Datos de Reserva'].json.pax}}\\n\\nIncluye:\\n1. Saludo personalizado\\n2. Confirmación de la reserva\\n3. Detalles del evento\\n4. Link de pago: {{$json.url}}\\n5. Recordatorio de completar el pago en 24h\\n6. Despedida cordial\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "id": "generate_ai_message",
+      "name": "Generar Mensaje con Claude AI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1450, 350],
+      "credentials": {
+        "anthropicApi": {
+          "id": "4",
+          "name": "Anthropic API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Extraer el contenido del mensaje de Claude AI\nconst claudeResponse = items[0].json;\nconst messageContent = claudeResponse.content?.[0]?.text || 'Confirmación de reserva en HappyHub';\n\nreturn [{\n  json: {\n    ...items[0].json,\n    emailMessage: messageContent,\n    paymentLink: $node['Crear Link de Pago Stripe'].json.url,\n    reservationId: $node['Guardar en Airtable'].json.id\n  }\n}];"
+      },
+      "id": "prepare_email",
+      "name": "Preparar Contenido Email",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1650, 250]
+    },
+    {
+      "parameters": {
+        "fromEmail": "no-reply@happyhub.es",
+        "toEmail": "={{$node['Normalizar Datos de Reserva'].json.email}}",
+        "subject": "Confirmación de tu reserva en HappyHub - {{$node['Normalizar Datos de Reserva'].json.fechaFormateada}}",
+        "emailType": "html",
+        "message": "=<!DOCTYPE html>\n<html>\n<head>\n  <style>\n    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }\n    .container { max-width: 600px; margin: 0 auto; padding: 20px; }\n    .header { background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }\n    .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }\n    .button { display: inline-block; background: #FF6B35; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }\n    .details { background: white; padding: 20px; border-radius: 5px; margin: 20px 0; }\n    .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <div class=\"header\">\n      <h1>HappyHub</h1>\n      <p>Tu espacio para celebraciones inolvidables</p>\n    </div>\n    <div class=\"content\">\n      <div style=\"white-space: pre-wrap;\">{{$json.emailMessage}}</div>\n      \n      <div class=\"details\">\n        <h3>Detalles de tu reserva:</h3>\n        <p><strong>Fecha:</strong> {{$node['Normalizar Datos de Reserva'].json.fechaFormateada}}</p>\n        <p><strong>Hora:</strong> {{$node['Normalizar Datos de Reserva'].json.horaFormateada}}</p>\n        <p><strong>Duración:</strong> {{$node['Normalizar Datos de Reserva'].json.duracion}} horas</p>\n        <p><strong>Personas:</strong> {{$node['Normalizar Datos de Reserva'].json.pax}}</p>\n        <p><strong>Tipo de evento:</strong> {{$node['Normalizar Datos de Reserva'].json.tipoEvento}}</p>\n        <p><strong>Precio total:</strong> {{$node['Normalizar Datos de Reserva'].json.precioTotal}}€</p>\n      </div>\n      \n      <center>\n        <a href=\"{{$json.paymentLink}}\" class=\"button\">Completar Pago Ahora</a>\n      </center>\n      \n      <p style=\"margin-top: 20px; font-size: 14px; color: #666;\">\n        <strong>Importante:</strong> Por favor, completa el pago en las próximas 24 horas para confirmar tu reserva.\n      </p>\n      \n      <div class=\"footer\">\n        <p>¿Necesitas ayuda? Contáctanos en contacto@happyhub.es</p>\n        <p>© 2024 HappyHub - Todos los derechos reservados</p>\n      </div>\n    </div>\n  </div>\n</body>\n</html>",
+        "options": {}
+      },
+      "id": "send_confirmation_email",
+      "name": "Enviar Email de Confirmación",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [1850, 250],
+      "credentials": {
+        "smtp": {
+          "id": "5",
+          "name": "SMTP HappyHub"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"message\": \"Reserva creada exitosamente\",\n  \"reservationId\": \"{{$node['Guardar en Airtable'].json.id}}\",\n  \"paymentLink\": \"{{$node['Crear Link de Pago Stripe'].json.url}}\",\n  \"calendarEventId\": \"{{$node['Crear Evento en Calendario'].json.id}}\",\n  \"fecha\": \"{{$node['Normalizar Datos de Reserva'].json.fechaFormateada}}\",\n  \"hora\": \"{{$node['Normalizar Datos de Reserva'].json.horaFormateada}}\"\n}",
+        "options": {}
+      },
+      "id": "response_success",
+      "name": "Respuesta: Reserva Exitosa",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [2050, 150]
+    }
+  ],
+  "connections": {
+    "Webhook Reserva": {
+      "main": [
+        [
+          {
+            "node": "Normalizar Datos de Reserva",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalizar Datos de Reserva": {
+      "main": [
+        [
+          {
+            "node": "Verificar Disponibilidad en Calendar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verificar Disponibilidad en Calendar": {
+      "main": [
+        [
+          {
+            "node": "¿Fecha Disponible?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Fecha Disponible?": {
+      "main": [
+        [
+          {
+            "node": "Crear Evento en Calendario",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respuesta: Fecha No Disponible",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear Evento en Calendario": {
+      "main": [
+        [
+          {
+            "node": "Guardar en Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar en Airtable": {
+      "main": [
+        [
+          {
+            "node": "Crear Link de Pago Stripe",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Generar Mensaje con Claude AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear Link de Pago Stripe": {
+      "main": [
+        [
+          {
+            "node": "Preparar Contenido Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generar Mensaje con Claude AI": {
+      "main": [
+        [
+          {
+            "node": "Preparar Contenido Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Contenido Email": {
+      "main": [
+        [
+          {
+            "node": "Enviar Email de Confirmación",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Respuesta: Reserva Exitosa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2024-12-22T00:00:00.000Z",
+  "versionId": "1"
+}

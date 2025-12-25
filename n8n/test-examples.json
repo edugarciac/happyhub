@@ -1,0 +1,264 @@
+{
+  "description": "Ejemplos de solicitudes de prueba para el webhook de reservas de HappyHub",
+  "webhookUrl": "https://n8n-happyhub-n8n.c13yv5.easypanel.host/webhook/reserva-happyhub",
+  "examples": [
+    {
+      "name": "Reserva Simple - Cumpleaños",
+      "description": "Reserva básica para cumpleaños sin servicios extra",
+      "method": "POST",
+      "payload": {
+        "name": "María García",
+        "email": "maria.garcia@example.com",
+        "phone": "+34612345678",
+        "eventType": "Cumpleaños",
+        "date": "2025-01-15",
+        "time": "17:00",
+        "guests": 25,
+        "duration": "4",
+        "extras": [],
+        "paymentMethod": "stripe",
+        "totalPrice": 450,
+        "message": "Cumpleaños de niña de 8 años"
+      }
+    },
+    {
+      "name": "Reserva Completa - Comunión",
+      "description": "Reserva con todos los servicios extra incluidos",
+      "method": "POST",
+      "payload": {
+        "name": "Juan Martínez López",
+        "email": "juan.martinez@example.com",
+        "phone": "+34698765432",
+        "eventType": "Comunión",
+        "date": "2025-05-10",
+        "time": "13:00",
+        "guests": 50,
+        "duration": "6",
+        "extras": ["Catering", "Decoración", "Animación", "Fotografía"],
+        "paymentMethod": "stripe",
+        "totalPrice": 1200,
+        "message": "Comunión de mi hija Andrea. Queremos decoración en blanco y dorado."
+      }
+    },
+    {
+      "name": "Reserva Bautizo - Tarde",
+      "description": "Evento pequeño para bautizo en horario de tarde",
+      "method": "POST",
+      "payload": {
+        "name": "Carmen Rodríguez",
+        "email": "carmen.r@example.com",
+        "phone": "+34655443322",
+        "eventType": "Bautizo",
+        "date": "2025-03-22",
+        "time": "18:30",
+        "guests": 30,
+        "duration": "4",
+        "extras": ["Catering", "Decoración"],
+        "paymentMethod": "stripe",
+        "totalPrice": 600,
+        "message": "Bautizo de nuestro hijo pequeño"
+      }
+    },
+    {
+      "name": "Reserva Fin de Semana - Celebración Especial",
+      "description": "Gran celebración de fin de semana",
+      "method": "POST",
+      "payload": {
+        "name": "Pedro Sánchez Gómez",
+        "email": "pedro.sanchez@example.com",
+        "phone": "+34677889900",
+        "eventType": "Celebración Especial",
+        "date": "2025-06-14",
+        "time": "20:00",
+        "guests": 80,
+        "duration": "5",
+        "extras": ["Catering Premium", "DJ", "Decoración", "Barra de Bebidas"],
+        "paymentMethod": "stripe",
+        "totalPrice": 2000,
+        "message": "Aniversario de bodas 25 años. Queremos algo muy especial."
+      }
+    },
+    {
+      "name": "Reserva Express - Reunión Familiar",
+      "description": "Reserva rápida para reunión familiar informal",
+      "method": "POST",
+      "payload": {
+        "name": "Ana López",
+        "email": "ana.lopez@example.com",
+        "phone": "+34644556677",
+        "eventType": "Reunión Familiar",
+        "date": "2025-02-05",
+        "time": "12:00",
+        "guests": 15,
+        "duration": "3",
+        "extras": ["Catering"],
+        "paymentMethod": "stripe",
+        "totalPrice": 350,
+        "message": "Comida familiar del domingo"
+      }
+    },
+    {
+      "name": "Reserva Test - Conflicto de Horario",
+      "description": "Usar la misma fecha/hora que una reserva anterior para probar validación",
+      "method": "POST",
+      "payload": {
+        "name": "Test Conflict",
+        "email": "test@example.com",
+        "phone": "+34600000000",
+        "eventType": "Test",
+        "date": "2025-01-15",
+        "time": "17:00",
+        "guests": 10,
+        "duration": "2",
+        "extras": [],
+        "paymentMethod": "stripe",
+        "totalPrice": 200,
+        "message": "Esta reserva debería fallar si ya existe la del ejemplo 1"
+      },
+      "expectedResponse": {
+        "status": 409,
+        "body": {
+          "success": false,
+          "error": "Lo siento, la fecha y hora indicada ya está reservada.",
+          "message": "Lo siento, la fecha y hora indicada ya está reservada."
+        }
+      }
+    },
+    {
+      "name": "Reserva con Campos en Español",
+      "description": "Prueba con nombres de campos en español (compatibilidad legacy)",
+      "method": "POST",
+      "payload": {
+        "nombre": "Luis Fernández",
+        "email": "luis.fernandez@example.com",
+        "telefono": "+34611223344",
+        "tipoEvento": "Cumpleaños",
+        "fecha": "2025-04-20",
+        "hora": "16:00",
+        "pax": 35,
+        "duracion": "4",
+        "extras": ["Animación", "Decoración"],
+        "metodoPago": "stripe",
+        "precioTotal": 700,
+        "mensaje": "Cumpleaños sorpresa"
+      }
+    },
+    {
+      "name": "Reserva Tarde - Sin Extras",
+      "description": "Reserva en horario de tarde sin servicios adicionales",
+      "method": "POST",
+      "payload": {
+        "name": "Isabel Moreno",
+        "email": "isabel.moreno@example.com",
+        "phone": "+34622334455",
+        "eventType": "Baby Shower",
+        "date": "2025-03-08",
+        "time": "17:30",
+        "guests": 20,
+        "duration": "3",
+        "extras": [],
+        "paymentMethod": "stripe",
+        "totalPrice": 300,
+        "message": ""
+      }
+    }
+  ],
+  "curlExamples": {
+    "reservaSimple": "curl -X POST https://n8n-happyhub-n8n.c13yv5.easypanel.host/webhook/reserva-happyhub -H \"Content-Type: application/json\" -d '{\"name\":\"María García\",\"email\":\"maria.garcia@example.com\",\"phone\":\"+34612345678\",\"eventType\":\"Cumpleaños\",\"date\":\"2025-01-15\",\"time\":\"17:00\",\"guests\":25,\"duration\":\"4\",\"extras\":[],\"paymentMethod\":\"stripe\",\"totalPrice\":450}'",
+    "reservaConflicto": "curl -X POST https://n8n-happyhub-n8n.c13yv5.easypanel.host/webhook/reserva-happyhub -H \"Content-Type: application/json\" -d '{\"name\":\"Test User\",\"email\":\"test@example.com\",\"phone\":\"+34600000000\",\"eventType\":\"Test\",\"date\":\"2025-01-15\",\"time\":\"17:00\",\"guests\":10,\"duration\":\"2\",\"totalPrice\":200}'"
+  },
+  "postmanCollection": {
+    "info": {
+      "name": "HappyHub - n8n Reservas API",
+      "description": "Colección de tests para el sistema de reservas de HappyHub",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+      {
+        "name": "Crear Reserva - Cumpleaños",
+        "request": {
+          "method": "POST",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"name\": \"María García\",\n  \"email\": \"maria.garcia@example.com\",\n  \"phone\": \"+34612345678\",\n  \"eventType\": \"Cumpleaños\",\n  \"date\": \"2025-01-15\",\n  \"time\": \"17:00\",\n  \"guests\": 25,\n  \"duration\": \"4\",\n  \"extras\": [],\n  \"paymentMethod\": \"stripe\",\n  \"totalPrice\": 450\n}"
+          },
+          "url": {
+            "raw": "https://n8n-happyhub-n8n.c13yv5.easypanel.host/webhook/reserva-happyhub",
+            "protocol": "https",
+            "host": ["n8n-happyhub-n8n", "c13yv5", "easypanel", "host"],
+            "path": ["webhook", "reserva-happyhub"]
+          }
+        }
+      }
+    ]
+  },
+  "validationRules": {
+    "required": ["name", "email", "phone", "eventType", "date", "time", "guests", "totalPrice"],
+    "optional": ["duration", "extras", "paymentMethod", "message"],
+    "formats": {
+      "date": "YYYY-MM-DD",
+      "time": "HH:MM",
+      "phone": "+34XXXXXXXXX",
+      "email": "valid@email.com"
+    },
+    "constraints": {
+      "guests": {
+        "min": 1,
+        "max": 200
+      },
+      "duration": {
+        "min": 2,
+        "max": 8,
+        "default": 4
+      },
+      "totalPrice": {
+        "min": 0,
+        "currency": "EUR"
+      }
+    }
+  },
+  "expectedResponses": {
+    "success": {
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Reserva creada exitosamente",
+        "reservationId": "rec123abc456",
+        "paymentLink": "https://buy.stripe.com/...",
+        "calendarEventId": "abc123xyz789",
+        "fecha": "15/01/2025",
+        "hora": "17:00h"
+      }
+    },
+    "conflict": {
+      "status": 409,
+      "body": {
+        "success": false,
+        "error": "Lo siento, la fecha y hora indicada ya está reservada.",
+        "message": "Lo siento, la fecha y hora indicada ya está reservada.",
+        "fechaSolicitada": "15/01/2025",
+        "horaSolicitada": "17:00h"
+      }
+    },
+    "badRequest": {
+      "status": 400,
+      "body": {
+        "success": false,
+        "error": "Faltan campos obligatorios"
+      }
+    },
+    "serverError": {
+      "status": 500,
+      "body": {
+        "success": false,
+        "error": "Error al procesar la reserva"
+      }
+    }
+  }
+}
