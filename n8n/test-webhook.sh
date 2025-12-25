@@ -10,7 +10,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # URLs
-WEBHOOK_URL="https://n8n-happyhub-n8n.c13yv5.easypanel.host/webhook/reserva-happyhub"
+WEBHOOK_URL="https://n8n-n8n.ljmvxa.easypanel.host/webhook/reserva-happyhub"
 
 # Banner
 echo -e "${GREEN}"
@@ -226,5 +226,5 @@ echo ""
 echo -e "${GREEN}Test completado!${NC}"
 echo ""
 echo "Para ver los detalles de las ejecuciones en n8n:"
-echo "👉 https://n8n-happyhub-n8n.c13yv5.easypanel.host/workflow"
+echo "👉 https://n8n-n8n.ljmvxa.easypanel.host/workflow"
 echo ""

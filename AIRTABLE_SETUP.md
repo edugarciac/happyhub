@@ -109,7 +109,7 @@ Renombra la tabla default a **"Reservations"** y crea estos campos:
 ### 4.1 Acceder a n8n
 
 ```
-https://n8n-happyhub-n8n.c13yv5.easypanel.host
+https://n8n-n8n.ljmvxa.easypanel.host
 ```
 
 ### 4.2 Agregar credencial Airtable

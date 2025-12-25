@@ -1,6 +1,6 @@
 {
   "description": "Ejemplos de solicitudes de prueba para el webhook de reservas de HappyHub",
-  "webhookUrl": "https://n8n-happyhub-n8n.c13yv5.easypanel.host/webhook/reserva-happyhub",
+  "webhookUrl": "https://n8n-n8n.ljmvxa.easypanel.host/webhook/reserva-happyhub",
   "examples": [
     {
       "name": "Reserva Simple - Cumpleaños",
@@ -164,8 +164,8 @@
     }
   ],
   "curlExamples": {
-    "reservaSimple": "curl -X POST https://n8n-happyhub-n8n.c13yv5.easypanel.host/webhook/reserva-happyhub -H \"Content-Type: application/json\" -d '{\"name\":\"María García\",\"email\":\"maria.garcia@example.com\",\"phone\":\"+34612345678\",\"eventType\":\"Cumpleaños\",\"date\":\"2025-01-15\",\"time\":\"17:00\",\"guests\":25,\"duration\":\"4\",\"extras\":[],\"paymentMethod\":\"stripe\",\"totalPrice\":450}'",
-    "reservaConflicto": "curl -X POST https://n8n-happyhub-n8n.c13yv5.easypanel.host/webhook/reserva-happyhub -H \"Content-Type: application/json\" -d '{\"name\":\"Test User\",\"email\":\"test@example.com\",\"phone\":\"+34600000000\",\"eventType\":\"Test\",\"date\":\"2025-01-15\",\"time\":\"17:00\",\"guests\":10,\"duration\":\"2\",\"totalPrice\":200}'"
+    "reservaSimple": "curl -X POST https://n8n-n8n.ljmvxa.easypanel.host/webhook/reserva-happyhub -H \"Content-Type: application/json\" -d '{\"name\":\"María García\",\"email\":\"maria.garcia@example.com\",\"phone\":\"+34612345678\",\"eventType\":\"Cumpleaños\",\"date\":\"2025-01-15\",\"time\":\"17:00\",\"guests\":25,\"duration\":\"4\",\"extras\":[],\"paymentMethod\":\"stripe\",\"totalPrice\":450}'",
+    "reservaConflicto": "curl -X POST https://n8n-n8n.ljmvxa.easypanel.host/webhook/reserva-happyhub -H \"Content-Type: application/json\" -d '{\"name\":\"Test User\",\"email\":\"test@example.com\",\"phone\":\"+34600000000\",\"eventType\":\"Test\",\"date\":\"2025-01-15\",\"time\":\"17:00\",\"guests\":10,\"duration\":\"2\",\"totalPrice\":200}'"
   },
   "postmanCollection": {
     "info": {
@@ -189,7 +189,7 @@
             "raw": "{\n  \"name\": \"María García\",\n  \"email\": \"maria.garcia@example.com\",\n  \"phone\": \"+34612345678\",\n  \"eventType\": \"Cumpleaños\",\n  \"date\": \"2025-01-15\",\n  \"time\": \"17:00\",\n  \"guests\": 25,\n  \"duration\": \"4\",\n  \"extras\": [],\n  \"paymentMethod\": \"stripe\",\n  \"totalPrice\": 450\n}"
           },
           "url": {
-            "raw": "https://n8n-happyhub-n8n.c13yv5.easypanel.host/webhook/reserva-happyhub",
+            "raw": "https://n8n-n8n.ljmvxa.easypanel.host/webhook/reserva-happyhub",
             "protocol": "https",
             "host": ["n8n-happyhub-n8n", "c13yv5", "easypanel", "host"],
             "path": ["webhook", "reserva-happyhub"]

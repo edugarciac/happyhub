@@ -35,7 +35,7 @@ cd /Users/e.garcia.casas/Code/happyhub
 ### 4. Configurar n8n
 
 ```
-1. Ir a: https://n8n-happyhub-n8n.c13yv5.easypanel.host
+1. Ir a: https://n8n-n8n.ljmvxa.easypanel.host
 2. Settings → Credentials → Add → AWS
 3. Pegar Access Key ID y Secret Access Key
 4. Region: us-east-1
@@ -116,7 +116,7 @@ TOTAL: ~$40/mes → 25 meses con $1,000
 - **IAM:** https://console.aws.amazon.com/iam/
 - **Bedrock:** https://console.aws.amazon.com/bedrock/
 - **Cost Explorer:** https://console.aws.amazon.com/cost-management/
-- **n8n:** https://n8n-happyhub-n8n.c13yv5.easypanel.host
+- **n8n:** https://n8n-n8n.ljmvxa.easypanel.host
 
 ---
 

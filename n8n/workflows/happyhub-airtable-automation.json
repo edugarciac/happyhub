@@ -21,7 +21,7 @@
           "mode": "id"
         },
         "options": {
-          "filterByFormula": "AND({Status} = 'approved', {Google Calendar ID} = BLANK())"
+          "filterByFormula": "AND({Status} = 'Approved', {Google Calendar ID} = BLANK())"
         }
       },
       "name": "Airtable - Detectar Aprobadas",

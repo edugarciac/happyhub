@@ -130,7 +130,7 @@ El webhook acepta los siguientes campos (en español o inglés):
 ### 1. Importar el Flujo
 ```bash
 # Acceder a n8n
-https://n8n-happyhub-n8n.c13yv5.easypanel.host
+https://n8n-n8n.ljmvxa.easypanel.host
 
 # Ir a: Menú → Import → Seleccionar archivo
 n8n-reserva-con-validacion.json
@@ -156,7 +156,7 @@ Hacer clic en el botón "Active" en la esquina superior derecha.
 
 ### Con cURL
 ```bash
-curl -X POST https://n8n-happyhub-n8n.c13yv5.easypanel.host/webhook/reserva-happyhub \
+curl -X POST https://n8n-n8n.ljmvxa.easypanel.host/webhook/reserva-happyhub \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Test User",

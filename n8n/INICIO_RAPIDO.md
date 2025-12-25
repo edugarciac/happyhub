@@ -6,7 +6,7 @@ Guía express para poner en marcha el sistema de reservas en 10 minutos.
 
 Antes de empezar, asegúrate de tener:
 
-- [ ] Acceso a n8n: `https://n8n-happyhub-n8n.c13yv5.easypanel.host`
+- [ ] Acceso a n8n: `https://n8n-n8n.ljmvxa.easypanel.host`
 - [ ] Cuenta de Google con Google Calendar activado
 - [ ] Cuenta de Airtable (gratis)
 - [ ] Cuenta de Stripe (modo test está bien)
@@ -158,7 +158,7 @@ Abrir el flujo y verificar que cada nodo tenga sus credenciales asignadas:
 Actualizar `.env` en tu proyecto:
 
 ```env
-N8N_WEBHOOK_URL=https://n8n-happyhub-n8n.c13yv5.easypanel.host/webhook/reserva-happyhub
+N8N_WEBHOOK_URL=https://n8n-n8n.ljmvxa.easypanel.host/webhook/reserva-happyhub
 ```
 
 ---
@@ -176,7 +176,7 @@ cd n8n
 O usar curl directamente:
 
 ```bash
-curl -X POST https://n8n-happyhub-n8n.c13yv5.easypanel.host/webhook/reserva-happyhub \
+curl -X POST https://n8n-n8n.ljmvxa.easypanel.host/webhook/reserva-happyhub \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Test User",

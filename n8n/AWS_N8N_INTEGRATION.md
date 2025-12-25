@@ -8,7 +8,7 @@ Esta guía explica cómo integrar n8n con los servicios AWS para HappyHub.
 
 ### Paso 1: Acceder a n8n
 ```
-URL: https://n8n-happyhub-n8n.c13yv5.easypanel.host
+URL: https://n8n-n8n.ljmvxa.easypanel.host
 ```
 
 ### Paso 2: Agregar Credenciales AWS

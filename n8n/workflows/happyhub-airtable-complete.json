@@ -91,7 +91,7 @@
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "Status": "pending",
+            "Status": "Pending",
             "Cliente - Nombre": "={{$json.name}}",
             "Cliente - Email": "={{$json.email}}",
             "Cliente - Teléfono": "={{$json.phone}}",

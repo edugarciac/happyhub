@@ -227,7 +227,7 @@ POSTGRES_PORT=5432
 ### 6.1 Acceder a n8n
 
 ```
-https://n8n-happyhub-n8n.c13yv5.easypanel.host
+https://n8n-n8n.ljmvxa.easypanel.host
 ```
 
 ### 6.2 Agregar credencial PostgreSQL
@@ -280,8 +280,8 @@ En n8n, para cada webhook node:
 
 Ejemplo:
 ```
-https://n8n-happyhub-n8n.c13yv5.easypanel.host/webhook/reservation-request
-https://n8n-happyhub-n8n.c13yv5.easypanel.host/webhook/reservation-approval
+https://n8n-n8n.ljmvxa.easypanel.host/webhook/reservation-request
+https://n8n-n8n.ljmvxa.easypanel.host/webhook/reservation-approval
 ```
 
 ### 7.2 Actualizar .env con URLs
@@ -296,7 +296,7 @@ N8N_WEBHOOK_RESERVATION_APPROVAL=https://...
 
 ```bash
 # Test disponibilidad ocupada (debe retornar 409)
-curl -X POST https://n8n-happyhub-n8n.c13yv5.easypanel.host/webhook/reservation-request \
+curl -X POST https://n8n-n8n.ljmvxa.easypanel.host/webhook/reservation-request \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Test Usuario",

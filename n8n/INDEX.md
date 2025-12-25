@@ -133,7 +133,7 @@ cd n8n
 
 **Opción 2 - Manual con curl:**
 ```bash
-curl -X POST https://n8n-happyhub-n8n.c13yv5.easypanel.host/webhook/reserva-happyhub \
+curl -X POST https://n8n-n8n.ljmvxa.easypanel.host/webhook/reserva-happyhub \
   -H "Content-Type: application/json" \
   -d @test-examples.json
 ```
@@ -167,7 +167,7 @@ Ver código en `/api/webhook-reserva.ts`
                            ↓
 ┌─────────────────────────────────────────────────────────────┐
 │                     n8n Webhook                             │
-│     https://n8n-happyhub-n8n.c13yv5.easypanel.host         │
+│     https://n8n-n8n.ljmvxa.easypanel.host         │
 └──────────────────────────┬──────────────────────────────────┘
                            │
                 ┌──────────┴──────────┐
@@ -240,7 +240,7 @@ Ver código en `/api/webhook-reserva.ts`
 
 **Webhook n8n:**
 ```
-POST https://n8n-happyhub-n8n.c13yv5.easypanel.host/webhook/reserva-happyhub
+POST https://n8n-n8n.ljmvxa.easypanel.host/webhook/reserva-happyhub
 ```
 
 **API Next.js:**

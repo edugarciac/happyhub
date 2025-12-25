@@ -158,7 +158,7 @@ Port: 5432
 
 ### n8n
 ```bash
-# URL: https://n8n-happyhub-n8n.c13yv5.easypanel.host
+# URL: https://n8n-n8n.ljmvxa.easypanel.host
 # Importar workflow: reservations-management-complete.json
 # Configurar credenciales:
   - Google Calendar OAuth2
@@ -172,8 +172,8 @@ Port: 5432
 DATABASE_URL=postgresql://user:pass@aurora-endpoint:5432/happyhub_db
 
 # n8n Webhooks
-N8N_WEBHOOK_RESERVATION_REQUEST=https://n8n-happyhub-n8n.c13yv5.easypanel.host/webhook/reservation-request
-N8N_WEBHOOK_RESERVATION_APPROVAL=https://n8n-happyhub-n8n.c13yv5.easypanel.host/webhook/reservation-approval
+N8N_WEBHOOK_RESERVATION_REQUEST=https://n8n-n8n.ljmvxa.easypanel.host/webhook/reservation-request
+N8N_WEBHOOK_RESERVATION_APPROVAL=https://n8n-n8n.ljmvxa.easypanel.host/webhook/reservation-approval
 
 # Google Calendar
 GOOGLE_CALENDAR_ID=happyhub.rovellat@gmail.com

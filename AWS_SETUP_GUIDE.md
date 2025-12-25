@@ -364,7 +364,7 @@ aws cloudfront create-distribution \
 
 ### A. Credenciales AWS en n8n
 
-1. **Abrir n8n:** https://n8n-happyhub-n8n.c13yv5.easypanel.host
+1. **Abrir n8n:** https://n8n-n8n.ljmvxa.easypanel.host
 2. **Settings → Credentials → Add Credential**
 3. **Seleccionar:** AWS
 4. **Configurar:**

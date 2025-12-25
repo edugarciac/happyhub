@@ -4,7 +4,7 @@
 
 Importar y configurar los 2 workflows de HappyHub en tu instancia de n8n para gestionar todo el flujo de reservas con Airtable.
 
-**URL de tu n8n:** https://n8n-happyhub-n8n.c13yv5.easypanel.host
+**URL de tu n8n:** https://n8n-n8n.ljmvxa.easypanel.host
 
 ---
 
@@ -74,7 +74,7 @@ Antes de importar, necesitas configurar las credenciales en n8n:
 7. Click **Active** (activar workflow)
 8. Copia la **URL del Webhook**:
    - Aparecerá en el nodo "Webhook - Nueva Solicitud"
-   - Formato: `https://n8n-happyhub-n8n.c13yv5.easypanel.host/webhook/reservation-request`
+   - Formato: `https://n8n-n8n.ljmvxa.easypanel.host/webhook/reservation-request`
 
 ### Workflow 2: Automatización de Aprobaciones
 
@@ -112,7 +112,7 @@ Una vez importados los workflows, necesitas actualizar tu aplicación web:
 
 ```bash
 # URL del webhook del Workflow 1
-N8N_WEBHOOK_URL=https://n8n-happyhub-n8n.c13yv5.easypanel.host/webhook/reservation-request
+N8N_WEBHOOK_URL=https://n8n-n8n.ljmvxa.easypanel.host/webhook/reservation-request
 ```
 
 ### Actualizar código del frontend (si es necesario)

@@ -20,7 +20,7 @@ Este flujo n8n gestiona completamente el proceso de reservas en HappyHub con val
 ## URL del Webhook
 
 ```
-https://n8n-happyhub-n8n.c13yv5.easypanel.host/webhook/reserva-happyhub
+https://n8n-n8n.ljmvxa.easypanel.host/webhook/reserva-happyhub
 ```
 
 ## Requisitos Previos
@@ -68,7 +68,7 @@ https://n8n-happyhub-n8n.c13yv5.easypanel.host/webhook/reserva-happyhub
 
 ### 1. Importar el Flujo en n8n
 
-1. Acceder a tu instancia de n8n: `https://n8n-happyhub-n8n.c13yv5.easypanel.host`
+1. Acceder a tu instancia de n8n: `https://n8n-n8n.ljmvxa.easypanel.host`
 2. Hacer clic en el menú hamburguesa (☰) → **Import**
 3. Seleccionar el archivo `n8n-reserva-con-validacion.json`
 4. El flujo se importará con todos los nodos configurados
@@ -151,7 +151,7 @@ La funcionalidad de "Environments" requiere el plan Enterprise de n8n. Por eso, 
 ### 5. Activar el Flujo
 
 1. Hacer clic en el botón "Active" en la parte superior derecha del flujo
-2. El webhook estará disponible en: `https://n8n-happyhub-n8n.c13yv5.easypanel.host/webhook/reserva-happyhub`
+2. El webhook estará disponible en: `https://n8n-n8n.ljmvxa.easypanel.host/webhook/reserva-happyhub`
 3. Copiar la URL del webhook para usarla en tu aplicación
 
 ## Probar el Flujo
@@ -159,7 +159,7 @@ La funcionalidad de "Environments" requiere el plan Enterprise de n8n. Por eso, 
 ### Prueba desde Postman o cURL
 
 ```bash
-curl -X POST https://n8n-happyhub-n8n.c13yv5.easypanel.host/webhook/reserva-happyhub \
+curl -X POST https://n8n-n8n.ljmvxa.easypanel.host/webhook/reserva-happyhub \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Juan Pérez",
@@ -206,7 +206,7 @@ curl -X POST https://n8n-happyhub-n8n.c13yv5.easypanel.host/webhook/reserva-happ
 El endpoint `/api/webhook-reserva.ts` en Next.js ya está configurado para usar el webhook de n8n. Verifica que la variable de entorno esté configurada:
 
 ```env
-N8N_WEBHOOK_URL=https://n8n-happyhub-n8n.c13yv5.easypanel.host/webhook/reserva-happyhub
+N8N_WEBHOOK_URL=https://n8n-n8n.ljmvxa.easypanel.host/webhook/reserva-happyhub
 ```
 
 ## Monitoreo y Debugging
