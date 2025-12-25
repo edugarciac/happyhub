@@ -67,8 +67,8 @@ export default function Contacto() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-1">Teléfono</h3>
-                    <a href="tel:+34900123456" className="text-primary-600 hover:underline">
-                      +34 900 123 456
+                    <a href="tel:+34638390600" className="text-primary-600 hover:underline">
+                      638 390 600
                     </a>
                     <p className="text-sm text-gray-600 mt-1">Lun - Vie: 9:00 - 20:00</p>
                   </div>
@@ -80,8 +80,8 @@ export default function Contacto() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-1">Email</h3>
-                    <a href="mailto:info@happyhub.es" className="text-primary-600 hover:underline">
-                      info@happyhub.es
+                    <a href="mailto:happyhub.rovellat@gmail.com" className="text-primary-600 hover:underline">
+                      happyhub.rovellat@gmail.com
                     </a>
                     <p className="text-sm text-gray-600 mt-1">Respuesta en 24h</p>
                   </div>
@@ -94,8 +94,9 @@ export default function Contacto() {
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-1">Dirección</h3>
                     <p className="text-gray-600">
-                      Calle Ejemplo 123<br />
-                      28001 Madrid, España
+                      C/ Rovellat, 25<br />
+                      08950 Esplugues de Llobregat<br />
+                      Barcelona, España
                     </p>
                   </div>
                 </div>
@@ -121,7 +122,7 @@ export default function Contacto() {
                   Escríbenos directamente y te responderemos al instante
                 </p>
                 <a
-                  href="https://wa.me/34900123456"
+                  href="https://wa.me/34638390600"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn-secondary inline-flex items-center"
