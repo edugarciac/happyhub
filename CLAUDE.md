@@ -144,10 +144,16 @@ CLAUDE_API_KEY=             # Optional: Claude API for n8n
 - In Stripe dashboard, configure webhook to point to: `https://[domain]/api/stripe-webhook`
 
 ### n8n Workflow Dependencies
-- The n8n workflow JSON is in `n8n/n8n-nodes/n8n-nodes.json`
+- **Primary workflow**: `n8n/n8n-nodes/n8n-reserva-con-validacion.json` (with availability validation)
+- **Legacy workflow**: `n8n/n8n-nodes/n8n-nodes.json` (without validation, kept for reference)
 - Workflow expects specific data structure with fields: nombre, email, telefono, fecha, hora, pax, extras, tipoEvento
+- **Availability validation**: Checks Google Calendar for conflicts before creating reservation
+- Returns 409 error with message "Lo siento, la fecha y hora indicada ya está reservada." if conflict detected
 - Update Airtable base/table IDs in workflow before deployment
 - Claude AI integration in workflow requires Anthropic API key configured in n8n
+- Full setup guide in `n8n/INICIO_RAPIDO.md` (10-minute setup)
+- Detailed configuration in `n8n/INSTRUCCIONES_CONFIGURACION.md`
+- URL configuration without Enterprise plan in `n8n/CONFIGURACION_URL.md`
 
 ### Form Validation
 - All forms use Zod schemas defined in `src/utils/validators.ts`
@@ -160,10 +166,18 @@ CLAUDE_API_KEY=             # Optional: Claude API for n8n
 - Admin role: Full dashboard access, all reservations, reports
 - Role determined by JWT payload `role` field
 
+### Pricing System
+- **Pricing logic** in `src/utils/pricing.ts` - centralized pricing calculations
+- Uses `calculateBasePrice(date, timeSlot)` to determine prices dynamically
+- Holiday detection includes Spanish holidays 2025 (update array for 2026+)
+- Three time slots: morning, afternoon, night (night requires manual consultation)
+- Always use `getAvailableTimeSlotsWithPricing(date)` to get slots with current pricing
+
 ### Styling Conventions
 - Custom Tailwind utilities: `container-custom`, `btn-primary`, `btn-outline`, `card`
-- Color palette: primary (red-orange shades), secondary (blue shades)
-- Inter font family via CSS variables
+- Color palette: primary (teal/cyan), ocean (blue), accent (cyan) - defined in tailwind.config.js
+- Manrope font family via CSS variables
+- Custom animations: fade-in, slide-up, slide-down, scale-in, float
 - Responsive breakpoints: default mobile-first approach
 
 ### Payment Flow
@@ -175,6 +189,36 @@ CLAUDE_API_KEY=             # Optional: Claude API for n8n
 6. On payment, Stripe webhook notifies n8n
 7. n8n sends confirmation notifications
 
+## Key Files and Their Purpose
+
+### Utilities
+- `src/utils/pricing.ts` - **Critical**: Centralized pricing logic, holiday detection, time slot management
+  - `calculateBasePrice(date, timeSlot)` - Returns price or 'consult' for night slots
+  - `getAvailableTimeSlotsWithPricing(date)` - Gets all slots with calculated prices
+  - `isWeekend()`, `isHoliday()`, `isHolidayEve()`, `isFriday()` - Date helpers
+  - Update `holidays2025` array when year changes
+
+- `src/utils/validators.ts` - Zod schemas for form validation
+- `src/utils/formatters.ts` - Date, price, phone number formatters
+
+### API Routes
+- `src/pages/api/webhook-reserva.ts` - Forwards reservations to n8n, returns reservation ID
+- `src/pages/api/stripe-webhook.ts` - **Critical**: Uses raw body parsing, signature verification required
+- `src/pages/api/auth.ts` - JWT authentication, demo users with bcrypt hashed passwords
+
+### Components
+- `src/components/Calendar.tsx` - react-calendar wrapper with booking date logic
+- `src/components/ReservationForm.tsx` - Main booking form with validation
+- `src/components/Header.tsx`, `Footer.tsx` - Global layout components
+- `src/components/Hero.tsx` - Homepage hero section
+- `src/components/ProviderCard.tsx` - Provider service card display
+
+### Pages
+- `src/pages/disponibilidad.tsx` - **Recently updated**: Dynamic pricing calendar with time slot selection
+  - Uses `getAvailableTimeSlotsWithPricing()` for real-time price calculation
+  - Shows different prices for weekdays/weekends/holidays
+  - Larger calendar display (scale 110% mobile, 125% desktop)
+
 ## Testing the Application
 
 ### Local Development Setup
@@ -184,6 +228,11 @@ CLAUDE_API_KEY=             # Optional: Claude API for n8n
 4. Configure Stripe webhook to use a tool like ngrok for local testing: `ngrok http 3000`
 5. Start dev server: `npm run dev`
 
+### n8n Testing
+- Use `n8n/test-webhook.sh` - Interactive script for testing n8n webhook
+- Use `n8n/test-examples.json` - Sample payloads for different scenarios
+- Test availability validation by booking same date/time twice (should return 409)
+
 ### Demo Credentials
 - Admin: admin@happyhub.es (password in bcrypt hash in auth.ts)
 - Provider: proveedor@happyhub.es (password in bcrypt hash in auth.ts)
@@ -191,5 +240,7 @@ CLAUDE_API_KEY=             # Optional: Claude API for n8n
 ### Common Issues
 - "N8N_WEBHOOK_URL no está configurada": Check environment variable in `.env` or Vercel settings
 - "Invalid signature" from Stripe: Verify `STRIPE_WEBHOOK_SECRET` matches Stripe dashboard
-- Calendar not showing blocked dates: Implement database query logic in Calendar component
+- "Lo siento, la fecha y hora indicada ya está reservada": Expected behavior when date/time conflict detected
+- Calendar not showing blocked dates: Query Google Calendar via n8n or implement database query
 - 401 errors: Token expired or invalid, check localStorage and JWT_SECRET
+- Pricing showing wrong amounts: Check `holidays2025` array is up to date in `src/utils/pricing.ts`
