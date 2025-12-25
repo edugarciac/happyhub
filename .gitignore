@@ -26,6 +26,13 @@ yarn-error.log*
 .env
 .env*.local
 
+# AWS credentials (NEVER commit these)
+.aws/
+aws-credentials.json
+aws-config.local.json
+**/aws-credentials*
+**/aws-config.local*
+
 # vercel
 .vercel
 
