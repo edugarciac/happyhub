@@ -76,9 +76,8 @@ export interface ReservationPayload {
   phone: string;
   eventType: string;
   date: string;
-  time: string;
+  timeSlot: 'morning' | 'afternoon' | 'night';
   guests: number;
-  duration: string;
   extras?: string[];
   paymentMethod: string;
   message?: string;
@@ -86,7 +85,16 @@ export interface ReservationPayload {
 }
 
 export async function createReservation(data: ReservationPayload) {
-  return apiClient.post('/webhook-reserva', data);
+  // Enviar directamente a n8n en producción
+  const n8nUrl = process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL || '/api/webhook-reserva';
+
+  // Si la URL es externa (n8n), usar axios directamente
+  if (n8nUrl.startsWith('http')) {
+    return axios.post(n8nUrl, data);
+  }
+
+  // Si no, usar el API interno (para desarrollo local)
+  return apiClient.post(n8nUrl, data);
 }
 
 export async function getReservation(id: string) {

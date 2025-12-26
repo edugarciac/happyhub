@@ -74,9 +74,27 @@ export default function ReservationForm({
       }
     } catch (error: any) {
       console.error('Error creating reservation:', error);
-      setSubmitError(
-        error.response?.data?.message || 'Error al crear la reserva. Por favor, inténtalo de nuevo.'
-      );
+
+      // Manejar errores específicos de n8n
+      if (error.response?.status === 409) {
+        // Slot ocupado
+        setSubmitError(
+          error.response?.data?.error ||
+          'Lo siento, la fecha y franja horaria seleccionada ya está reservada. Por favor, selecciona otra fecha u horario.'
+        );
+      } else if (error.response?.data?.error) {
+        // Error del workflow de n8n
+        setSubmitError(error.response.data.error);
+      } else if (error.response?.data?.message) {
+        // Error general con mensaje
+        setSubmitError(error.response.data.message);
+      } else if (error.message) {
+        // Error de red o conexión
+        setSubmitError(`Error de conexión: ${error.message}`);
+      } else {
+        // Error genérico
+        setSubmitError('Error al crear la reserva. Por favor, inténtalo de nuevo.');
+      }
     } finally {
       setIsSubmitting(false);
     }
