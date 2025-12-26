@@ -32,7 +32,7 @@ Renombra la tabla default a **"Reservations"** y crea estos campos:
 | **Cliente - Nombre** | Single line text | |
 | **Cliente - Email** | Email | |
 | **Cliente - Teléfono** | Phone number | |
-| **Evento - Tipo** | Single select | Cumpleaños, Comunión, Bautizo, Otro |
+| **Evento - Tipo** | Single select | Cumpleaños, Celebración familiar, Eventos con amigos, Eventos de colegio o trabajo, Taller, Otros |
 | **Evento - Fecha** | Date | Include time: No |
 | **Evento - Franja** | Single select | Mañana (11:00-14:30), Tarde (16:30-20:30), Noche (22:00-02:00) |
 | **Evento - Invitados** | Number | Integer, Min: 1, Max: 150 |
@@ -148,9 +148,11 @@ Voy a crear el workflow en el siguiente paso.
 
 ```
 🎂 Cumpleaños
-✨ Comunión
-👶 Bautizo
-🎉 Otro
+👨‍👩‍👧‍👦 Celebración familiar
+👥 Eventos con amigos
+🏫 Eventos de colegio o trabajo
+🎨 Taller
+🎉 Otros
 ```
 
 ### Valores para "Evento - Franja"

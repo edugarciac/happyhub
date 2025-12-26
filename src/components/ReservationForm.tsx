@@ -166,9 +166,11 @@ export default function ReservationForm({
           <select {...register('eventType')} className="input-field">
             <option value="">Selecciona un tipo</option>
             <option value="cumpleaños">Cumpleaños</option>
-            <option value="comunion">Comunión</option>
-            <option value="bautizo">Bautizo</option>
-            <option value="otro">Otro</option>
+            <option value="celebracion-familiar">Celebración familiar</option>
+            <option value="eventos-amigos">Eventos con amigos</option>
+            <option value="eventos-colegio-trabajo">Eventos de colegio o trabajo</option>
+            <option value="taller">Taller</option>
+            <option value="otros">Otros</option>
           </select>
           {errors.eventType && <p className="text-red-500 text-sm mt-1">{errors.eventType.message}</p>}
         </div>

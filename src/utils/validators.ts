@@ -4,7 +4,14 @@ export const reservationSchema = z.object({
   name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
   email: z.string().email('Email inválido'),
   phone: z.string().min(9, 'Teléfono debe tener al menos 9 dígitos'),
-  eventType: z.enum(['cumpleaños', 'comunion', 'bautizo', 'otro'], {
+  eventType: z.enum([
+    'cumpleaños',
+    'celebracion-familiar',
+    'eventos-amigos',
+    'eventos-colegio-trabajo',
+    'taller',
+    'otros'
+  ], {
     errorMap: () => ({ message: 'Selecciona un tipo de evento válido' }),
   }),
   date: z.string().min(1, 'Selecciona una fecha'),
