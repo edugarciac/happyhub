@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import FullCalendar from '@/components/FullCalendar';
@@ -8,17 +8,33 @@ import { calculateBasePrice, type TimeSlot } from '@/utils/pricing';
 export default function Disponibilidad() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(null);
+  const [bookedSlots, setBookedSlots] = useState<{ date: Date; timeSlot: TimeSlot }[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Example booked slots - in production, this would come from your database
-  const bookedSlots = [
-    { date: new Date(2025, 11, 15), timeSlot: 'morning' as TimeSlot },
-    { date: new Date(2025, 11, 15), timeSlot: 'afternoon' as TimeSlot },
-    { date: new Date(2025, 11, 22), timeSlot: 'afternoon' as TimeSlot },
-    { date: new Date(2025, 11, 25), timeSlot: 'morning' as TimeSlot },
-    { date: new Date(2025, 11, 25), timeSlot: 'afternoon' as TimeSlot },
-    { date: new Date(2025, 11, 25), timeSlot: 'night' as TimeSlot },
-    { date: new Date(2026, 0, 1), timeSlot: 'afternoon' as TimeSlot },
-  ];
+  // Fetch booked slots from Airtable via API
+  useEffect(() => {
+    const fetchBookedSlots = async () => {
+      try {
+        const response = await fetch('/api/booked-slots');
+        if (response.ok) {
+          const data = await response.json();
+          // Parse ISO string dates to Date objects
+          const slots = (data.bookedSlots || []).map((slot: any) => ({
+            date: new Date(slot.date),
+            timeSlot: slot.timeSlot,
+          }));
+          setBookedSlots(slots);
+        }
+      } catch (error) {
+        console.error('Error fetching booked slots:', error);
+        // If API fails, show all as available (better UX than blocking everything)
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchBookedSlots();
+  }, []);
 
   const handleSlotSelect = (date: Date, timeSlot: TimeSlot) => {
     setSelectedDate(date);
@@ -73,7 +89,16 @@ export default function Disponibilidad() {
       {/* Full screen calendar */}
       <section className="py-8 bg-white min-h-screen">
         <div className="container-custom max-w-[1600px]">
-          <FullCalendar onSlotSelect={handleSlotSelect} bookedSlots={bookedSlots} />
+          {isLoading ? (
+            <div className="flex items-center justify-center min-h-[400px]">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+                <p className="text-gray-600">Cargando disponibilidad...</p>
+              </div>
+            </div>
+          ) : (
+            <FullCalendar onSlotSelect={handleSlotSelect} bookedSlots={bookedSlots} />
+          )}
 
           {/* Selection summary */}
           {selectedDate && selectedTimeSlot && (
