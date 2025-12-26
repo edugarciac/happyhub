@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import axios from 'axios';
 
 interface BookedSlot {
-  date: Date;
+  date: string; // ISO string format for JSON serialization
   timeSlot: 'morning' | 'afternoon' | 'night';
 }
 
