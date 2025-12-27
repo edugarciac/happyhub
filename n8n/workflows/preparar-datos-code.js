@@ -30,14 +30,16 @@ if (!slot) {
   throw new Error(`Invalid timeSlot: ${data.timeSlot}`);
 }
 
-const startDateTime = `${data.date}T${slot.start}`;
-let endDateTime = `${data.date}T${slot.end}`;
+// Google Calendar requiere formato RFC3339 con timezone
+const timezone = 'Europe/Madrid'; // UTC+1/+2 (España)
+const startDateTime = `${data.date}T${slot.start}+01:00`;
+let endDateTime = `${data.date}T${slot.end}+01:00`;
 
 // Si es noche, el final es al día siguiente
 if (data.timeSlot === 'night') {
   const nextDay = new Date(eventDate);
   nextDay.setDate(nextDay.getDate() + 1);
-  endDateTime = `${nextDay.toISOString().split('T')[0]}T${slot.end}`;
+  endDateTime = `${nextDay.toISOString().split('T')[0]}T${slot.end}+01:00`;
 }
 
 const formattedDate = eventDate.toLocaleDateString('es-ES', {
