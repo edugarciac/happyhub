@@ -9,11 +9,14 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  // Solo permitir en desarrollo
-  if (process.env.NODE_ENV === 'production') {
+  // Permitir con secret token en producción
+  const initSecret = req.query.secret || req.headers['x-init-secret'];
+  const expectedSecret = process.env.DB_PASSWORD; // Usar DB password como secret
+
+  if (process.env.NODE_ENV === 'production' && initSecret !== expectedSecret) {
     return res.status(403).json({
       success: false,
-      error: 'This endpoint is only available in development'
+      error: 'Unauthorized. Provide valid secret token.'
     });
   }
 
