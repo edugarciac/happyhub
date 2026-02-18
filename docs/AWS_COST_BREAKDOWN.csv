@@ -1,0 +1,40 @@
+Servicio AWS,Tipo,Especificaciones,Uso Estimado,Coste Mensual (€),Coste Anual (€),Notas
+EC2,Compute,t3.small (2 vCPU 2GB RAM),"730 horas/mes, 1 instancia",15.00,180.00,n8n workflows - siempre activo
+Aurora Serverless v2,Database,PostgreSQL compatible,"0.5-2 ACU, auto-scaling",25.00,300.00,Reservas + clientes + servicios
+S3,Storage,Standard storage,50GB primeros meses,5.00,60.00,Fotos + videos + archivos 3D
+CloudFront,CDN,Global distribution,500GB transferencia/mes,5.00,60.00,Entrega rápida de media
+Bedrock,AI/ML,Claude 3 Haiku/Sonnet,"300K tokens input, 100K output",15.00,180.00,Asistente IA + generación contenido
+Lambda,Compute,Serverless functions,"100K invocaciones, 512MB",5.00,60.00,Resize imágenes + webhooks
+Rekognition,AI/ML,Image analysis,"2000 imágenes/mes, face detection",10.00,120.00,Photocall + face tagging
+SES,Communication,Email service,5000 emails/mes,1.00,12.00,Confirmaciones + marketing
+SNS,Communication,Push notifications,10K notificaciones/mes,1.00,12.00,Recordatorios eventos
+CloudWatch,Monitoring,Logs + Metrics,10GB logs + dashboards,0.00,0.00,Incluido en free tier inicial
+,,,,,,
+TOTAL MENSUAL,,,82.00€,984.00€,
+CRÉDITO AWS STARTUPS,,,,-1000.00 USD,~900€ primer año
+COSTE NETO AÑO 1,,,84.00€,~Cubierto por crédito
+,,,,,,
+COSTES VARIABLES (Bajo Carga Alta),,,,,
+S3 (100GB),,Con crecimiento eventos,100GB storage,8.00,96.00,Si duplicamos eventos
+CloudFront (1TB),,Mayor tráfico web,1TB transferencia,10.00,120.00,Con 50-60 eventos/mes
+Bedrock (doble uso),,Más consultas IA,"600K tokens input, 200K output",30.00,360.00,Si 100% usuarios usan IA
+Aurora (más carga),,Más conexiones DB,2-4 ACU promedio,40.00,480.00,Con 50+ eventos/mes
+,,,,,,
+TOTAL MENSUAL (Escala Alta),,,170.00€,2040.00€,Con 50-60 eventos/mes
+,,,,,,
+PROYECCIÓN INGRESOS VS COSTES,,,,,
+,,,,,"(Solo costes AWS, sin staff/alquiler local)"
+Año,Eventos/mes,Ingreso medio/evento,Ingresos mensuales,Costes AWS,Margen neto,Margen %
+Año 1 (solo espacio),20,150.00€,3000.00€,82.00€,2918.00€,97.27%
+Año 1 (solo espacio),30,150.00€,4500.00€,82.00€,4418.00€,98.18%
+Año 1 (solo espacio),40,150.00€,6000.00€,82.00€,5918.00€,98.63%
+Año 2 (con digital),50,300.00€,15000.00€,120.00€,14880.00€,99.20%
+Año 3 (10 locales),300,300.00€,90000.00€,320.00€,89680.00€,99.64%
+,,,,,,
+ROI ANÁLISIS,,,,,
+Inversión AWS (año 1),984.00€,,,
+Ingresos proyectados año 1 (30 eventos/mes),54000.00€,,,"Conservador, solo espacio"
+Ingresos proyectados año 2 (50 eventos/mes con digital),180000.00€,,,Con servicios digitales AWS-powered
+ROI Año 1,5487%,,,Retorno 55x sobre inversión AWS
+ROI Año 2,18293%,,,Retorno 183x sobre inversión AWS
+Break-even (eventos),7,,,Solo 7 eventos (1.050€) cubren coste AWS anual

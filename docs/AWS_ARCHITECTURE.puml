@@ -1,0 +1,142 @@
+@startuml HappyHub_AWS_Architecture
+!define AWSPuml https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v14.0/dist
+!include AWSPuml/AWSCommon.puml
+!include AWSPuml/Compute/EC2.puml
+!include AWSPuml/Compute/Lambda.puml
+!include AWSPuml/Database/Aurora.puml
+!include AWSPuml/Storage/SimpleStorageService.puml
+!include AWSPuml/NetworkingContentDelivery/CloudFront.puml
+!include AWSPuml/MachineLearning/Bedrock.puml
+!include AWSPuml/MachineLearning/Rekognition.puml
+!include AWSPuml/ApplicationIntegration/SimpleNotificationService.puml
+!include AWSPuml/CustomerEngagement/SimpleEmailService.puml
+!include AWSPuml/ManagementGovernance/CloudWatch.puml
+
+title Arquitectura AWS - HappyHub Platform
+
+actor "Cliente\nhappyhub.es" as Client #LightBlue
+
+package "Frontend Layer" {
+    EC2(frontend, "EC2 / Amplify", "Next.js App") #Orange
+}
+
+package "Workflow Automation" {
+    EC2(n8n, "EC2 t3.small", "n8n Workflows") #Green
+}
+
+package "Database Layer" {
+    Aurora(db, "Aurora Serverless v2", "PostgreSQL") #Blue
+}
+
+package "AI & ML Services" {
+    Bedrock(ai, "Bedrock", "Claude Models") #Purple
+    Rekognition(vision, "Rekognition", "Face Detection") #Purple
+}
+
+package "Storage & CDN" {
+    SimpleStorageService(s3, "S3", "Media Storage") #Red
+    CloudFront(cdn, "CloudFront", "Global CDN") #Red
+}
+
+package "Serverless Processing" {
+    Lambda(lambda, "Lambda", "Event Handlers") #Yellow
+}
+
+package "Communication Services" {
+    SimpleEmailService(ses, "SES", "Email Service") #Pink
+    SimpleNotificationService(sns, "SNS", "Push Notifications") #Pink
+}
+
+package "Monitoring" {
+    CloudWatch(monitoring, "CloudWatch", "Logs & Metrics") #Gray
+}
+
+' External Services
+cloud "External Services" {
+    rectangle "Google Calendar" as gcal #LightGreen
+    rectangle "Stripe Payments" as stripe #LightGreen
+    rectangle "Airtable (Legacy)" as airtable #LightGreen
+}
+
+' Client connections
+Client --> cdn : HTTPS
+cdn --> frontend : Origin fetch
+cdn --> s3 : Static assets
+
+' Frontend connections
+frontend --> n8n : Webhook triggers
+frontend --> db : Direct queries\n(bookings, availability)
+frontend --> ai : AI assistant\nContent generation
+
+' n8n workflow connections
+n8n --> db : Store reservations\nCustomer data
+n8n --> gcal : Create events\nCheck availability
+n8n --> stripe : Payment links\nWebhook handling
+n8n --> ses : Send emails
+n8n --> sns : Push notifications
+n8n --> ai : Generate messages\nPersonalized content
+n8n --> airtable : Sync data\n(optional)
+
+' Lambda processing
+lambda --> s3 : Process uploads
+lambda --> vision : Analyze photos
+lambda --> db : Update records
+s3 --> lambda : Trigger on upload
+
+' AI services
+ai --> s3 : Store generated\ncontent
+vision --> s3 : Read images
+
+' Monitoring
+frontend --> monitoring : Application logs
+n8n --> monitoring : Workflow logs
+lambda --> monitoring : Function logs
+db --> monitoring : DB metrics
+s3 --> monitoring : Storage metrics
+
+note right of n8n
+  **n8n Workflows:**
+  • Reservation validation
+  • Calendar synchronization
+  • Payment processing
+  • Email campaigns
+  • Data preparation
+end note
+
+note right of db
+  **Aurora Tables:**
+  • Reservations
+  • Customers
+  • Services
+  • Vendors
+  • Events
+end note
+
+note right of ai
+  **Bedrock Use Cases:**
+  • Event planning assistant
+  • Invitation generation
+  • Social media content
+  • Thank you messages
+  • Recommendations
+end note
+
+note right of s3
+  **S3 Buckets:**
+  • Event photos
+  • Videos
+  • 3D print files
+  • Generated content
+  • Backups
+end note
+
+note bottom of lambda
+  **Lambda Functions:**
+  • Image resize/optimize
+  • Thumbnail generation
+  • Face detection trigger
+  • Webhook processors
+  • Scheduled cleanup
+end note
+
+@enduml

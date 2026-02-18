@@ -28,14 +28,23 @@ yarn-error.log*
 
 # AWS credentials (NEVER commit these)
 .aws/
-aws-credentials.json
-aws-config.local.json
+aws-credentials*.json
+aws-credentials*.local
+aws-config*.local
+aws-config*.json
 **/aws-credentials*
-**/aws-config.local*
+**/aws-config*
 
 # Airtable credentials (NEVER commit these)
 airtable-credentials.json
 **/airtable-credentials*
+
+# Migration data (NEVER commit these)
+migration/airtable-export/
+migration/backups/
+migration/*.csv
+migration/*.sql.backup
+migration/*.dump
 
 # vercel
 .vercel

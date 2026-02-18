@@ -29,9 +29,9 @@ HappyHub is a Next.js event space rental platform for managing and booking celeb
 
 **De lunes a viernes - Mañanas:** 110€
 **De lunes a jueves - Tardes:** 110€
-**Viernes y Vísperas de festivos - Tardes:** 140€
-**Sábados, domingos y festivos - Mañanas:** 130€
-**Sábados, domingos y festivos - Tardes:** 170€
+**Viernes y Vísperas de festivos - Tardes:** 155€
+**Sábados, domingos y festivos - Mañanas:** 145€
+**Sábados, domingos y festivos - Tardes:** 185€
 **Nocturno:** A consultar (precio variable)
 
 ### Reglas de Negocio para Tarifas
@@ -42,14 +42,14 @@ HappyHub is a Next.js event space rental platform for managing and booking celeb
 
 2. **Viernes:**
    - Mañana: 110€
-   - Tarde: 140€ (víspera de festivo)
+   - Tarde: 155€ (víspera de festivo)
 
 3. **Fines de semana (Sá-Do) y festivos:**
-   - Mañana: 130€
-   - Tarde: 170€
+   - Mañana: 145€
+   - Tarde: 185€
 
 4. **Vísperas de festivos:**
-   - Aplica tarifa de 140€ en tarde (igual que viernes)
+   - Aplica tarifa de 155€ en tarde (igual que viernes)
 
 5. **Horario nocturno:**
    - Precio a consultar
@@ -244,3 +244,68 @@ CLAUDE_API_KEY=             # Optional: Claude API for n8n
 - Calendar not showing blocked dates: Query Google Calendar via n8n or implement database query
 - 401 errors: Token expired or invalid, check localStorage and JWT_SECRET
 - Pricing showing wrong amounts: Check `holidays2025` array is up to date in `src/utils/pricing.ts`
+
+## Project Memory System
+
+This project maintains institutional knowledge in `docs/project_notes/` for consistency across sessions and to support better decision-making.
+
+### Memory Files
+
+- **bugs.md** - Bug log with dates, solutions, and prevention notes
+- **decisions.md** - Architectural Decision Records (ADRs) with context and trade-offs
+- **key_facts.md** - Project configuration, credentials, ports, important URLs
+- **issues.md** - Work log with ticket IDs, descriptions, and URLs
+
+### Memory-Aware Protocols
+
+**Before proposing architectural changes:**
+- Check `docs/project_notes/decisions.md` for existing decisions
+- Verify the proposed approach doesn't conflict with past choices
+- If it does conflict, acknowledge the existing decision and explain why a change is warranted
+
+**When encountering errors or bugs:**
+- Search `docs/project_notes/bugs.md` for similar issues
+- Apply known solutions if found
+- Document new bugs and solutions when resolved
+
+**When looking up project configuration:**
+- Check `docs/project_notes/key_facts.md` for credentials, ports, URLs, service accounts
+- Prefer documented facts over assumptions
+- Verify environment variable names and business rules
+
+**When completing work on tickets:**
+- Log completed work in `docs/project_notes/issues.md`
+- Include date, brief description, and relevant file paths
+- Reference git commit hashes for traceability
+
+**When user requests memory updates:**
+- Update the appropriate memory file (bugs, decisions, key_facts, or issues)
+- Follow the established format and style (bullet lists, dates, concise entries)
+- Ask clarifying questions if needed to properly categorize the information
+
+### Style Guidelines for Memory Files
+
+- **Prefer bullet lists over tables** for simplicity and ease of editing
+- **Keep entries concise** (1-3 lines for descriptions)
+- **Always include dates** for temporal context
+- **Include URLs** for tickets, documentation, monitoring dashboards
+- **Manual cleanup** of old entries is expected (not automated)
+
+### Using Memory for Decision-Making
+
+When facing technical decisions:
+
+1. **Research existing decisions** - Check `decisions.md` to understand past architectural choices
+2. **Review known issues** - Check `bugs.md` to avoid repeating past mistakes
+3. **Verify configuration** - Use `key_facts.md` as source of truth for setup details
+4. **Document new decisions** - Add ADR entries when making significant choices
+5. **Learn from history** - Use `issues.md` to understand what worked (and what didn't)
+
+**Example Decision-Making Flow:**
+```
+User: "Should we migrate from localStorage to cookies for JWT?"
+→ Check decisions.md for ADR-002 (JWT in localStorage)
+→ Review context and trade-offs already considered
+→ If proposing change, acknowledge existing decision and explain why revisiting
+→ Document new decision as ADR-006 if change is approved
+```
