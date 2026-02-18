@@ -1,7 +1,7 @@
 // PostgreSQL Database Connection Pool
 // Uses environment variables from .env.local
 
-import { Pool, QueryResult } from 'pg';
+import { Pool, QueryResult, QueryResultRow } from 'pg';
 
 // Create connection pool
 const pool = new Pool({
@@ -26,7 +26,7 @@ pool.on('error', (err) => {
 export default pool;
 
 // Helper function: Execute query with error handling
-export async function query<T = any>(
+export async function query<T extends QueryResultRow = any>(
   text: string,
   params?: any[]
 ): Promise<QueryResult<T>> {
@@ -43,7 +43,7 @@ export async function query<T = any>(
 }
 
 // Helper function: Get single row
-export async function queryOne<T = any>(
+export async function queryOne<T extends QueryResultRow = any>(
   text: string,
   params?: any[]
 ): Promise<T | null> {
