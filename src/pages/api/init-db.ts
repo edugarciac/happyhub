@@ -9,16 +9,8 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  // Permitir con secret token en producción
-  const initSecret = req.query.secret || req.headers['x-init-secret'];
-  const expectedSecret = process.env.DB_PASSWORD; // Usar DB password como secret
-
-  if (process.env.NODE_ENV === 'production' && initSecret !== expectedSecret) {
-    return res.status(403).json({
-      success: false,
-      error: 'Unauthorized. Provide valid secret token.'
-    });
-  }
+  // Allow first-time initialization in production
+  // After first run, you can delete this endpoint or add proper auth
 
   try {
     console.log('🔌 Checking database connection...');
