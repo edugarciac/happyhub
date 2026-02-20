@@ -64,8 +64,9 @@ export default function Header() {
               </Link>
             ))}
             <Link
-              href="/mi-reserva"
+              href="/login"
               className="text-gray-700 hover:text-primary-600 transition-colors p-2 rounded-xl hover:bg-primary-50 ml-2"
+              title="Iniciar sesión"
             >
               <User className="w-5 h-5" />
             </Link>
@@ -101,11 +102,11 @@ export default function Header() {
               </Link>
             ))}
             <Link
-              href="/mi-reserva"
+              href="/login"
               onClick={() => setIsMenuOpen(false)}
               className="block text-gray-700 hover:text-primary-600 font-medium transition-colors px-4 py-3 rounded-xl hover:bg-primary-50"
             >
-              Mi Reserva
+              Iniciar Sesión
             </Link>
             <Link
               href="/reservas"
