@@ -193,18 +193,20 @@ export default function LoginPage() {
               </button>
             </form>
 
-            {/* Divider */}
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">O continúa con</span>
-              </div>
-            </div>
-
-            {/* Google Sign In */}
-            <GoogleSignInButton onClick={handleGoogleSignIn} loading={googleLoading} />
+            {/* Google Sign In - Only show if configured */}
+            {process.env.NEXT_PUBLIC_GOOGLE_OAUTH_ENABLED === 'true' && (
+              <>
+                <div className="relative my-6">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-300"></div>
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-2 bg-white text-gray-500">O continúa con</span>
+                  </div>
+                </div>
+                <GoogleSignInButton onClick={handleGoogleSignIn} loading={googleLoading} />
+              </>
+            )}
 
             {/* Register link */}
             <div className="mt-6 text-center">
