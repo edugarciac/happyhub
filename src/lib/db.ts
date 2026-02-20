@@ -1,20 +1,14 @@
 // PostgreSQL Database Connection Pool
 // Uses environment variables from .env.local
 
-import { Pool, QueryResult, QueryResultRow } from 'pg';
+import { Pool as NeonPool } from '@neondatabase/serverless';
+import { QueryResult, QueryResultRow } from 'pg';
 
-// Create connection pool
-const pool = new Pool({
-  host: process.env.DB_HOST,
-  port: parseInt(process.env.DB_PORT || '5432'),
-  database: process.env.DB_NAME,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  ssl: false, // Sin SSL para conexión interna VPC
-  max: 20, // Máximo de conexiones en el pool
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 10000,
-});
+// Create connection pool using Neon serverless driver
+const connectionString = process.env.DATABASE_URL ||
+  `postgresql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`;
+
+const pool = new NeonPool({ connectionString });
 
 // Handle pool errors
 pool.on('error', (err) => {

@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
+import { verifyPassword, getUserById } from '../../utils/db/users';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
@@ -13,30 +13,13 @@ interface AuthResponse {
   success: boolean;
   token?: string;
   user?: {
-    id: string;
+    id: number;
     email: string;
     name: string;
     role: string;
   };
   error?: string;
 }
-
-const DEMO_USERS = [
-  {
-    id: 'admin-1',
-    email: 'admin@happyhub.es',
-    password: '$2a$10$X5wH5mYqR5qI5HwPnT8fHuK5RqE5ZqF5qE5ZqF5qE5ZqF5qE5ZqF5q',
-    name: 'Admin',
-    role: 'admin',
-  },
-  {
-    id: 'provider-1',
-    email: 'proveedor@happyhub.es',
-    password: '$2a$10$X5wH5mYqR5qI5HwPnT8fHuK5RqE5ZqF5qE5ZqF5qE5ZqF5qE5ZqF5q',
-    name: 'Proveedor',
-    role: 'provider',
-  },
-];
 
 export default async function handler(
   req: NextApiRequest,
@@ -64,18 +47,10 @@ async function handleLogin(req: NextApiRequest, res: NextApiResponse<AuthRespons
       });
     }
 
-    const user = DEMO_USERS.find((u) => u.email === email);
+    // Verify user credentials against database
+    const user = await verifyPassword(email, password);
 
     if (!user) {
-      return res.status(401).json({
-        success: false,
-        error: 'Credenciales inválidas',
-      });
-    }
-
-    const isValidPassword = await bcrypt.compare(password, user.password);
-
-    if (!isValidPassword) {
       return res.status(401).json({
         success: false,
         error: 'Credenciales inválidas',
@@ -89,7 +64,7 @@ async function handleLogin(req: NextApiRequest, res: NextApiResponse<AuthRespons
         role: user.role,
       },
       JWT_SECRET,
-      { expiresIn: '7d' }
+      { expiresIn: '30d' }
     );
 
     return res.status(200).json({
@@ -125,12 +100,13 @@ async function handleVerifyToken(req: NextApiRequest, res: NextApiResponse<AuthR
     const token = authHeader.substring(7);
 
     const decoded = jwt.verify(token, JWT_SECRET) as {
-      userId: string;
+      userId: number;
       email: string;
       role: string;
     };
 
-    const user = DEMO_USERS.find((u) => u.id === decoded.userId);
+    // Verify user still exists in database
+    const user = await getUserById(decoded.userId);
 
     if (!user) {
       return res.status(401).json({
