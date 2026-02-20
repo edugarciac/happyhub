@@ -3,8 +3,10 @@ import { useRouter } from 'next/router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { signIn } from 'next-auth/react';
 import Head from 'next/head';
 import Link from 'next/link';
+import GoogleSignInButton from '../components/GoogleSignInButton';
 
 const registerSchema = z.object({
   email: z.string().email('Por favor, introduce una dirección de email válida'),
@@ -23,6 +25,7 @@ export default function RegisterPage() {
   const router = useRouter();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const {
     register,
@@ -59,6 +62,17 @@ export default function RegisterPage() {
     } catch (err) {
       setError('Error de conexión. Por favor, inténtalo de nuevo');
       setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setGoogleLoading(true);
+    setError('');
+    try {
+      await signIn('google', { callbackUrl: '/' });
+    } catch (err) {
+      setError('Error al registrarse con Google');
+      setGoogleLoading(false);
     }
   };
 
@@ -192,6 +206,19 @@ export default function RegisterPage() {
                 )}
               </button>
             </form>
+
+            {/* Divider */}
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">O regístrate con</span>
+              </div>
+            </div>
+
+            {/* Google Sign In */}
+            <GoogleSignInButton onClick={handleGoogleSignIn} loading={googleLoading} />
 
             {/* Login link */}
             <div className="mt-6 text-center">
