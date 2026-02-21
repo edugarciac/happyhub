@@ -15,11 +15,27 @@ const loginSchema = z.object({
 
 type LoginForm = z.infer<typeof loginSchema>;
 
+const NEXTAUTH_ERROR_MESSAGES: Record<string, string> = {
+  OAuthSignin: 'Error al iniciar sesión con Google. Verifica que las credenciales de OAuth estén configuradas correctamente.',
+  OAuthCallback: 'Error en el callback de Google. Por favor, inténtalo de nuevo.',
+  OAuthCreateAccount: 'No se pudo crear la cuenta con Google.',
+  EmailCreateAccount: 'No se pudo crear la cuenta con ese email.',
+  Callback: 'Error durante la autenticación. Por favor, inténtalo de nuevo.',
+  OAuthAccountNotLinked: 'Este email ya está registrado con otro método de inicio de sesión.',
+  AccessDenied: 'Acceso denegado.',
+  Configuration: 'Error de configuración del servidor. Contacta con el administrador.',
+  Default: 'Error al iniciar sesión con Google. Por favor, inténtalo de nuevo.',
+};
+
 export default function LoginPage() {
   const router = useRouter();
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+
+  const nextAuthError = router.query.error as string | undefined;
+  const [error, setError] = useState(
+    nextAuthError ? (NEXTAUTH_ERROR_MESSAGES[nextAuthError] ?? NEXTAUTH_ERROR_MESSAGES.Default) : ''
+  );
 
   const {
     register,
@@ -68,12 +84,10 @@ export default function LoginPage() {
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
     setError('');
-    try {
-      await signIn('google', { callbackUrl: '/' });
-    } catch (err) {
-      setError('Error al iniciar sesión con Google');
-      setGoogleLoading(false);
-    }
+    // signIn('google') triggers a browser redirect to Google's OAuth page.
+    // Errors come back as ?error=... query params after the OAuth callback,
+    // which are handled via router.query.error above.
+    signIn('google', { callbackUrl: '/' });
   };
 
   return (
