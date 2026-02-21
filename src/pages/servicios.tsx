@@ -76,30 +76,6 @@ export default function Servicios() {
     },
   ];
 
-  const packs = [
-    {
-      name: 'Pack Básico',
-      price: 300,
-      duration: '3 horas',
-      included: ['Espacio', 'Limpieza'],
-      recommended: false,
-    },
-    {
-      name: 'Pack Completo',
-      price: 650,
-      duration: '4 horas',
-      included: ['Espacio', 'Catering (50 pax)', 'Decoración', 'Limpieza'],
-      recommended: true,
-    },
-    {
-      name: 'Pack Premium',
-      price: 1000,
-      duration: '5 horas',
-      included: ['Espacio', 'Catering (50 pax)', 'Decoración', 'Animación', 'Fotografía', 'Tarta', 'Limpieza'],
-      recommended: false,
-    },
-  ];
-
   return (
     <>
       <Head>
@@ -120,74 +96,7 @@ export default function Servicios() {
 
       <section className="py-16 bg-white">
         <div className="container-custom">
-          <h2 className="section-title text-center mb-12">Packs recomendados</h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-            {packs.map((pack, index) => (
-              <div
-                key={index}
-                className={`relative rounded-2xl p-8 ${
-                  pack.recommended
-                    ? 'bg-primary-600 text-white shadow-2xl transform scale-105'
-                    : 'bg-white border-2 border-gray-200'
-                }`}
-              >
-                {pack.recommended && (
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-secondary-600 text-white px-4 py-1 rounded-full text-sm font-semibold">
-                    Más popular
-                  </div>
-                )}
-
-                <h3
-                  className={`text-2xl font-bold mb-2 ${
-                    pack.recommended ? 'text-white' : 'text-gray-900'
-                  }`}
-                >
-                  {pack.name}
-                </h3>
-                <div
-                  className={`text-4xl font-bold mb-4 ${
-                    pack.recommended ? 'text-white' : 'text-primary-600'
-                  }`}
-                >
-                  €{pack.price}
-                </div>
-                <p
-                  className={`mb-6 ${
-                    pack.recommended ? 'text-primary-100' : 'text-gray-600'
-                  }`}
-                >
-                  {pack.duration}
-                </p>
-
-                <ul className="space-y-3 mb-8">
-                  {pack.included.map((item, i) => (
-                    <li key={i} className="flex items-start">
-                      <Check
-                        className={`w-5 h-5 mr-2 flex-shrink-0 ${
-                          pack.recommended ? 'text-white' : 'text-primary-600'
-                        }`}
-                      />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <Link
-                  href="/reservas"
-                  className={`block text-center px-6 py-3 rounded-lg font-semibold transition-colors ${
-                    pack.recommended
-                      ? 'bg-white text-primary-600 hover:bg-gray-100'
-                      : 'bg-primary-600 text-white hover:bg-primary-700'
-                  }`}
-                >
-                  Reservar este pack
-                </Link>
-              </div>
-            ))}
-          </div>
-
-          <h2 className="section-title text-center mb-12">Servicios individuales</h2>
+          <h2 className="section-title text-center mb-12">Servicios disponibles</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {services.map((service) => (
