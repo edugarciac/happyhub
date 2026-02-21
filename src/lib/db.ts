@@ -10,12 +10,6 @@ const connectionString = process.env.DATABASE_URL ||
 
 const pool = new NeonPool({ connectionString });
 
-// Handle pool errors
-pool.on('error', (err: Error) => {
-  console.error('Unexpected error on idle client', err);
-  process.exit(-1);
-});
-
 // Export pool for direct use
 export default pool;
 
