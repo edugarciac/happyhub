@@ -6,11 +6,28 @@ frontend:
         - npm ci --cache .npm --prefer-offline
     build:
       commands:
+        - echo "DATABASE_URL=$DATABASE_URL" >> .env.production
+        - echo "DB_HOST=$DB_HOST" >> .env.production
+        - echo "DB_PORT=$DB_PORT" >> .env.production
+        - echo "DB_NAME=$DB_NAME" >> .env.production
+        - echo "DB_USER=$DB_USER" >> .env.production
+        - echo "DB_PASSWORD=$DB_PASSWORD" >> .env.production
+        - echo "GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID" >> .env.production
+        - echo "GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET" >> .env.production
+        - echo "NEXTAUTH_URL=$NEXTAUTH_URL" >> .env.production
+        - echo "NEXTAUTH_SECRET=$NEXTAUTH_SECRET" >> .env.production
+        - echo "JWT_SECRET=$JWT_SECRET" >> .env.production
+        - echo "N8N_WEBHOOK_URL=$N8N_WEBHOOK_URL" >> .env.production
+        - echo "NEXT_PUBLIC_GOOGLE_OAUTH_ENABLED=$NEXT_PUBLIC_GOOGLE_OAUTH_ENABLED" >> .env.production
         - npm run build
   artifacts:
-    baseDirectory: .next
+    baseDirectory: .
     files:
-      - '**/*'
+      - .next/**/*
+      - .env.production
+      - node_modules/**/*
+      - package.json
+      - next.config.js
   cache:
     paths:
       - .next/cache/**/*
