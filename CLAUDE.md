@@ -309,3 +309,10 @@ User: "Should we migrate from localStorage to cookies for JWT?"
 → If proposing change, acknowledge existing decision and explain why revisiting
 → Document new decision as ADR-006 if change is approved
 ```
+
+## Active Technologies
+- TypeScript 5.9.3, Node.js (Next.js runtime) + Next.js 14 (Pages Router), React 18, NextAuth.js (for OAuth), bcryptjs (password hashing), Zod (validation), react-hook-form (001-email-password-auth)
+- PostgreSQL via AWS RDS Aurora (existing), user accounts table with email/password/OAuth fields (001-email-password-auth)
+
+## Recent Changes
+- 001-email-password-auth: Added TypeScript 5.9.3, Node.js (Next.js runtime) + Next.js 14 (Pages Router), React 18, NextAuth.js (for OAuth), bcryptjs (password hashing), Zod (validation), react-hook-form

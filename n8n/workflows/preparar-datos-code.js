@@ -30,17 +30,19 @@ if (!slot) {
   throw new Error(`Invalid timeSlot: ${data.timeSlot}`);
 }
 
-// Google Calendar requiere formato RFC3339 con timezone
-const timezone = 'Europe/Madrid'; // UTC+1/+2 (España)
-const startDateTime = `${data.date}T${slot.start}+01:00`;
-let endDateTime = `${data.date}T${slot.end}+01:00`;
+// Google Calendar requiere formato ISO 8601 con timezone Z (UTC)
+// Crear objetos Date con la hora local y convertir a UTC
+const startDate = new Date(`${data.date}T${slot.start}`);
+const endDate = new Date(`${data.date}T${slot.end}`);
 
 // Si es noche, el final es al día siguiente
 if (data.timeSlot === 'night') {
-  const nextDay = new Date(eventDate);
-  nextDay.setDate(nextDay.getDate() + 1);
-  endDateTime = `${nextDay.toISOString().split('T')[0]}T${slot.end}+01:00`;
+  endDate.setDate(endDate.getDate() + 1);
 }
+
+// Convertir a ISO string (formato UTC con Z al final)
+const startDateTime = startDate.toISOString();
+const endDateTime = endDate.toISOString();
 
 const formattedDate = eventDate.toLocaleDateString('es-ES', {
   weekday: 'long',

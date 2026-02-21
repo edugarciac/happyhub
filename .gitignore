@@ -45,6 +45,14 @@ migration/backups/
 migration/*.csv
 migration/*.sql.backup
 migration/*.dump
+migration/.db-password
+migration/connection-string.txt
+migration/aurora-endpoint.txt
+migration/aurora-sg-id.txt
+
+# Amplify deployment files with credentials
+amplify-env-variables.txt
+*-env-variables.txt
 
 # vercel
 .vercel
@@ -53,3 +61,11 @@ migration/*.dump
 *.tsbuildinfo
 next-env.d.ts
 aws-credentials-happyhub.json
+
+# GitHub Spec Kit (may contain credentials/tokens)
+.claude/
+.speckit/
+
+# Style Dictionary
+/build
+/tokens

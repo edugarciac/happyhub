@@ -11,11 +11,11 @@ export default function Disponibilidad() {
   const [bookedSlots, setBookedSlots] = useState<{ date: Date; timeSlot: TimeSlot }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch booked slots from Airtable via API
+  // Fetch booked slots from Google Calendar "Reservas Rovellat"
   useEffect(() => {
     const fetchBookedSlots = async () => {
       try {
-        const response = await fetch('/api/booked-slots');
+        const response = await fetch('/api/google-calendar-slots');
         if (response.ok) {
           const data = await response.json();
           // Parse ISO string dates to Date objects

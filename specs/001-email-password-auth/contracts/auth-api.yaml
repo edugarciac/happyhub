@@ -1,0 +1,571 @@
+openapi: 3.0.3
+info:
+  title: HappyHub Authentication API
+  description: Email/password and Google OAuth authentication endpoints
+  version: 1.0.0
+  contact:
+    name: HappyHub Development Team
+
+servers:
+  - url: https://www.happyhub.es/api
+    description: Production
+  - url: http://localhost:3000/api
+    description: Local development
+
+tags:
+  - name: Authentication
+    description: Login, registration, logout operations
+  - name: Password Reset
+    description: Password reset flow
+  - name: OAuth
+    description: Google OAuth operations
+  - name: User Profile
+    description: Profile and account linking operations
+
+paths:
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register new user with email/password
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - name
+                - phone
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  format: password
+                  minLength: 8
+                  example: SecurePass123
+                  description: Min 8 chars, must contain letter and number
+                name:
+                  type: string
+                  minLength: 2
+                  maxLength: 100
+                  example: Juan García
+                phone:
+                  type: string
+                  pattern: '^\+?[0-9]{9,15}$'
+                  example: '+34612345678'
+      responses:
+        '201':
+          description: User created successfully, auto-login JWT included
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSuccessResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidEmail:
+                  value:
+                    error: 'Por favor, introduce una dirección de email válida'
+                weakPassword:
+                  value:
+                    error: 'La contraseña debe tener al menos 8 caracteres, incluyendo letras y números'
+        '409':
+          description: Email already registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'Este email ya está registrado. Por favor, inicia sesión o usa otro email'
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Login with email/password
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  format: password
+                  example: SecurePass123
+      responses:
+        '200':
+          description: Login successful, JWT included
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSuccessResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'Email o contraseña incorrectos'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'Demasiados intentos de inicio de sesión. Por favor, inténtalo de nuevo en una hora'
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: Logout user (invalidate session)
+      operationId: logoutUser
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Sesión cerrada correctamente'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/session:
+    get:
+      tags:
+        - Authentication
+      summary: Validate current session
+      operationId: validateSession
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Session valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '401':
+          description: Session invalid or expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'Tu sesión ha expirado. Por favor, inicia sesión de nuevo'
+
+  /auth/reset-password:
+    post:
+      tags:
+        - Password Reset
+      summary: Request password reset email
+      operationId: requestPasswordReset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+      responses:
+        '200':
+          description: Reset email sent (generic response for security)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Si existe una cuenta con este email, recibirás un enlace para restablecer tu contraseña'
+
+  /auth/confirm-reset:
+    post:
+      tags:
+        - Password Reset
+      summary: Confirm password reset with token
+      operationId: confirmPasswordReset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - token
+                - newPassword
+              properties:
+                token:
+                  type: string
+                  example: 'abc123def456ghi789'
+                  description: Token from reset email
+                newPassword:
+                  type: string
+                  format: password
+                  minLength: 8
+                  example: 'NewSecurePass456'
+      responses:
+        '200':
+          description: Password reset successful, auto-login JWT included
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSuccessResponse'
+        '400':
+          description: Invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'Este enlace de restablecimiento ha expirado. Por favor, solicita uno nuevo'
+
+  /auth/[...nextauth]:
+    get:
+      tags:
+        - OAuth
+      summary: NextAuth.js OAuth handlers (Google)
+      operationId: nextAuthHandlers
+      description: |
+        NextAuth.js dynamic route handles all OAuth flows:
+        - GET /auth/signin -> Show OAuth providers
+        - GET /auth/callback/google -> OAuth callback
+        - GET /auth/signout -> OAuth sign out
+        - POST /auth/signin/google -> Initiate Google OAuth
+      responses:
+        '302':
+          description: Redirect to OAuth provider or callback URL
+        '200':
+          description: OAuth flow completed successfully
+
+  /user/profile:
+    get:
+      tags:
+        - User Profile
+      summary: Get current user profile
+      operationId: getUserProfile
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User profile retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    patch:
+      tags:
+        - User Profile
+      summary: Update user profile
+      operationId: updateUserProfile
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 2
+                  maxLength: 100
+                  example: 'María López'
+                phone:
+                  type: string
+                  pattern: '^\+?[0-9]{9,15}$'
+                  example: '+34698765432'
+                currentPassword:
+                  type: string
+                  format: password
+                  description: Required if changing password
+                newPassword:
+                  type: string
+                  format: password
+                  minLength: 8
+                  description: New password (requires currentPassword)
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Current password incorrect
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'La contraseña actual es incorrecta'
+
+  /user/link-google:
+    post:
+      tags:
+        - User Profile
+      summary: Link Google account to existing user
+      operationId: linkGoogleAccount
+      security:
+        - BearerAuth: []
+      description: Initiates Google OAuth flow to link account
+      responses:
+        '302':
+          description: Redirect to Google OAuth
+        '409':
+          description: Google account already linked to another user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'Esta cuenta de Google ya está vinculada a otra cuenta'
+
+  /user/unlink-google:
+    post:
+      tags:
+        - User Profile
+      summary: Unlink Google account from user
+      operationId: unlinkGoogleAccount
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Google account unlinked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Cuenta de Google desvinculada correctamente'
+        '400':
+          description: Cannot unlink (no alternative auth method)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'Debes tener al menos un método de autenticación. Configura una contraseña antes de desvincular Google'
+
+  /user/set-password:
+    post:
+      tags:
+        - User Profile
+      summary: Set password for Google-only account
+      operationId: setPassword
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - newPassword
+              properties:
+                newPassword:
+                  type: string
+                  format: password
+                  minLength: 8
+                  example: 'NewSecurePass789'
+      responses:
+        '200':
+          description: Password set successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Contraseña configurada correctamente. Ahora puedes iniciar sesión con email y contraseña'
+        '400':
+          description: Validation error or password already set
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token from login/register response
+
+  schemas:
+    AuthSuccessResponse:
+      type: object
+      required:
+        - success
+        - token
+        - user
+      properties:
+        success:
+          type: boolean
+          example: true
+        token:
+          type: string
+          format: jwt
+          example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+          description: JWT token (store in localStorage)
+        user:
+          $ref: '#/components/schemas/UserProfile'
+
+    SessionResponse:
+      type: object
+      required:
+        - valid
+        - user
+      properties:
+        valid:
+          type: boolean
+          example: true
+        user:
+          $ref: '#/components/schemas/UserProfile'
+        expiresAt:
+          type: string
+          format: date-time
+          example: '2026-03-22T10:30:00Z'
+
+    UserProfile:
+      type: object
+      required:
+        - id
+        - email
+        - name
+        - phone
+        - role
+        - authMethods
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: '550e8400-e29b-41d4-a716-446655440000'
+        email:
+          type: string
+          format: email
+          example: 'user@example.com'
+        name:
+          type: string
+          example: 'Juan García'
+        phone:
+          type: string
+          example: '+34612345678'
+        image:
+          type: string
+          format: uri
+          nullable: true
+          example: 'https://lh3.googleusercontent.com/a/...'
+        role:
+          type: string
+          enum: [client, provider, admin]
+          example: 'client'
+        authMethods:
+          type: object
+          properties:
+            password:
+              type: boolean
+              example: true
+              description: Has email/password auth set up
+            google:
+              type: boolean
+              example: false
+              description: Has Google account linked
+        emailVerified:
+          type: boolean
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+          example: '2026-02-20T10:30:00Z'
+        lastLoginAt:
+          type: string
+          format: date-time
+          nullable: true
+          example: '2026-02-20T15:45:00Z'
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          example: 'Email o contraseña incorrectos'
+        code:
+          type: string
+          example: 'INVALID_CREDENTIALS'
+          description: Machine-readable error code
+
+security:
+  - BearerAuth: []
