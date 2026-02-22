@@ -3,18 +3,9 @@
 // IMPORTANTE: Eliminar después de usar (solo para migración)
 
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { Pool } from 'pg';
+import pool from '@/lib/db';
 import fs from 'fs';
 import path from 'path';
-
-const pool = new Pool({
-  host: process.env.DB_HOST,
-  port: parseInt(process.env.DB_PORT || '5432'),
-  database: process.env.DB_NAME,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  ssl: false // Sin SSL para conexión interna VPC
-});
 
 export default async function handler(
   req: NextApiRequest,

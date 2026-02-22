@@ -1,14 +1,20 @@
 // PostgreSQL Database Connection Pool
-// Uses environment variables from .env.local
+// Uses Neon serverless PostgreSQL - set DATABASE_URL in .env.local
 
-import { Pool as NeonPool } from '@neondatabase/serverless';
+import ws from 'ws';
+import { neonConfig, Pool as NeonPool } from '@neondatabase/serverless';
 import { QueryResult, QueryResultRow } from 'pg';
 
-// Create connection pool using Neon serverless driver
-const connectionString = process.env.DATABASE_URL ||
-  `postgresql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`;
+// Required for Node.js environment (API routes run on Node, not Edge)
+neonConfig.webSocketConstructor = ws;
 
-const pool = new NeonPool({ connectionString });
+const connectionString = process.env.DATABASE_URL;
+
+if (!connectionString) {
+  console.error('❌ DATABASE_URL is not set. Get it from https://neon.tech and add it to .env.local');
+}
+
+const pool = new NeonPool({ connectionString: connectionString || '' });
 
 // Export pool for direct use
 export default pool;

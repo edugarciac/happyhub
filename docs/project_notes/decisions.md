@@ -183,6 +183,33 @@ Document key architectural choices, their context, and trade-offs.
 - Coste actual AWS: ~8€/mes (solo EC2), estimado post-migración: ~50€/mes
 - **Próximo paso**: Fase 0 - Backup de Airtable y preparación
 
+### ADR-007: Migrar base de datos de Aurora RDS a Neon PostgreSQL (2026-02-22)
+
+**Context:**
+- Aurora RDS desplegada en VPC privada sin endpoint público
+- La aplicación (local y Vercel) no podía acceder a la DB por red privada
+- El driver `@neondatabase/serverless` ya instalado es incompatible con Aurora RDS (es el driver propietario de Neon, no un driver PostgreSQL genérico)
+- Doble fallo: red privada + driver equivocado = acceso imposible desde cualquier entorno
+
+**Decision:**
+- Usar Neon PostgreSQL (https://neon.tech) en lugar de Aurora RDS
+- `DATABASE_URL` apunta al endpoint de Neon (público via HTTPS/WebSocket)
+- Configurar `neonConfig.webSocketConstructor = ws` en `src/lib/db.ts` para entorno Node.js
+- Aurora RDS puede mantenerse como backup o eliminarse para reducir costes AWS
+
+**Alternatives Considered:**
+- Hacer Aurora públicamente accesible → Rejected: riesgo de seguridad, requiere cambios de red VPC
+- Bastion host + SSH tunnel → Rejected: complejo, frágil para entorno serverless
+- Quedarse en Aurora → Rejected: incompatible con driver ya instalado y arquitectura serverless
+
+**Consequences:**
+- ✅ Acceso desde local, Vercel y cualquier entorno serverless
+- ✅ Driver `@neondatabase/serverless` funciona nativamente con Neon
+- ✅ Free tier suficiente para desarrollo y escala inicial (3GB storage)
+- ✅ No requiere configuración de red ni VPN
+- ❌ Salir del ecosistema AWS (si bien Neon usa AWS internamente)
+- ❌ Revisar si se mantiene Aurora para reducir costes (~25€/mes)
+
 ## Tips
 
 - Number decisions sequentially

@@ -205,11 +205,18 @@
   - Coste estimado: ~8€/mes (t3.micro)
 
 **Database:**
-- **Aurora Serverless v2**: PostgreSQL-compatible (~25€/mes)
-  - Min capacity: 0.5 ACU
-  - Max capacity: 2 ACU
-  - Auto-scaling based on load
-  - Automated backups and point-in-time recovery
+- **Neon PostgreSQL** (https://neon.tech) — reemplaza Aurora RDS
+  - Driver: `@neondatabase/serverless` (ya instalado)
+  - Acceso: público vía HTTPS/WebSocket, funciona desde local y serverless
+  - Free tier: 3GB storage, suficiente para desarrollo y escala inicial
+  - Coste producción: ~19€/mes (plan Pro) vs ~25€/mes Aurora
+  - Configuración: solo `DATABASE_URL` en `.env.local`
+  - Conexión string: `postgresql://user:pass@ep-xxx.neon.tech/neondb?sslmode=require`
+  - Inicializar schema: `GET /api/init-db` (una sola vez)
+- **Aurora Serverless v2** (DEPRECADA - 2026-02-22)
+  - Estaba en VPC privada, inaccesible desde fuera de AWS
+  - Incompatible con driver `@neondatabase/serverless`
+  - Ver ADR-007 en decisions.md
 
 **Storage & CDN:**
 - **S3**: Media storage (~5€/mes for 50GB)
