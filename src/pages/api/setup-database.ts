@@ -91,7 +91,7 @@ export default async function handler(
     res.status(500).json({
       success: false,
       error: error.message,
-      hint: 'Verifica que las variables de entorno DB_* estén configuradas correctamente en .env.local'
+      hint: 'Verifica que DATABASE_URL esté configurada en .env.local (obtén el connection string en https://neon.tech)'
     });
   }
 }
