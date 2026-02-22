@@ -1,5 +1,7 @@
 import Head from 'next/head';
 import Hero from '@/components/Hero';
+import PhotoGallery from '@/components/PhotoGallery';
+import PricingTable from '@/components/PricingTable';
 import {
   Calendar, Users, Sparkles, Shield, Clock, Heart,
   ArrowRight, Star, Cake, Palette, Camera, Music,
@@ -142,6 +144,14 @@ export default function Home() {
     'Party Supplies Co.',
   ];
 
+  const photos = [
+    { src: '/images/espacio-1.jpg', alt: 'Sala principal HappyHub', caption: 'Nuestra amplia sala principal, perfecta para cualquier celebración' },
+    { src: '/images/espacio-2.jpg', alt: 'Zona de juegos', caption: 'Zona de juegos infantiles totalmente equipada' },
+    { src: '/images/espacio-3.jpg', alt: 'Área de catering', caption: 'Área de catering con cocina totalmente equipada' },
+    { src: '/images/espacio-4.jpg', alt: 'Decoración de cumpleaños', caption: 'Ejemplo de decoración para cumpleaños' },
+    { src: '/images/espacio-5.jpg', alt: 'Terraza exterior', caption: 'Terraza exterior para los días soleados' },
+  ];
+
   return (
     <>
       <Head>
@@ -154,6 +164,12 @@ export default function Home() {
       </Head>
 
       <Hero />
+
+      {/* Photo Gallery Section */}
+      <PhotoGallery photos={photos} title="Conoce Nuestro Espacio" />
+
+      {/* Pricing Table Section */}
+      <PricingTable />
 
       {/* Features Section */}
       <section id="features" className="py-24 bg-white relative overflow-hidden">
