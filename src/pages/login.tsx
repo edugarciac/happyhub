@@ -3,7 +3,6 @@ import { useRouter } from 'next/router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { signIn } from 'next-auth/react';
 import Head from 'next/head';
 import Link from 'next/link';
 import GoogleSignInButton from '../components/GoogleSignInButton';
@@ -69,6 +68,7 @@ export default function LoginPage() {
     setGoogleLoading(true);
     setError('');
     try {
+      const { signIn } = await import('next-auth/react');
       await signIn('google', { callbackUrl: '/' });
     } catch (err) {
       setError('Error al iniciar sesión con Google');
