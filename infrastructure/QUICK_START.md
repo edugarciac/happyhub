@@ -96,7 +96,7 @@ sudo /opt/backups/backup-n8n.sh
 
 ## Automated Tasks
 
-✅ **Daily backup** at 2 AM → S3
+✅ **Weekly backup** on Sundays at 2 AM → S3
 ✅ **Weekly cleanup** on Sundays at 3 AM
 ✅ **Auto-restart** on failure
 

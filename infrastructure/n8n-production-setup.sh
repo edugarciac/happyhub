@@ -287,8 +287,8 @@ chmod +x ${BACKUP_DIR}/cleanup-logs.sh
 # 11. Setup cron jobs
 log_info "Setting up automated tasks..."
 cat > /etc/cron.d/n8n-maintenance <<'CRON'
-# Daily backup at 2 AM
-0 2 * * * root /opt/backups/backup-n8n.sh >> /var/log/n8n-backup.log 2>&1
+# Weekly backup on Sundays at 2 AM
+0 2 * * 0 root /opt/backups/backup-n8n.sh >> /var/log/n8n-backup.log 2>&1
 
 # Weekly cleanup on Sundays at 3 AM
 0 3 * * 0 root /opt/backups/cleanup-logs.sh >> /var/log/n8n-cleanup.log 2>&1
@@ -367,6 +367,6 @@ echo "  - Restart: cd ${DATA_DIR} && docker-compose restart"
 echo "  - Backup: ${BACKUP_DIR}/backup-n8n.sh"
 echo ""
 echo "Automated tasks:"
-echo "  - Daily backup at 2 AM"
+echo "  - Weekly backup on Sundays at 2 AM"
 echo "  - Weekly cleanup on Sundays at 3 AM"
 echo ""

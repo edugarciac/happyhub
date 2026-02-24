@@ -11,7 +11,7 @@ Complete guide for deploying a production-ready n8n instance on AWS EC2.
 - Health checks and monitoring
 
 ✅ **Backup & Recovery**
-- Automated daily backups to S3
+- Automated weekly backups to S3 (Sundays at 2 AM)
 - 30-day local backup retention
 - 90-day S3 backup retention
 - Easy restore process
