@@ -63,7 +63,7 @@ SSL Mode: require
 Editar cada nodo de WhatsApp y reemplazar:
 - `{{ $env.WHATSAPP_PHONE_NUMBER_ID }}` → Tu Phone Number ID real
 - `{{ $env.WHATSAPP_ACCESS_TOKEN }}` → Tu Access Token real
-- `{{ $env.ADMIN_WHATSAPP_NUMBER }}` → +34638390600
+- `{{ $env.ADMIN_WHATSAPP_NUMBER }}` → +34624645517
 
 **Opción 2: Variables de entorno (si tienes acceso)**
 
@@ -73,7 +73,7 @@ Si puedes editar variables de entorno en n8n:
   ```
   WHATSAPP_PHONE_NUMBER_ID=123456789012345
   WHATSAPP_ACCESS_TOKEN=EAAxxxxxxxxxxxxxxxxx
-  ADMIN_WHATSAPP_NUMBER=+34638390600
+  ADMIN_WHATSAPP_NUMBER=+34624645517
   ```
 
 ---

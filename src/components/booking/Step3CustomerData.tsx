@@ -205,7 +205,7 @@ export default function Step3CustomerData() {
                     type="tel"
                     {...register('phone')}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                    placeholder="638 390 600"
+                    placeholder="624 645 517"
                   />
                   {errors.phone && (
                     <p className="text-red-500 text-sm mt-1">{errors.phone.message}</p>

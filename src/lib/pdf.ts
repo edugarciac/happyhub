@@ -216,7 +216,7 @@ export function generateContractPDF(reservation: ReservationData): Buffer {
   addCenteredText('HappyHub - Espacio de celebraciones', yPos, 10);
   yPos += 5;
   doc.setFontSize(9);
-  addCenteredText('Tel: 638 390 600 | Email: info@happyhub.es | Web: www.happyhub.es', yPos, 9);
+  addCenteredText('WhatsApp: 624 645 517 | Email: happyhub.rovellat@gmail.com | Web: www.happyhub.es', yPos, 9);
 
   // Return as Buffer for Node.js API
   const pdfOutput = doc.output('arraybuffer');

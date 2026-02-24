@@ -31,7 +31,7 @@ Content-Type: application/json
   // Datos del cliente
   "name": "Juan Pérez",
   "email": "juan@example.com",
-  "phone": "+34638390600",
+  "phone": "+34624645517",
   "eventType": "cumpleaños",
   "message": "Queremos decoración especial de superhéroes",
 
@@ -138,7 +138,7 @@ Headers:
 ```json
 {
   "messaging_product": "whatsapp",
-  "to": "+34638390600",
+  "to": "+34624645517",
   "type": "template",
   "template": {
     "name": "reserva_confirmada",
@@ -309,7 +309,7 @@ const paymentLink = await stripe.paymentLinks.create({
 # WhatsApp Business
 WHATSAPP_PHONE_NUMBER_ID=123456789012345
 WHATSAPP_ACCESS_TOKEN=EAAxxxxxxxxxxxxxxxxx
-ADMIN_WHATSAPP_NUMBER=+34638390600
+ADMIN_WHATSAPP_NUMBER=+34624645517
 
 # Neon PostgreSQL
 DATABASE_URL=postgresql://neondb_owner:npg_zr5iRHB3pgLw@ep-morning-sky-abwuz6yr.eu-west-2.aws.neon.tech/neondb?sslmode=require

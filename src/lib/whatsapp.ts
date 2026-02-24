@@ -173,7 +173,7 @@ ${contractUrl ? `📄 Contrato: ${contractUrl}` : ''}
 
 Resto pendiente: ${totalPrice - depositAmount}€ (a pagar el día del evento)
 
-¿Tienes preguntas? Responde a este mensaje o llámanos al 638 390 600.
+¿Tienes preguntas? Responde a este mensaje o escríbenos por WhatsApp al 624 645 517.
 
 ¡Nos vemos pronto! 🎈`;
 
@@ -212,7 +212,7 @@ Hola ${name}, te recordamos que tu evento en HappyHub es en 7 días.
 
 No olvides preparar todo lo necesario para tu celebración.
 
-Si tienes alguna pregunta o necesitas hacer cambios, contáctanos al 638 390 600.
+Si tienes alguna pregunta o necesitas hacer cambios, escríbenos por WhatsApp al 624 645 517.
 
 ¡Te esperamos! 🎉`;
 

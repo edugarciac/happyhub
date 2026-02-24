@@ -107,18 +107,20 @@ export default function BookingCancel() {
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
                 <a
-                  href="tel:+34638390600"
+                  href="https://wa.me/34624645517"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="flex items-center gap-2 text-primary-600 hover:text-primary-700"
                 >
                   <Phone className="w-5 h-5" />
-                  638 390 600
+                  WhatsApp: 624 645 517
                 </a>
                 <a
-                  href="mailto:info@happyhub.es"
+                  href="mailto:happyhub.rovellat@gmail.com"
                   className="flex items-center gap-2 text-primary-600 hover:text-primary-700"
                 >
                   <Mail className="w-5 h-5" />
-                  info@happyhub.es
+                  happyhub.rovellat@gmail.com
                 </a>
               </div>
             </div>
