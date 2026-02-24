@@ -57,7 +57,7 @@ export default function Contacto() {
             <div>
               <h2 className="text-3xl font-bold text-gray-900 mb-6">Información de contacto</h2>
               <p className="text-gray-600 mb-8">
-                Puedes contactarnos por cualquiera de estos medios. Respondemos en menos de 24 horas.
+                Puedes contactarnos por WhatsApp. Respondemos en menos de 24 horas.
               </p>
 
               <div className="space-y-6">
@@ -66,11 +66,11 @@ export default function Contacto() {
                     <Phone className="w-6 h-6 text-primary-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">Teléfono</h3>
-                    <a href="tel:+34638390600" className="text-primary-600 hover:underline">
-                      638 390 600
+                    <h3 className="font-semibold text-gray-900 mb-1">WhatsApp</h3>
+                    <a href="https://wa.me/34624645517" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">
+                      624 645 517
                     </a>
-                    <p className="text-sm text-gray-600 mt-1">Lun - Vie: 9:00 - 20:00</p>
+                    <p className="text-sm text-gray-600 mt-1">Solo mensajes y llamadas por WhatsApp</p>
                   </div>
                 </div>
 
@@ -117,12 +117,12 @@ export default function Contacto() {
               </div>
 
               <div className="mt-8 p-6 bg-primary-50 rounded-lg">
-                <h3 className="font-semibold text-gray-900 mb-2">¿Prefieres WhatsApp?</h3>
+                <h3 className="font-semibold text-gray-900 mb-2">Contáctanos por WhatsApp</h3>
                 <p className="text-gray-600 mb-4">
-                  Escríbenos directamente y te responderemos al instante
+                  Solo atendemos mensajes y llamadas a través de WhatsApp. Escríbenos y te responderemos al instante.
                 </p>
                 <a
-                  href="https://wa.me/34638390600"
+                  href="https://wa.me/34624645517"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn-secondary inline-flex items-center"

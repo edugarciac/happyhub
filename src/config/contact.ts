@@ -3,9 +3,9 @@
 
 export const CONTACT_INFO = {
   email: 'happyhub.rovellat@gmail.com',
-  phone: '638390600',
-  phoneFormatted: '638 390 600',
-  phoneInternational: '+34638390600',
+  phone: '624645517',
+  phoneFormatted: '624 645 517',
+  phoneInternational: '+34624645517',
   address: {
     street: 'C/ Rovellat, 25',
     postalCode: '08950',
@@ -19,7 +19,7 @@ export const CONTACT_INFO = {
     saturday: 'Sábados: 10:00 - 14:00',
     sunday: 'Domingos: Cerrado',
   },
-  whatsapp: 'https://wa.me/34638390600',
+  whatsapp: 'https://wa.me/34624645517',
   social: {
     // Añadir cuando estén disponibles
     facebook: '',
