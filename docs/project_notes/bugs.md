@@ -4,6 +4,15 @@ Track bugs, issues, and their solutions for quick reference in future sessions.
 
 ## Recent Bugs
 
+### 2026-02-24 - NextAuth Build Failure on AWS Amplify
+- **Issue**: Build fails with "TypeError: Invalid URL" when NextAuth tries to parse empty NEXTAUTH_URL
+- **Root Cause**: NEXTAUTH_URL environment variable not configured in AWS Amplify Console
+- **Solution**:
+  - Add NEXTAUTH_URL to Amplify environment variables with production URL
+  - Added NEXTAUTH_URL to next.config.js env object for build-time access
+- **Prevention**: Verify all required env vars in Amplify Console before deployment
+- **Files Changed**: next.config.js (added NEXTAUTH_URL to env)
+
 ### 2025-01-27 - Google Calendar Timezone Issues
 - **Issue**: Calendar datetime format causing timezone-related booking errors
 - **Root Cause**: Missing timezone information in ISO datetime strings
@@ -29,6 +38,16 @@ Track bugs, issues, and their solutions for quick reference in future sessions.
 - **What breaks**: If n8n is down or webhook URL changes, reservations fail
 - **Prevention**: Test webhook connectivity before major deployments
 - **Monitoring**: Check `N8N_WEBHOOK_URL` environment variable
+
+### n8n Connection Blocked by Zscaler (2026-02-22)
+- **Issue**: n8n instance not accessible, timeouts and 504 Gateway errors
+- **Root Cause**: Corporate firewall (Zscaler) blocks connections to EC2 IP
+- **Solution**:
+  - Access n8n directly when not on corporate network
+  - Or configure VPN/proxy to bypass Zscaler
+  - Security group rules updated (ports 80, 5678 open)
+- **Prevention**: Be aware that Easypanel/n8n may be blocked on corporate networks
+- **Workaround**: Use mobile hotspot or home network for n8n configuration
 
 ### JWT Token Expiration
 - **Context**: JWT tokens stored in localStorage with no auto-refresh

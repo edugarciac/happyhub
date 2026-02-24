@@ -78,9 +78,14 @@
 ### External Services
 
 **n8n Workflow:**
-- URL: Configured via `N8N_WEBHOOK_URL` environment variable
-- Purpose: Orchestrate Google Calendar, Airtable, Email, Stripe payment links
+- URL: https://n8n-n8n.ljmvxa.easypanel.host
+- Webhook: https://n8n-n8n.ljmvxa.easypanel.host/webhook/reservation-request
+- Usuario: edu.garciac@gmail.com
+- Contraseña: Myene8ene@1
+- Hosted: Easypanel (EC2 34.243.177.162)
+- Purpose: Orchestrate Google Calendar, WhatsApp Business, Neon DB, Email, Stripe payment links
 - Workflow file: `n8n/n8n-nodes/n8n-reserva-con-validacion.json`
+- Documentation: `n8n/FLUJO_WHATSAPP_BUSINESS.md`
 
 **Stripe:**
 - Test mode keys for development
@@ -302,7 +307,38 @@
 - Monitoring setup (CloudWatch)
 - Public launch
 
-### AWS Environment Variables
+### AWS Amplify Deployment
+
+**Frontend Hosting:**
+- Service: AWS Amplify (Next.js SSR support)
+- Build configuration: `amplify.yml` in repository root
+- Environment variables: Set in Amplify Console (Build Settings → Environment Variables)
+
+**Required Amplify Environment Variables:**
+- `DATABASE_URL` - Neon PostgreSQL connection string
+- `DB_HOST` - Database host
+- `DB_PORT` - Database port (5432)
+- `DB_NAME` - Database name
+- `DB_USER` - Database user
+- `DB_PASSWORD` - Database password
+- `GOOGLE_CLIENT_ID` - Google OAuth client ID
+- `GOOGLE_CLIENT_SECRET` - Google OAuth client secret
+- `NEXTAUTH_URL` - **CRITICAL** - Production app URL (e.g., https://main.d123abc.amplifyapp.com)
+- `NEXTAUTH_SECRET` - NextAuth secret key
+- `JWT_SECRET` - JWT signing secret
+- `N8N_WEBHOOK_URL` - n8n webhook endpoint
+- `NEXT_PUBLIC_GOOGLE_OAUTH_ENABLED` - Enable/disable Google OAuth (true/false)
+
+**Build Process:**
+1. Environment variables written to `.env.production` (see `amplify.yml`)
+2. Next.js build runs with those variables
+3. Build artifacts deployed to Amplify CDN
+
+**Common Issues:**
+- Empty `NEXTAUTH_URL` causes "Invalid URL" error at build time
+- NextAuth requires `NEXTAUTH_URL` to be set in both Amplify Console and `next.config.js`
+
+### AWS Environment Variables (EC2/Infrastructure)
 
 **Additional AWS-specific variables:**
 - `AWS_REGION` - AWS region (eu-west-1)
