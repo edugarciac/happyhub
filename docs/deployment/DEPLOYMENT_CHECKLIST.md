@@ -105,7 +105,7 @@ Environments: Production, Preview, Development
    ```
    Nombre: Test Usuario
    Email: tu_email@gmail.com (tu email real)
-   Teléfono: 638390600
+   Teléfono: 624645517
    Tipo de evento: Cumpleaños
    Fecha: [Una fecha futura, ej: 20 de enero de 2025]
    Franja: Tarde (16:30-20:30)

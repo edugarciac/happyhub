@@ -179,7 +179,7 @@ El workflow se importará con todos los nodos. Verifica que cada nodo tenga las 
    ```
    Nombre: Test Usuario
    Email: tu_email@gmail.com
-   Teléfono: 638390600
+   Teléfono: 624645517
    Tipo de evento: Cumpleaños
    Fecha: [Una fecha futura, ej: 15 de enero de 2025]
    Franja: Tarde (16:30-20:30)
