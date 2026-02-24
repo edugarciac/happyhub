@@ -98,7 +98,7 @@ INSERT INTO settings (key, value, description) VALUES
 ('google_calendar_id', 'happyhub.rovellat@gmail.com', 'Google Calendar ID para sincronización'),
 ('approval_email', 'happyhub.rovellat@gmail.com', 'Email para notificaciones de aprobación'),
 ('business_name', 'HappyHub', 'Nombre del negocio'),
-('business_phone', '638390600', 'Teléfono de contacto'),
+('business_phone', '624645517', 'Teléfono de contacto'),
 ('business_email', 'happyhub.rovellat@gmail.com', 'Email de contacto'),
 ('business_address', 'C/ Rovellat, 25, 08950 Esplugues de Llobregat, Barcelona', 'Dirección del local')
 ON CONFLICT (key) DO NOTHING;

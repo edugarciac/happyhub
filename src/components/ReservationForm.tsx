@@ -156,7 +156,7 @@ export default function ReservationForm({
             type="tel"
             {...register('phone')}
             className="input-field"
-            placeholder="638 390 600"
+            placeholder="624 645 517"
           />
           {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone.message}</p>}
         </div>

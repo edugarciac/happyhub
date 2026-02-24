@@ -67,8 +67,8 @@ export default function Contacto() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-1">Teléfono</h3>
-                    <a href="tel:+34638390600" className="text-primary-600 hover:underline">
-                      638 390 600
+                    <a href="tel:+34624645517" className="text-primary-600 hover:underline">
+                      624 645 517
                     </a>
                     <p className="text-sm text-gray-600 mt-1">Lun - Vie: 9:00 - 20:00</p>
                   </div>
@@ -122,7 +122,7 @@ export default function Contacto() {
                   Escríbenos directamente y te responderemos al instante
                 </p>
                 <a
-                  href="https://wa.me/34638390600"
+                  href="https://wa.me/34624645517"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn-secondary inline-flex items-center"
