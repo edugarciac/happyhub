@@ -150,9 +150,12 @@ export default function Footer() {
               </li>
               <li className="flex items-center space-x-3 group">
                 <Phone className="w-5 h-5 text-primary-400 flex-shrink-0 group-hover:scale-110 transition-transform" />
-                <a href="tel:+34638390600" className="text-gray-400 hover:text-primary-400 transition-colors">
-                  +34 638 390 600
-                </a>
+                <span>
+                  <a href="https://wa.me/34624645517" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-primary-400 transition-colors">
+                    +34 624 645 517
+                  </a>
+                  <span className="block text-xs text-gray-500">Solo WhatsApp</span>
+                </span>
               </li>
               <li className="flex items-center space-x-3 group">
                 <Mail className="w-5 h-5 text-primary-400 flex-shrink-0 group-hover:scale-110 transition-transform" />

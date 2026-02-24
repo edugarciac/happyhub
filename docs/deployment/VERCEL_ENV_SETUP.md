@@ -174,7 +174,7 @@ cat .env | vercel env add
   ```bash
   curl -X POST https://n8n-n8n.ljmvxa.easypanel.host/webhook/reservation-request \
     -H "Content-Type: application/json" \
-    -d '{"name":"Test","email":"test@test.com","phone":"638390600","eventType":"cumpleaños","date":"2025-01-15","timeSlot":"afternoon","guests":50,"paymentMethod":"card","extras":[],"totalPrice":500}'
+    -d '{"name":"Test","email":"test@test.com","phone":"624645517","eventType":"cumpleaños","date":"2025-01-15","timeSlot":"afternoon","guests":50,"paymentMethod":"card","extras":[],"totalPrice":500}'
   ```
 
 ---
