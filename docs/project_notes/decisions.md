@@ -183,9 +183,43 @@ Document key architectural choices, their context, and trade-offs.
 - Coste actual AWS: ~8€/mes (solo EC2), estimado post-migración: ~50€/mes
 - **Próximo paso**: Fase 0 - Backup de Airtable y preparación
 
+### ADR-007: Documentar Todas las Incidencias como Bugs (2026-02-22)
+
+**Context:**
+- Durante desarrollo surgen múltiples problemas técnicos (conexión BD, configuración, etc.)
+- Sin documentación sistemática, se repiten los mismos problemas en futuras sesiones
+- Claude Code tiene memoria limitada entre sesiones
+- Necesidad de mantener conocimiento institucional del proyecto
+
+**Decision:**
+- Usar skill `project-memory` para registrar TODAS las incidencias en `bugs.md`
+- Cada entrada debe incluir: fecha, problema, causa raíz, solución, prevención
+- Registrar inmediatamente cuando se resuelve un problema
+- Buscar en `bugs.md` antes de diagnosticar problemas nuevos
+
+**Alternatives Considered:**
+- Solo documentar bugs críticos → Rechazado: Los bugs "pequeños" se repiten
+- Documentar en comentarios del código → Rechazado: Difícil de buscar, se pierde contexto
+- No documentar → Rechazado: Repite trabajo, frustrante
+
+**Consequences:**
+- ✅ Base de conocimiento crece con cada problema resuelto
+- ✅ Soluciones reutilizables entre sesiones
+- ✅ Menos tiempo diagnosticando problemas repetidos
+- ✅ Onboarding más rápido para nuevos desarrolladores
+- ❌ Requiere disciplina para documentar consistentemente
+- ❌ Archivo bugs.md puede crecer mucho (requiere limpieza periódica)
+
+**Implementación:**
+- Comando: `/project-memory` o `project-memory` skill
+- Al resolver cualquier error: `project-memory update bugs with: [descripción del problema y solución]`
+- Revisar `bugs.md` al inicio de cada sesión de desarrollo
+- Limpieza manual cada 6 meses (archivar bugs muy antiguos)
+
 ## Tips
 
 - Number decisions sequentially
 - Update if decisions are revisited
 - Include date for historical context
 - Be honest about trade-offs
+- Use project-memory skill for all bug documentation

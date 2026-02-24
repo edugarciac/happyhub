@@ -51,6 +51,23 @@ export default async function handler(
       });
     }
 
+    // Si la URL es el mock, hacer request local
+    if (n8nWebhookUrl.includes('/api/webhook-reserva-mock')) {
+      console.log('🎭 Usando MOCK de n8n para testing');
+      // Hacer request interno al mock
+      const mockUrl = `${req.headers.origin || 'http://localhost:3000'}/api/webhook-reserva-mock`;
+      const mockResponse = await axios.post(mockUrl, payload, {
+        headers: { 'Content-Type': 'application/json' },
+        timeout: 10000,
+      });
+      const reservationId = mockResponse.data?.reservationId || `RES-${Date.now()}`;
+      return res.status(200).json({
+        success: true,
+        message: 'Reserva creada exitosamente (MOCK)',
+        reservationId,
+      });
+    }
+
     const payload = {
       ...reservationData,
       timestamp: new Date().toISOString(),

@@ -1,0 +1,318 @@
+{
+  "name": "HappyHub - Reservas con Neon + WhatsApp",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "reservation-request",
+        "options": {
+          "responseMode": "responseNode"
+        },
+        "httpMethod": "POST"
+      },
+      "id": "webhook_reserva",
+      "name": "Webhook Reserva",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Normalizar datos de entrada\nconst body = items[0].json.body || items[0].json;\n\n// Extraer datos\nconst data = {\n  nombre: body.name || body.nombre,\n  email: body.email,\n  telefono: body.phone || body.telefono,\n  fecha: body.date || body.fecha,\n  hora: body.time || body.hora,\n  timeSlot: body.timeSlot || 'afternoon',\n  pax: body.guests || body.pax || 20,\n  duracion: body.duration || '4',\n  extras: body.extras || [],\n  tipoEvento: body.eventType || body.tipoEvento || 'cumpleaños',\n  mensaje: body.message || body.mensaje || '',\n  precioTotal: body.totalPrice || body.precioTotal || 0,\n  depositoAmount: body.depositAmount || body.depositoAmount || 0,\n  basePrice: body.basePrice || 0\n};\n\n// Calcular fechas para Calendar\nconst [year, month, day] = data.fecha.split('-');\nconst [hours, minutes] = data.hora.split(':');\nconst startDateTime = new Date(year, month - 1, day, hours, minutes);\nconst durationHours = parseInt(data.duracion);\nconst endDateTime = new Date(startDateTime);\nendDateTime.setHours(endDateTime.getHours() + durationHours);\n\nreturn [{\n  json: {\n    ...data,\n    fechaHoraInicio: startDateTime.toISOString(),\n    fechaHoraFin: endDateTime.toISOString(),\n    timeMin: startDateTime.toISOString(),\n    timeMax: endDateTime.toISOString(),\n    fechaFormateada: `${day}/${month}/${year}`,\n    horaFormateada: `${hours}:${minutes}h`,\n    timestamp: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "normalize_data",
+      "name": "Normalizar Datos",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id FROM reservations WHERE event_date = '{{ $json.fecha }}' AND time_slot = '{{ $json.timeSlot }}' AND status IN ('pending', 'confirmed') LIMIT 1",
+        "options": {}
+      },
+      "id": "check_availability_db",
+      "name": "Verificar Disponibilidad (Neon)",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [650, 300],
+      "credentials": {
+        "postgres": {
+          "id": "neon_happyhub",
+          "name": "Neon HappyHub"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.length || 0 }}",
+              "operation": "equal",
+              "value2": 0
+            }
+          ]
+        }
+      },
+      "id": "if_available",
+      "name": "¿Fecha Disponible?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": false,\n  \"error\": \"Lo siento, la fecha y hora ya está reservada.\",\n  \"message\": \"Lo siento, la fecha y hora indicada ya está reservada.\"\n}",
+        "options": {
+          "responseCode": 409
+        }
+      },
+      "id": "response_conflict",
+      "name": "Respuesta: No Disponible",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1050, 450]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO reservations (event_date, time_slot, event_type, guests, total_price, deposit_amount, status, notes, created_at) VALUES ('{{ $node['Normalizar Datos'].json.fecha }}', '{{ $node['Normalizar Datos'].json.timeSlot }}', '{{ $node['Normalizar Datos'].json.tipoEvento }}', {{ $node['Normalizar Datos'].json.pax }}, {{ $node['Normalizar Datos'].json.precioTotal }}, {{ $node['Normalizar Datos'].json.depositoAmount }}, 'pending', '{{ $node['Normalizar Datos'].json.mensaje }}', NOW()) RETURNING id",
+        "options": {}
+      },
+      "id": "save_to_neon",
+      "name": "Guardar en Neon DB",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [1050, 150],
+      "credentials": {
+        "postgres": {
+          "id": "neon_happyhub",
+          "name": "Neon HappyHub"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "calendarId": "primary",
+        "start": "={{ $node['Normalizar Datos'].json.fechaHoraInicio }}",
+        "end": "={{ $node['Normalizar Datos'].json.fechaHoraFin }}",
+        "summary": "HappyHub - {{ $node['Normalizar Datos'].json.nombre }}",
+        "description": "Tipo: {{ $node['Normalizar Datos'].json.tipoEvento }}\\nPersonas: {{ $node['Normalizar Datos'].json.pax }}\\nTeléfono: {{ $node['Normalizar Datos'].json.telefono }}\\nEmail: {{ $node['Normalizar Datos'].json.email }}\\nTotal: {{ $node['Normalizar Datos'].json.precioTotal }}€",
+        "options": {
+          "sendUpdates": "all"
+        }
+      },
+      "id": "create_calendar_event",
+      "name": "Crear Evento Calendar",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1,
+      "position": [1250, 150],
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "google_calendar_happyhub",
+          "name": "Google Calendar HappyHub"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Generar ID de reserva\nconst dbResult = $node['Guardar en Neon DB'].json;\nconst reservationId = `RES-${new Date().toISOString().split('T')[0].replace(/-/g, '')}-${String(dbResult.id).padStart(3, '0')}`;\n\nconst data = $node['Normalizar Datos'].json;\n\nreturn [{\n  json: {\n    reservationId: reservationId,\n    nombre: data.nombre,\n    email: data.email,\n    telefono: data.telefono,\n    fecha: data.fechaFormateada,\n    hora: data.horaFormateada,\n    pax: data.pax,\n    total: data.precioTotal,\n    deposito: data.depositoAmount,\n    tipoEvento: data.tipoEvento,\n    calendarEventId: $node['Crear Evento Calendar'].json.id || '',\n    dbId: dbResult.id\n  }\n}];"
+      },
+      "id": "prepare_response",
+      "name": "Preparar Respuesta",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1450, 150]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v18.0/{{ $env.WHATSAPP_PHONE_NUMBER_ID }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.WHATSAPP_ACCESS_TOKEN }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": []
+        },
+        "jsonParameters": true,
+        "options": {},
+        "bodyParametersJson": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $json.telefono }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"¡Hola {{ $json.nombre }}! 🎉\\n\\nTu reserva en HappyHub ha sido recibida correctamente.\\n\\n📅 Fecha: {{ $json.fecha }}\\n🕐 Hora: {{ $json.hora }}\\n👥 Invitados: {{ $json.pax }}\\n💰 Total: {{ $json.total }}€\\n💳 Señal (30%): {{ $json.deposito }}€\\n🔖 Nº Reserva: {{ $json.reservationId }}\\n\\nNos pondremos en contacto contigo en las próximas 24 horas para confirmar todos los detalles y enviarte el enlace de pago.\\n\\n¿Necesitas ayuda? Responde a este mensaje.\\n\\nGracias por confiar en HappyHub 💙\"\n  }\n}"
+      },
+      "id": "send_whatsapp_customer",
+      "name": "WhatsApp Cliente",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1650, 100]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v18.0/{{ $env.WHATSAPP_PHONE_NUMBER_ID }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.WHATSAPP_ACCESS_TOKEN }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "jsonParameters": true,
+        "bodyParametersJson": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $env.ADMIN_WHATSAPP_NUMBER }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"🔔 Nueva Reserva Recibida\\n\\n👤 Cliente: {{ $json.nombre }}\\n📧 Email: {{ $json.email }}\\n📱 Teléfono: {{ $json.telefono }}\\n📅 Fecha: {{ $json.fecha }} {{ $json.hora }}\\n👥 Invitados: {{ $json.pax }}\\n🎉 Tipo: {{ $json.tipoEvento }}\\n💰 Total: {{ $json.total }}€\\n💳 Señal: {{ $json.deposito }}€\\n🔖 ID: {{ $json.reservationId }}\\n\\n✅ Guardado en BD (ID: {{ $json.dbId }})\\n📅 Calendario actualizado\"\n  }\n}"
+      },
+      "id": "send_whatsapp_admin",
+      "name": "WhatsApp Admin",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1650, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"reservationId\": \"{{ $json.reservationId }}\",\n  \"message\": \"Reserva creada exitosamente\"\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "response_success",
+      "name": "Respuesta: Éxito",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1850, 150]
+    }
+  ],
+  "connections": {
+    "Webhook Reserva": {
+      "main": [
+        [
+          {
+            "node": "Normalizar Datos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalizar Datos": {
+      "main": [
+        [
+          {
+            "node": "Verificar Disponibilidad (Neon)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verificar Disponibilidad (Neon)": {
+      "main": [
+        [
+          {
+            "node": "¿Fecha Disponible?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Fecha Disponible?": {
+      "main": [
+        [
+          {
+            "node": "Guardar en Neon DB",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respuesta: No Disponible",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar en Neon DB": {
+      "main": [
+        [
+          {
+            "node": "Crear Evento Calendar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear Evento Calendar": {
+      "main": [
+        [
+          {
+            "node": "Preparar Respuesta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Respuesta": {
+      "main": [
+        [
+          {
+            "node": "WhatsApp Cliente",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "WhatsApp Admin",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WhatsApp Cliente": {
+      "main": [
+        [
+          {
+            "node": "Respuesta: Éxito",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-02-22T00:00:00.000Z",
+  "versionId": "1"
+}
