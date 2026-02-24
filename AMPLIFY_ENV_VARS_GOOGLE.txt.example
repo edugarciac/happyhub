@@ -1,0 +1,28 @@
+# Variables de Entorno para Google OAuth en AWS Amplify
+# Copia estas líneas EXACTAMENTE en Amplify Console → Environment variables
+
+# CRITICAL: Esta variable hace que el botón de Google aparezca
+NEXT_PUBLIC_GOOGLE_OAUTH_ENABLED=true
+
+# Google OAuth Credentials
+GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+
+# NextAuth Configuration
+# IMPORTANTE: Cambia localhost por tu URL real de Amplify
+NEXTAUTH_URL=https://main.XXXXX.amplifyapp.com
+NEXTAUTH_SECRET=your-nextauth-secret-here
+
+# JWT Secret (ya debería estar)
+JWT_SECRET=your-jwt-secret-here
+
+# PASOS EN AMPLIFY CONSOLE:
+# 1. Ir a tu app en Amplify
+# 2. Click en "Environment variables"
+# 3. Agregar/Verificar cada variable de arriba
+# 4. GUARDAR
+# 5. Click en "Redeploy this version"
+# 6. Esperar 3-5 minutos a que termine el build
+
+# NOTA: Las variables NEXT_PUBLIC_* se inyectan en build time, no runtime
+# Por eso es CRÍTICO hacer redeploy después de agregarlas

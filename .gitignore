@@ -69,3 +69,4 @@ aws-credentials-happyhub.json
 # Style Dictionary
 /build
 /tokens
+AMPLIFY_ENV_VARS_GOOGLE.txt
