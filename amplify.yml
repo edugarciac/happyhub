@@ -24,11 +24,7 @@ frontend:
   artifacts:
     baseDirectory: .
     files:
-      - .next/**/*
-      - .env.production
-      - node_modules/**/*
-      - package.json
-      - next.config.js
+      - '**/*'
   cache:
     paths:
       - .next/cache/**/*
