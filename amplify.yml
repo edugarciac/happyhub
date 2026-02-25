@@ -19,6 +19,7 @@ frontend:
         - echo "JWT_SECRET=$JWT_SECRET" >> .env.production
         - echo "N8N_WEBHOOK_URL=$N8N_WEBHOOK_URL" >> .env.production
         - echo "NEXT_PUBLIC_GOOGLE_OAUTH_ENABLED=$NEXT_PUBLIC_GOOGLE_OAUTH_ENABLED" >> .env.production
+        - export NEXTAUTH_URL=${NEXTAUTH_URL:-https://www.happyhub.es}
         - npm run build
   artifacts:
     baseDirectory: .

@@ -19,7 +19,7 @@ const nextConfig = {
     JWT_SECRET: process.env.JWT_SECRET,
   },
   env: {
-    NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+    NEXTAUTH_URL: process.env.NEXTAUTH_URL || 'https://www.happyhub.es',
     N8N_WEBHOOK_URL: process.env.N8N_WEBHOOK_URL,
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
   },

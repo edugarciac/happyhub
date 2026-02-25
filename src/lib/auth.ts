@@ -1,15 +1,10 @@
-import { NextAuthOptions } from 'next-auth';
+import { NextAuthOptions, AuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { verifyPassword, getUserByEmail, createUser } from '../utils/db/users';
 
-export const authOptions: NextAuthOptions = {
-  providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID || '',
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
-    }),
-    CredentialsProvider({
+const providers: AuthOptions['providers'] = [
+  CredentialsProvider({
       name: 'Email and Password',
       credentials: {
         email: { label: 'Email', type: 'email' },
@@ -34,7 +29,20 @@ export const authOptions: NextAuthOptions = {
         };
       },
     }),
-  ],
+];
+
+// Only add Google OAuth if explicitly enabled and credentials exist
+if (process.env.NEXT_PUBLIC_GOOGLE_OAUTH_ENABLED === 'true' &&
+    process.env.GOOGLE_CLIENT_ID &&
+    process.env.GOOGLE_CLIENT_SECRET) {
+  providers.unshift(GoogleProvider({
+    clientId: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  }));
+}
+
+export const authOptions: NextAuthOptions = {
+  providers,
   callbacks: {
     async signIn({ user, account, profile }) {
       // Handle Google OAuth sign-in
