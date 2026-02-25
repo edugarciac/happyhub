@@ -51,6 +51,12 @@ export default async function handler(
       });
     }
 
+    const payload = {
+      ...reservationData,
+      timestamp: new Date().toISOString(),
+      source: 'web',
+    };
+
     // Si la URL es el mock, hacer request local
     if (n8nWebhookUrl.includes('/api/webhook-reserva-mock')) {
       console.log('🎭 Usando MOCK de n8n para testing');
@@ -67,12 +73,6 @@ export default async function handler(
         reservationId,
       });
     }
-
-    const payload = {
-      ...reservationData,
-      timestamp: new Date().toISOString(),
-      source: 'web',
-    };
 
     console.log('Enviando reserva a n8n:', payload);
 
