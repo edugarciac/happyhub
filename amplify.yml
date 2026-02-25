@@ -22,7 +22,7 @@ frontend:
         - export NEXTAUTH_URL=${NEXTAUTH_URL:-https://www.happyhub.es}
         - npm run build
   artifacts:
-    baseDirectory: .
+    baseDirectory: .next
     files:
       - '**/*'
   cache:
