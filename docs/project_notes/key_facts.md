@@ -77,15 +77,25 @@
 
 ### External Services
 
-**n8n Workflow:**
-- URL: https://n8n-n8n.ljmvxa.easypanel.host
-- Webhook: https://n8n-n8n.ljmvxa.easypanel.host/webhook/reservation-request
-- Usuario: edu.garciac@gmail.com
-- Contraseña: Myene8ene@1
-- Hosted: Easypanel (EC2 34.243.177.162)
+**n8n Workflow (PRODUCTION - Nueva Instancia Robusta):**
+- URL: http://52.208.80.224:5678
+- Webhook: http://52.208.80.224:5678/webhook/reservation-request
+- Usuario: admin
+- Contraseña: ChangeThisPassword123! (CAMBIAR EN PRIMER LOGIN)
+- EC2 Instance: i-0b869fcbf14768c25 (t3.small, 2GB RAM, 30GB gp3)
+- Region: eu-west-1 (Ireland)
+- Deployed: 2026-02-24
+- Database: PostgreSQL persistente
+- Backups: Automáticos semanales domingos 2 AM → S3 (happyhub-n8n-backups)
 - Purpose: Orchestrate Google Calendar, WhatsApp Business, Neon DB, Email, Stripe payment links
-- Workflow file: `n8n/n8n-nodes/n8n-reserva-con-validacion.json`
-- Documentation: `n8n/FLUJO_WHATSAPP_BUSINESS.md`
+- Workflow file: `n8n/n8n-nodes/n8n-reserva-neon-whatsapp.json`
+- Documentation: `infrastructure/README.md`, `n8n/FLUJO_WHATSAPP_BUSINESS.md`
+- Cost: ~€19/month (EC2 + disk + S3)
+
+**n8n Workflow (OLD - Easypanel - A ELIMINAR):**
+- URL: https://n8n-n8n.ljmvxa.easypanel.host (mantener hasta migrar workflows)
+- EC2: i-0d996fc570003cba4 (t3.micro, 34.252.206.192)
+- Estado: Deprecado, eliminar tras migración completa
 
 **Stripe:**
 - Test mode keys for development
@@ -197,17 +207,19 @@
 ### AWS Services Architecture
 
 **Compute:**
-- **EC2 n8n Server** ✅ DEPLOYED
-  - Instance ID: i-00e6ad6229322f4f3
-  - Instance type: t3.micro (2 vCPU, 1GB RAM)
+- **EC2 n8n Server (PRODUCTION)** ✅ DEPLOYED
+  - Instance ID: i-0b869fcbf14768c25
+  - Instance type: t3.small (2 vCPU, 2GB RAM)
   - Region: eu-west-1 (Ireland)
-  - Public IP: 34.243.177.162
-  - Private IP: 172.31.0.95
+  - Public IP: 52.208.80.224
   - Estado: running
-  - Launched: 2025-12-23 14:09:29 UTC
-  - Nombre: n8n-server
-  - OS: Ubuntu 22.04 LTS (presumido)
-  - Coste estimado: ~8€/mes (t3.micro)
+  - Launched: 2026-02-24 21:15:15 UTC
+  - Nombre: n8n-production-happyhub
+  - OS: Ubuntu 22.04 LTS
+  - Disk: 30GB gp3
+  - Services: Docker (n8n + PostgreSQL + Nginx)
+  - Backups: Automated weekly → S3 (happyhub-n8n-backups)
+  - Coste estimado: ~€19/mes (t3.small + 30GB disk + S3)
 
 **Database:**
 - **Aurora Serverless v2**: PostgreSQL-compatible (~25€/mes)
@@ -249,7 +261,10 @@
   - Event reminders
   - Booking confirmations
 
-**Total Monthly Cost:** ~82€/mes = 984€/año ✅ Dentro presupuesto $1000
+**Total Monthly Cost:** ~93€/mes = 1116€/año
+- n8n Production: ~€19/mes (upgraded from €8/mes)
+- Aurora, S3, CloudFront, Bedrock, Lambda, Rekognition, SES, SNS: ~€74/mes
+- ⚠️ Excede crédito $1000 por €116/año (revisar optimizaciones)
 
 ### AWS Account Information
 
@@ -452,6 +467,43 @@
 - Modelo: Crecer gradualmente, validar cada local antes del siguiente
 - Foco: Barcelona (Gracia, Sarrià, Eixample, Sant Gervasi)
 
+## Comandos Útiles n8n Production
+
+**SSH a la instancia:**
+```bash
+ssh -i ~/.ssh/n8n-happyhub-key.pem ubuntu@52.208.80.224
+```
+
+**Ver estado de servicios:**
+```bash
+ssh -i ~/.ssh/n8n-happyhub-key.pem ubuntu@52.208.80.224 'sudo n8n-status.sh'
+```
+
+**Ver logs de n8n:**
+```bash
+ssh -i ~/.ssh/n8n-happyhub-key.pem ubuntu@52.208.80.224 'cd /opt/n8n && sudo docker-compose logs -f n8n'
+```
+
+**Reiniciar n8n:**
+```bash
+ssh -i ~/.ssh/n8n-happyhub-key.pem ubuntu@52.208.80.224 'cd /opt/n8n && sudo docker-compose restart n8n'
+```
+
+**Backup manual:**
+```bash
+ssh -i ~/.ssh/n8n-happyhub-key.pem ubuntu@52.208.80.224 'sudo /opt/backups/backup-n8n.sh'
+```
+
+**Listar backups en S3:**
+```bash
+aws s3 ls s3://happyhub-n8n-backups/backups/ --profile happyhub-cli
+```
+
+**Eliminar instancia antigua (cuando esté listo):**
+```bash
+aws ec2 terminate-instances --instance-ids i-0d996fc570003cba4 --profile happyhub-cli --region eu-west-1
+```
+
 ## Tips
 
 - Keep this file updated when configuration changes
@@ -459,3 +511,5 @@
 - Update holiday array annually
 - Document any new environment variables
 - Update AWS costs monthly based on actual usage
+- Change n8n admin password on first login
+- Test n8n backups monthly (restore to verify)
