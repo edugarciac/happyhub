@@ -57,8 +57,9 @@ export default function RegisterPage() {
       // Don't auto-login, redirect to login page
       // User must explicitly log in after registration
       router.push('/login');
-    } catch (err) {
-      setError('Error de conexión. Por favor, inténtalo de nuevo');
+    } catch (err: any) {
+      console.error('Register error:', err);
+      setError(err.message || 'Error de conexión. Por favor, inténtalo de nuevo');
       setLoading(false);
     }
   };
