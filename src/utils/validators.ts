@@ -55,3 +55,28 @@ export function validateDate(date: string): boolean {
   today.setHours(0, 0, 0, 0);
   return selectedDate >= today;
 }
+
+export const reviewSchema = z.object({
+  reservation_id: z.number().int().positive('ID de reserva inválido'),
+  rating: z.number().int().min(1, 'La valoración debe ser entre 1 y 5 estrellas').max(5, 'La valoración debe ser entre 1 y 5 estrellas'),
+  review_text: z.string().max(500, 'La reseña no puede exceder 500 caracteres').optional(),
+});
+
+export type ReviewFormData = z.infer<typeof reviewSchema>;
+
+export function isReservationEligibleForReview(reservation: {
+  status: string;
+  event_date: string;
+}): boolean {
+  // Only 'confirmed' reservations can be reviewed
+  if (reservation.status !== 'confirmed') {
+    return false;
+  }
+
+  // Event must be in the past
+  const eventDate = new Date(reservation.event_date);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  return eventDate < today;
+}

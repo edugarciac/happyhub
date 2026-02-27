@@ -1,5 +1,6 @@
 import { ArrowRight, Star, Sparkles, ChevronDown } from 'lucide-react';
 import Image from 'next/image';
+import { useState, useEffect } from 'react';
 
 interface HeroProps {
   title?: string;
@@ -8,12 +9,40 @@ interface HeroProps {
   showStats?: boolean;
 }
 
+interface ReviewStats {
+  average: number | null;
+  count: number;
+}
+
 export default function Hero({
   title = 'Celebra Momentos Inolvidables',
   subtitle = 'Espacio polivalente para todo tipo de celebraciones. Cumpleaños, eventos familiares, con amigos, o de colegio y trabajo. Cada detalle cobra vida y los recuerdos se vuelven eternos.',
   ctaText = 'Reserva tu fecha',
   showStats = true,
 }: HeroProps) {
+  const [reviewStats, setReviewStats] = useState<ReviewStats | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchReviewStats = async () => {
+      try {
+        const response = await fetch('/api/reviews/stats');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.stats) {
+            setReviewStats(data.stats);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching review stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchReviewStats();
+  }, []);
+
   const scrollToFeatures = () => {
     const element = document.getElementById('features');
     if (element) {
@@ -34,10 +63,14 @@ export default function Hero({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           {/* Left column - Content */}
           <div className="animate-slide-up">
-            <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-primary-100 to-ocean-100 text-primary-700 px-5 py-2.5 rounded-full mb-8 shadow-sm">
-              <Star className="w-4 h-4 fill-current animate-pulse" />
-              <span className="text-sm font-semibold">4.9/5 - Más de 500 eventos exitosos</span>
-            </div>
+            {!loading && reviewStats && reviewStats.count > 0 && (
+              <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-primary-100 to-ocean-100 text-primary-700 px-5 py-2.5 rounded-full mb-8 shadow-sm">
+                <Star className="w-4 h-4 fill-current animate-pulse" />
+                <span className="text-sm font-semibold">
+                  {reviewStats.average?.toFixed(1)}/5 - {reviewStats.count} {reviewStats.count === 1 ? 'reseña' : 'reseñas'}
+                </span>
+              </div>
+            )}
 
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-8 leading-[1.1]">
               {title}
@@ -70,10 +103,14 @@ export default function Hero({
                   <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary-600 to-ocean-600 bg-clip-text text-transparent">500+</div>
                   <div className="text-sm text-gray-600 mt-2 font-medium">Eventos realizados</div>
                 </div>
-                <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
-                  <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary-600 to-ocean-600 bg-clip-text text-transparent">4.9</div>
-                  <div className="text-sm text-gray-600 mt-2 font-medium">Valoración media</div>
-                </div>
+                {!loading && reviewStats && reviewStats.count > 0 && (
+                  <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
+                    <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary-600 to-ocean-600 bg-clip-text text-transparent">
+                      {reviewStats.average?.toFixed(1)}
+                    </div>
+                    <div className="text-sm text-gray-600 mt-2 font-medium">Valoración media</div>
+                  </div>
+                )}
                 <div className="animate-fade-in" style={{ animationDelay: '0.6s' }}>
                   <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary-600 to-ocean-600 bg-clip-text text-transparent">50</div>
                   <div className="text-sm text-gray-600 mt-2 font-medium">Capacidad máxima</div>
