@@ -1,5 +1,6 @@
 import Head from 'next/head';
 import Hero from '@/components/Hero';
+import ReviewsSummary from '@/components/ReviewsSummary';
 import PhotoGallery from '@/components/PhotoGallery';
 import PricingTable from '@/components/PricingTable';
 import {
@@ -164,6 +165,13 @@ export default function Home() {
       </Head>
 
       <Hero />
+
+      {/* Reviews Summary Section */}
+      <section className="py-12 bg-white">
+        <div className="container-custom">
+          <ReviewsSummary />
+        </div>
+      </section>
 
       {/* Photo Gallery Section */}
       <PhotoGallery photos={photos} title="Conoce Nuestro Espacio" />
