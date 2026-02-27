@@ -3,7 +3,7 @@ const nextConfig = {
   reactStrictMode: true,
   images: {
     domains: ['localhost'],
-    unoptimized: process.env.NODE_ENV === 'development',
+    unoptimized: true, // Required for Amplify static export
   },
   serverRuntimeConfig: {
     // Server-side runtime variables
