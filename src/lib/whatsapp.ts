@@ -258,3 +258,115 @@ export async function notifyAdminNewReservation({
 
   return sendAdminNotification(message);
 }
+
+// Format reservation for admin approval notification
+interface AdminApprovalNotificationParams {
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  eventDate: string;
+  timeSlot: string;
+  eventType: string;
+  guests: number;
+  totalPrice: number;
+  reservationId: number;
+}
+
+export function formatReservationForAdmin({
+  customerName,
+  customerEmail,
+  customerPhone,
+  eventDate,
+  timeSlot,
+  eventType,
+  guests,
+  totalPrice,
+  reservationId,
+}: AdminApprovalNotificationParams): string {
+  const date = new Date(eventDate);
+  const formattedDate = date.toLocaleDateString('es-ES', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  });
+
+  return `🆕 *Nueva Reserva #${reservationId}*
+
+👤 ${customerName}
+📧 ${customerEmail}
+📞 ${customerPhone}
+
+📅 Fecha: ${formattedDate}
+⏰ Horario: ${TIME_SLOT_LABELS[timeSlot] || timeSlot}
+🎉 Tipo: ${eventType}
+👥 Invitados: ${guests}
+💰 Precio: ${totalPrice}€
+
+👉 Revisar y aprobar:
+https://www.happyhub.es/admin/approve-reservation/${reservationId}`;
+}
+
+export async function sendAdminApprovalNotification(params: AdminApprovalNotificationParams): Promise<boolean> {
+  const message = formatReservationForAdmin(params);
+  const adminPhone = '34624645517'; // HappyHub business number
+  return sendTextMessage({ to: adminPhone, message });
+}
+
+// Customer notifications for approval/rejection
+export async function sendApprovalNotificationToCustomer({
+  phone,
+  name,
+  date,
+  timeSlot,
+  reservationId,
+}: ReminderParams & { name: string }): Promise<boolean> {
+  const eventDate = new Date(date);
+  const formattedDate = eventDate.toLocaleDateString('es-ES', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  });
+
+  const message = `✅ *¡Reserva Aprobada!*
+
+Hola ${name}, tu reserva en HappyHub ha sido aprobada.
+
+📝 *Nº Reserva:* ${reservationId}
+📅 *Fecha:* ${formattedDate}
+⏰ *Horario:* ${TIME_SLOT_LABELS[timeSlot] || timeSlot}
+
+En breve recibirás el enlace de pago para completar tu reserva.
+
+¿Dudas? Escríbenos al 624 645 517
+
+¡Nos vemos pronto! 🎉`;
+
+  return sendTextMessage({ to: phone, message });
+}
+
+export async function sendRejectionNotificationToCustomer({
+  phone,
+  name,
+  reason,
+}: {
+  phone: string;
+  name: string;
+  reason: string;
+}): Promise<boolean> {
+  const message = `❌ *Reserva No Disponible*
+
+Hola ${name}, lamentamos informarte que tu solicitud de reserva no puede ser procesada.
+
+*Motivo:* ${reason}
+
+Te invitamos a:
+- Elegir otra fecha en www.happyhub.es/disponibilidad
+- Contactarnos por WhatsApp para buscar alternativas
+
+Estamos aquí para ayudarte: 624 645 517
+
+Saludos,
+Equipo HappyHub`;
+
+  return sendTextMessage({ to: phone, message });
+}
