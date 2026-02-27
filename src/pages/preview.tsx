@@ -145,11 +145,11 @@ export default function Home() {
   ];
 
   const photos = [
-    { src: '/images/espacio-1.jpg', alt: 'Sala principal HappyHub', caption: 'Nuestra amplia sala principal, perfecta para cualquier celebración' },
-    { src: '/images/espacio-2.jpg', alt: 'Zona de juegos', caption: 'Zona de juegos infantiles totalmente equipada' },
-    { src: '/images/espacio-3.jpg', alt: 'Área de catering', caption: 'Área de catering con cocina totalmente equipada' },
-    { src: '/images/espacio-4.jpg', alt: 'Decoración de cumpleaños', caption: 'Ejemplo de decoración para cumpleaños' },
-    { src: '/images/espacio-5.jpg', alt: 'Terraza exterior', caption: 'Terraza exterior para los días soleados' },
+    { src: '/happyhub_home.png', alt: 'Sala principal HappyHub', caption: 'Nuestra amplia sala principal, perfecta para cualquier celebración' },
+    { src: '/happyhub_home.png', alt: 'Zona de juegos', caption: 'Zona de juegos infantiles totalmente equipada' },
+    { src: '/happyhub_home.png', alt: 'Área de catering', caption: 'Área de catering con cocina totalmente equipada' },
+    { src: '/happyhub_home.png', alt: 'Decoración de cumpleaños', caption: 'Ejemplo de decoración para cumpleaños' },
+    { src: '/happyhub_home.png', alt: 'Terraza exterior', caption: 'Terraza exterior para los días soleados' },
   ];
 
   return (

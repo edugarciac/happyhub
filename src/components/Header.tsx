@@ -38,7 +38,7 @@ export default function Header() {
           <Link href="/" className="flex items-center space-x-3 group">
             <div className="relative w-10 h-10">
               <Image
-                src="/logo-happyhub-white smal.jpeg"
+                src="/logo-happyhub-white-small.jpeg"
                 alt="HappyHub Logo"
                 width={40}
                 height={40}
