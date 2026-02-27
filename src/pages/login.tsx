@@ -53,7 +53,7 @@ export default function LoginPage() {
 
       // Redirect based on role
       if (result.user.role === 'admin') {
-        router.push('/admin');
+        router.push('/admin/dashboard');
       } else if (result.user.role === 'provider') {
         router.push('/proveedores');
       } else {

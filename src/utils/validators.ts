@@ -80,3 +80,38 @@ export function isReservationEligibleForReview(reservation: {
 
   return eventDate < today;
 }
+
+// Admin CRUD schemas
+export const eventTypeSchema = z.object({
+  name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
+  description: z.string().optional(),
+  icon: z.string().max(10, 'El icono no puede exceder 10 caracteres').optional(),
+});
+
+export type EventTypeFormData = z.infer<typeof eventTypeSchema>;
+
+export const providerSchema = z.object({
+  name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
+  service_type: z.string().min(2, 'El tipo de servicio es obligatorio'),
+  email: z.string().email('Email inválido').optional(),
+  phone: z.string().min(9, 'Teléfono inválido').optional(),
+  description: z.string().optional(),
+  price_range: z.string().optional(),
+  logo_url: z.string().url('URL inválida').optional().or(z.literal('')),
+  website: z.string().url('URL inválida').optional().or(z.literal('')),
+  active: z.boolean().default(true),
+});
+
+export type ProviderFormData = z.infer<typeof providerSchema>;
+
+export const serviceSchema = z.object({
+  reservation_id: z.number().int().positive('ID de reserva inválido'),
+  provider_id: z.number().int().positive('ID de proveedor inválido').optional(),
+  service_name: z.string().min(2, 'El nombre del servicio es obligatorio'),
+  service_type: z.string().min(2, 'El tipo de servicio es obligatorio'),
+  price: z.number().min(0, 'El precio debe ser positivo'),
+  status: z.enum(['pending', 'confirmed', 'completed', 'cancelled']).default('pending'),
+  notes: z.string().optional(),
+});
+
+export type ServiceFormData = z.infer<typeof serviceSchema>;
