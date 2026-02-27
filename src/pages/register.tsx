@@ -54,11 +54,9 @@ export default function RegisterPage() {
         return;
       }
 
-      // Store JWT token
-      localStorage.setItem('token', result.token);
-
-      // Redirect to home
-      router.push('/');
+      // Don't auto-login, redirect to login page
+      // User must explicitly log in after registration
+      router.push('/login');
     } catch (err) {
       setError('Error de conexión. Por favor, inténtalo de nuevo');
       setLoading(false);
