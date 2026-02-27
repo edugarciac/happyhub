@@ -110,13 +110,13 @@ export default function ApproveReservationPage() {
   const isApproved = reservation.status === 'approved';
   const isRejected = reservation.status === 'rejected';
 
-  const statusBadgeClasses = {
+  const statusBadgeClasses: Record<string, string> = {
     pending: 'bg-yellow-100 text-yellow-800',
     approved: 'bg-green-100 text-green-800',
     rejected: 'bg-red-100 text-red-800',
   };
 
-  const statusLabels = {
+  const statusLabels: Record<string, string> = {
     pending: 'Pendiente',
     approved: 'Aprobada',
     rejected: 'Rechazada',
