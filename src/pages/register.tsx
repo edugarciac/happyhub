@@ -50,24 +50,50 @@ export default function RegisterPage() {
 
       console.log('Response status:', response.status);
 
-      const result = await response.json();
-      console.log('Response data:', result);
+      let result;
+      try {
+        result = await response.json();
+        console.log('Response data:', result);
+      } catch (parseError) {
+        console.error('Error parsing JSON response:', parseError);
+        setError('Error al procesar la respuesta del servidor. Intenta de nuevo');
+        setLoading(false);
+        return;
+      }
 
       if (!response.ok) {
-        const errorMsg = result.error || 'Error al registrarse';
+        const errorMsg = result.error || `Error al registrarse (código ${response.status})`;
         console.error('Registration failed:', errorMsg);
         setError(errorMsg);
         setLoading(false);
         return;
       }
 
+      if (!result.success) {
+        console.error('Registration returned success=false:', result.error);
+        setError(result.error || 'Error al crear la cuenta');
+        setLoading(false);
+        return;
+      }
+
       console.log('Registration successful, redirecting to /login');
-      // Don't auto-login, redirect to login page
-      // User must explicitly log in after registration
+
+      // Show success message briefly
+      alert('¡Cuenta creada exitosamente! Ahora puedes iniciar sesión.');
+
+      // Redirect to login page
       router.push('/login');
     } catch (err: any) {
       console.error('Register exception:', err);
-      setError(err.message || 'Error de conexión. Por favor, inténtalo de nuevo');
+
+      if (err.name === 'TypeError' && err.message.includes('fetch')) {
+        setError('Error de red. Verifica tu conexión a internet y reintenta');
+      } else if (err.name === 'AbortError') {
+        setError('La solicitud tardó demasiado. Intenta de nuevo');
+      } else {
+        setError(`Error inesperado: ${err.message}. Por favor, contacta con soporte`);
+      }
+
       setLoading(false);
     }
   };
