@@ -6,13 +6,15 @@
 
 **Required Environment Variables:**
 - `N8N_WEBHOOK_URL` - n8n instance webhook endpoint
-- `STRIPE_SECRET_KEY` - Stripe API secret key (in `.env`, not in git!)
-- `STRIPE_WEBHOOK_SECRET` - Stripe webhook signing secret (in `.env`)
+- `STRIPE_SECRET_KEY` - Stripe API secret key (in `.env.local`, not in git!)
+- `STRIPE_WEBHOOK_SECRET` - Stripe webhook signing secret (in `.env.local`)
 - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` - Stripe public key (safe for client)
-- `JWT_SECRET` - JWT signing secret (in `.env`)
+- `JWT_SECRET` - JWT signing secret (in `.env.local`)
 - `NEXTAUTH_URL` - App URL (localhost:3000 or production)
-- `NEXTAUTH_SECRET` - NextAuth secret (in `.env`)
-- `CLAUDE_API_KEY` - Optional: Claude API for n8n (in `.env`)
+- `NEXTAUTH_SECRET` - NextAuth secret (in `.env.local`)
+- `CLAUDE_API_KEY` - Optional: Claude API for n8n (in `.env.local`)
+- `WHATSAPP_API_TOKEN` - WhatsApp Business API token (in `.env.local`) - Added 2026-02-27
+- `DATABASE_URL` - Neon PostgreSQL connection string (in `.env.local`)
 
 **Environment Files:**
 - `.env` - Local secrets (gitignored)
@@ -74,6 +76,12 @@
 - `POST /api/webhook-reserva` - Forward reservation to n8n
 - `POST /api/stripe-webhook` - Handle Stripe payment events (raw body required!)
 - `GET /api/google-calendar-slots` - Get available time slots from Google Calendar
+
+**Reviews (Added 2026-02-27):**
+- `POST /api/reviews` - Submit review (authenticated customers only)
+- `GET /api/reviews` - Fetch published reviews (public, paginated)
+- `GET /api/reviews/stats` - Get aggregate rating statistics (public)
+- `PATCH /api/reviews/[id]/publish` - Admin approve review (admin role required)
 
 ### External Services
 
