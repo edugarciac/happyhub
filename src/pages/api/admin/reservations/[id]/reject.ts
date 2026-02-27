@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import jwt from 'jsonwebtoken';
+import axios from 'axios';
 import { queryOne } from '../../../../../lib/db';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
@@ -108,6 +109,27 @@ export default async function handler(
        RETURNING *`,
       [rejection_reason.trim(), decoded.email, reservationId]
     );
+
+    // Trigger n8n notification workflow
+    try {
+      const n8nUrl = process.env.N8N_WEBHOOK_URL;
+      if (n8nUrl) {
+        await axios.post(`${n8nUrl}/reservation-status-changed`, {
+          reservation_id: reservationId,
+          status: 'rejected',
+          customer_email: updated.user_email,
+          customer_phone: updated.user_phone,
+          customer_name: updated.user_name,
+          rejection_reason: rejection_reason.trim(),
+        }, {
+          timeout: 5000,
+        }).catch(err => {
+          console.error('n8n notification failed (non-blocking):', err.message);
+        });
+      }
+    } catch (err) {
+      console.error('n8n webhook call failed (non-blocking):', err);
+    }
 
     // 3.6: Return success with updated data
     return res.status(200).json({

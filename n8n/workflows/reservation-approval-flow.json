@@ -1,0 +1,310 @@
+{
+  "name": "HappyHub - Reservation Approval Flow",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "reservation-new",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-new-reservation",
+      "name": "Webhook - New Reservation",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "new-reservation"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"reservation_id\": $json.reservation_id, \"message\": \"Reserva recibida\" } }}"
+      },
+      "id": "respond-to-webhook",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1850, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "happyhub.rovellat@gmail.com",
+        "toEmail": "={{ $json.customer_email }}",
+        "subject": "Reserva recibida - En revisión",
+        "text": "Hola {{ $json.customer_name }},\n\nHemos recibido tu solicitud de reserva y la estamos revisando.\n\nResumen:\nFecha: {{ $json.event_date }}\nHorario: {{ $json.time_slot }}\nInvitados: {{ $json.guests }}\nPrecio: {{ $json.total_price }}€\n\nTe contactaremos pronto.\n\nGracias,\nEquipo HappyHub",
+        "options": {}
+      },
+      "id": "send-customer-email",
+      "name": "Email - Customer Confirmation",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [650, 300],
+      "credentials": {
+        "smtp": {
+          "id": "smtp-gmail",
+          "name": "Gmail SMTP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://graph.facebook.com/v18.0/{{ $env.WHATSAPP_PHONE_NUMBER_ID }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"34624645517\",\n  \"type\": \"text\",\n  \"text\": {\n    \"preview_url\": true,\n    \"body\": \"🆕 Nueva Reserva #{{ $json.reservation_id }}\\n\\n👤 {{ $json.customer_name }}\\n📧 {{ $json.customer_email }}\\n📞 {{ $json.customer_phone }}\\n\\n📅 Fecha: {{ $json.event_date }}\\n⏰ Horario: {{ $json.time_slot }}\\n🎉 Tipo: {{ $json.event_type }}\\n👥 Invitados: {{ $json.guests }}\\n💰 Precio: {{ $json.total_price }}€\\n\\n👉 Revisar y aprobar:\\nhttps://www.happyhub.es/admin/approve-reservation/{{ $json.reservation_id }}\"\n  }\n}",
+        "options": {}
+      },
+      "id": "send-whatsapp-admin",
+      "name": "WhatsApp - Notify Admin",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1050, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "whatsapp-auth",
+          "name": "WhatsApp Bearer Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "path": "reservation-status-changed",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-status-changed",
+      "name": "Webhook - Status Changed",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 700],
+      "webhookId": "status-changed"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.status }}",
+              "value2": "approved"
+            }
+          ]
+        }
+      },
+      "id": "if-approved",
+      "name": "IF Approved",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [550, 700]
+    },
+    {
+      "parameters": {
+        "fromEmail": "happyhub.rovellat@gmail.com",
+        "toEmail": "={{ $json.customer_email }}",
+        "subject": "✅ Reserva Aprobada - HappyHub",
+        "text": "Hola {{ $json.customer_name }},\n\n¡Tu reserva ha sido aprobada!\n\nEn breve recibirás el enlace de pago para completar tu reserva.\n\nNº Reserva: {{ $json.reservation_id }}\n\nVer detalles: https://www.happyhub.es/mi-reserva/{{ $json.reservation_id }}\n\nGracias,\nEquipo HappyHub",
+        "options": {}
+      },
+      "id": "email-approval",
+      "name": "Email - Approval",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [850, 600],
+      "credentials": {
+        "smtp": {
+          "id": "smtp-gmail",
+          "name": "Gmail SMTP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://graph.facebook.com/v18.0/{{ $env.WHATSAPP_PHONE_NUMBER_ID }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $json.customer_phone }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"preview_url\": true,\n    \"body\": \"✅ ¡Reserva Aprobada!\\n\\nHola {{ $json.customer_name }}, tu reserva #{{ $json.reservation_id }} ha sido aprobada.\\n\\nEn breve recibirás el enlace de pago.\\n\\n¿Dudas? Escríbenos al 624 645 517\\n\\n¡Nos vemos pronto! 🎉\"\n  }\n}",
+        "options": {}
+      },
+      "id": "whatsapp-approval",
+      "name": "WhatsApp - Approval",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1150, 600],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "whatsapp-auth",
+          "name": "WhatsApp Bearer Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "happyhub.rovellat@gmail.com",
+        "toEmail": "={{ $json.customer_email }}",
+        "subject": "❌ Reserva No Disponible - HappyHub",
+        "text": "Hola {{ $json.customer_name }},\n\nLamentamos informarte que tu solicitud no puede ser procesada.\n\nMotivo: {{ $json.rejection_reason }}\n\nTe invitamos a elegir otra fecha en www.happyhub.es/disponibilidad o contactarnos.\n\nSaludos,\nEquipo HappyHub",
+        "options": {}
+      },
+      "id": "email-rejection",
+      "name": "Email - Rejection",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [850, 800],
+      "credentials": {
+        "smtp": {
+          "id": "smtp-gmail",
+          "name": "Gmail SMTP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://graph.facebook.com/v18.0/{{ $env.WHATSAPP_PHONE_NUMBER_ID }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $json.customer_phone }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"❌ Reserva No Disponible\\n\\nHola {{ $json.customer_name }}, lamentamos que tu solicitud no pueda ser procesada.\\n\\nMotivo: {{ $json.rejection_reason }}\\n\\nContacta con nosotros para alternativas: 624 645 517\"\n  }\n}",
+        "options": {}
+      },
+      "id": "whatsapp-rejection",
+      "name": "WhatsApp - Rejection",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1150, 800],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "whatsapp-auth",
+          "name": "WhatsApp Bearer Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"message\": \"Notificaciones enviadas\" } }}"
+      },
+      "id": "respond-status-changed",
+      "name": "Respond - Status Changed",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1450, 700]
+    }
+  ],
+  "connections": {
+    "Webhook - New Reservation": {
+      "main": [
+        [
+          {
+            "node": "Email - Customer Confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email - Customer Confirmation": {
+      "main": [
+        [
+          {
+            "node": "WhatsApp - Notify Admin",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WhatsApp - Notify Admin": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook - Status Changed": {
+      "main": [
+        [
+          {
+            "node": "IF Approved",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Approved": {
+      "main": [
+        [
+          {
+            "node": "Email - Approval",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Email - Rejection",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email - Approval": {
+      "main": [
+        [
+          {
+            "node": "WhatsApp - Approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WhatsApp - Approval": {
+      "main": [
+        [
+          {
+            "node": "Respond - Status Changed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email - Rejection": {
+      "main": [
+        [
+          {
+            "node": "WhatsApp - Rejection",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WhatsApp - Rejection": {
+      "main": [
+        [
+          {
+            "node": "Respond - Status Changed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-02-27T20:00:00.000Z",
+  "versionId": "1"
+}
