@@ -1,37 +1,9 @@
-import { useState } from 'react';
 import Head from 'next/head';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { contactSchema, ContactFormData } from '@/utils/validators';
-import { Mail, Phone, MapPin, Clock, Send } from 'lucide-react';
+import { Mail, Phone, MapPin, Clock, MessageCircle, Send } from 'lucide-react';
 
 export default function Contacto() {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<ContactFormData>({
-    resolver: zodResolver(contactSchema),
-  });
-
-  const onSubmit = async (data: ContactFormData) => {
-    setIsSubmitting(true);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log('Contact form submitted:', data);
-      setSubmitSuccess(true);
-      reset();
-      setTimeout(() => setSubmitSuccess(false), 5000);
-    } catch (error) {
-      console.error('Error submitting contact form:', error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const whatsappNumber = '34624645517';
+  const whatsappMessage = encodeURIComponent('Hola HappyHub, me gustaría obtener más información sobre las reservas.');
 
   return (
     <>
@@ -55,9 +27,9 @@ export default function Contacto() {
         <div className="container-custom">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">Información de contacto</h2>
+              <h2 className="text-3xl font-bold text-gray-900 mb-6">Escríbenos por WhatsApp</h2>
               <p className="text-gray-600 mb-8">
-                Puedes contactarnos por WhatsApp. Respondemos en menos de 24 horas.
+                Atendemos exclusivamente por WhatsApp para darte una respuesta rápida y personalizada. ¡Chatea con nosotros!
               </p>
 
               <div className="space-y-6">
@@ -134,78 +106,95 @@ export default function Contacto() {
             </div>
 
             <div>
-              <div className="card">
-                <h2 className="text-3xl font-bold text-gray-900 mb-6">Envíanos un mensaje</h2>
-
-                {submitSuccess && (
-                  <div className="mb-6 p-4 bg-green-50 border border-green-200 text-green-800 rounded-lg">
-                    ¡Mensaje enviado correctamente! Te responderemos pronto.
+              <div className="card bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200">
+                <div className="text-center mb-8">
+                  <div className="inline-flex items-center justify-center w-20 h-20 bg-green-500 rounded-full mb-6 animate-pulse">
+                    <MessageCircle className="w-10 h-10 text-white" />
                   </div>
-                )}
+                  <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                    Contáctanos por WhatsApp
+                  </h2>
+                  <p className="text-lg text-gray-700 mb-2">
+                    Es la forma más rápida de obtener respuesta
+                  </p>
+                  <p className="text-gray-600">
+                    Respondemos en minutos durante horario de atención
+                  </p>
+                </div>
 
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                  <div>
-                    <label className="label">Nombre completo *</label>
-                    <input
-                      type="text"
-                      {...register('name')}
-                      className="input-field"
-                      placeholder="Tu nombre"
-                    />
-                    {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
-                  </div>
-
-                  <div>
-                    <label className="label">Email *</label>
-                    <input
-                      type="email"
-                      {...register('email')}
-                      className="input-field"
-                      placeholder="tu@email.com"
-                    />
-                    {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
+                <div className="space-y-6">
+                  {/* WhatsApp Number Display */}
+                  <div className="bg-white rounded-xl p-6 text-center shadow-lg">
+                    <p className="text-sm text-gray-600 mb-2">Nuestro número de WhatsApp</p>
+                    <a
+                      href={`https://wa.me/${whatsappNumber}?text=${whatsappMessage}`}
+                      className="text-4xl font-bold text-green-600 hover:text-green-700 transition-colors"
+                    >
+                      +34 624 645 517
+                    </a>
                   </div>
 
-                  <div>
-                    <label className="label">Asunto *</label>
-                    <input
-                      type="text"
-                      {...register('subject')}
-                      className="input-field"
-                      placeholder="¿En qué podemos ayudarte?"
-                    />
-                    {errors.subject && <p className="text-red-500 text-sm mt-1">{errors.subject.message}</p>}
-                  </div>
-
-                  <div>
-                    <label className="label">Mensaje *</label>
-                    <textarea
-                      {...register('message')}
-                      className="input-field resize-none"
-                      rows={6}
-                      placeholder="Cuéntanos más sobre tu consulta..."
-                    />
-                    {errors.message && <p className="text-red-500 text-sm mt-1">{errors.message.message}</p>}
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  {/* Primary CTA */}
+                  <a
+                    href={`https://wa.me/${whatsappNumber}?text=${whatsappMessage}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-primary w-full !bg-green-600 hover:!bg-green-700 !text-white flex items-center justify-center text-lg py-4 shadow-xl hover:shadow-2xl transition-all"
                   >
-                    {isSubmitting ? (
-                      <>
-                        <div className="spinner mr-2" />
-                        Enviando...
-                      </>
-                    ) : (
-                      <>
-                        <Send className="w-4 h-4 mr-2" />
-                        Enviar mensaje
-                      </>
-                    )}
-                  </button>
-                </form>
+                    <MessageCircle className="w-6 h-6 mr-3" />
+                    Abrir WhatsApp
+                  </a>
+
+                  {/* Quick Message Templates */}
+                  <div className="bg-white rounded-xl p-6">
+                    <h3 className="font-semibold text-gray-900 mb-4 text-center">
+                      O usa un mensaje rápido:
+                    </h3>
+                    <div className="space-y-3">
+                      <a
+                        href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent('Hola, quiero consultar disponibilidad para una fecha')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block w-full text-left px-4 py-3 bg-gray-50 hover:bg-green-50 border border-gray-200 hover:border-green-300 rounded-lg transition-all group"
+                      >
+                        <span className="text-gray-700 group-hover:text-green-700">
+                          💬 Consultar disponibilidad
+                        </span>
+                      </a>
+                      <a
+                        href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent('Hola, me gustaría información sobre precios y servicios')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block w-full text-left px-4 py-3 bg-gray-50 hover:bg-green-50 border border-gray-200 hover:border-green-300 rounded-lg transition-all group"
+                      >
+                        <span className="text-gray-700 group-hover:text-green-700">
+                          💰 Preguntar sobre precios
+                        </span>
+                      </a>
+                      <a
+                        href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent('Hola, quiero agendar una visita al espacio')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block w-full text-left px-4 py-3 bg-gray-50 hover:bg-green-50 border border-gray-200 hover:border-green-300 rounded-lg transition-all group"
+                      >
+                        <span className="text-gray-700 group-hover:text-green-700">
+                          🏢 Agendar visita
+                        </span>
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* Alternative Contact */}
+                  <div className="text-center text-sm text-gray-600 pt-4 border-t border-gray-200">
+                    <p>¿Prefieres email?</p>
+                    <a
+                      href="mailto:happyhub.rovellat@gmail.com"
+                      className="text-primary-600 hover:underline font-medium"
+                    >
+                      happyhub.rovellat@gmail.com
+                    </a>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
