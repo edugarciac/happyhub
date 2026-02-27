@@ -77,11 +77,26 @@ async function handleLogin(req: NextApiRequest, res: NextApiResponse<AuthRespons
         role: user.role,
       },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error en login:', error);
+
+    if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
+      return res.status(503).json({
+        success: false,
+        error: 'Error de conexión con la base de datos. Intenta de nuevo en unos segundos',
+      });
+    }
+
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(500).json({
+        success: false,
+        error: 'Error al generar token de sesión. Contacta con soporte',
+      });
+    }
+
     return res.status(500).json({
       success: false,
-      error: 'Error interno del servidor',
+      error: `Error al iniciar sesión: ${error.message || 'Error desconocido'}. Contacta con soporte si persiste`,
     });
   }
 }
@@ -124,11 +139,26 @@ async function handleVerifyToken(req: NextApiRequest, res: NextApiResponse<AuthR
         role: user.role,
       },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error verificando token:', error);
+
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({
+        success: false,
+        error: 'Tu sesión ha expirado. Por favor, inicia sesión de nuevo',
+      });
+    }
+
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({
+        success: false,
+        error: 'Token de sesión inválido. Por favor, inicia sesión de nuevo',
+      });
+    }
+
     return res.status(401).json({
       success: false,
-      error: 'Token inválido',
+      error: 'Error de autenticación. Por favor, inicia sesión de nuevo',
     });
   }
 }

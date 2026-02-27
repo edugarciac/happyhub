@@ -71,7 +71,7 @@ export default async function handler(
         role: user.role,
       },
     });
-  } catch (error) {
+  } catch (error: any) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({
         success: false,
@@ -80,9 +80,47 @@ export default async function handler(
     }
 
     console.error('Registration error:', error);
+
+    // Specific database errors
+    if (error.code === '23505') {
+      return res.status(409).json({
+        success: false,
+        error: 'Este email ya está registrado. Por favor, usa otro email o inicia sesión',
+      });
+    }
+
+    if (error.code === '23502') {
+      return res.status(400).json({
+        success: false,
+        error: 'Faltan campos obligatorios. Verifica nombre, email, teléfono y contraseña',
+      });
+    }
+
+    if (error.code === '23503') {
+      return res.status(400).json({
+        success: false,
+        error: 'Error de referencia en base de datos. Contacta con soporte',
+      });
+    }
+
+    if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
+      return res.status(503).json({
+        success: false,
+        error: 'Error de conexión con la base de datos. Intenta de nuevo en unos segundos',
+      });
+    }
+
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({
+        success: false,
+        error: `Error de validación: ${error.message}`,
+      });
+    }
+
+    // Generic fallback with more context
     return res.status(500).json({
       success: false,
-      error: 'Error al crear la cuenta. Por favor, inténtalo de nuevo',
+      error: `Error al crear la cuenta: ${error.message || 'Error desconocido'}. Contacta con soporte si persiste`,
     });
   }
 }
