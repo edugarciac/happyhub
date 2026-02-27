@@ -3,22 +3,32 @@ import Head from 'next/head';
 import Link from 'next/link';
 import FullCalendar from '@/components/FullCalendar';
 import { formatDate } from '@/utils/formatters';
-import { calculateBasePrice, type TimeSlot } from '@/utils/pricing';
+import { isWeekend, isFriday, isHoliday, isHolidayEve, type TimeSlot } from '@/utils/pricing';
 
 export default function Disponibilidad() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(null);
   const [bookedSlots, setBookedSlots] = useState<{ date: Date; timeSlot: TimeSlot }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [pricing, setPricing] = useState<Record<string, number>>({});
 
-  // Fetch booked slots from Google Calendar "Reservas Rovellat"
+  // Fetch pricing and booked slots
   useEffect(() => {
-    const fetchBookedSlots = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch('/api/google-calendar-slots');
-        if (response.ok) {
-          const data = await response.json();
-          // Parse ISO string dates to Date objects
+        // Fetch pricing from database
+        const pricingRes = await fetch('/api/pricing/current');
+        if (pricingRes.ok) {
+          const pricingData = await pricingRes.json();
+          if (pricingData.success) {
+            setPricing(pricingData.pricing);
+          }
+        }
+
+        // Fetch booked slots from Google Calendar
+        const slotsRes = await fetch('/api/google-calendar-slots');
+        if (slotsRes.ok) {
+          const data = await slotsRes.json();
           const slots = (data.bookedSlots || []).map((slot: any) => ({
             date: new Date(slot.date),
             timeSlot: slot.timeSlot,
@@ -26,14 +36,13 @@ export default function Disponibilidad() {
           setBookedSlots(slots);
         }
       } catch (error) {
-        console.error('Error fetching booked slots:', error);
-        // If API fails, show all as available (better UX than blocking everything)
+        console.error('Error fetching data:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchBookedSlots();
+    fetchData();
   }, []);
 
   const handleSlotSelect = (date: Date, timeSlot: TimeSlot) => {
@@ -59,8 +68,33 @@ export default function Disponibilidad() {
     }
   };
 
+  const calculatePriceFromDb = (date: Date, slot: TimeSlot): number | 'consult' => {
+    if (slot === 'night') return 'consult';
+
+    const isHolidayDay = isHoliday(date);
+    const isWeekendDay = isWeekend(date);
+    const isFridayDay = isFriday(date);
+    const isHolidayEveDay = isHolidayEve(date);
+
+    let ruleKey: string;
+
+    if (isHolidayDay) {
+      ruleKey = `holiday_${slot}`;
+    } else if (isWeekendDay) {
+      ruleKey = `weekend_${slot}`;
+    } else if (isFridayDay && slot === 'afternoon') {
+      ruleKey = 'friday_afternoon';
+    } else if (isHolidayEveDay && slot === 'afternoon') {
+      ruleKey = 'friday_afternoon';
+    } else {
+      ruleKey = `weekday_${slot}`;
+    }
+
+    return pricing[ruleKey] || 110; // Fallback to 110
+  };
+
   const getTimeSlotPrice = (date: Date, slot: TimeSlot): string => {
-    const price = calculateBasePrice(date, slot);
+    const price = calculatePriceFromDb(date, slot);
     return price === 'consult' ? 'A consultar' : `${price}€`;
   };
 
@@ -125,7 +159,7 @@ export default function Disponibilidad() {
                         {getTimeSlotPrice(selectedDate, selectedTimeSlot)}
                       </div>
                     </div>
-                    {calculateBasePrice(selectedDate, selectedTimeSlot) !== 'consult' ? (
+                    {calculatePriceFromDb(selectedDate, selectedTimeSlot) !== 'consult' ? (
                       <button
                         onClick={handleReserve}
                         className="btn-primary whitespace-nowrap px-8"
@@ -165,11 +199,11 @@ export default function Disponibilidad() {
               <div className="border-l-4 border-secondary-500 pl-4">
                 <h3 className="font-bold text-gray-900 mb-3 text-lg">💰 Tarifas</h3>
                 <div className="space-y-2 text-gray-600 text-sm">
-                  <p><strong>Lunes a Viernes - Mañanas:</strong> 110€</p>
-                  <p><strong>Lunes a Jueves - Tardes:</strong> 110€</p>
-                  <p><strong>Viernes - Tardes:</strong> 140€</p>
-                  <p><strong>Fines de semana - Mañanas:</strong> 130€</p>
-                  <p><strong>Fines de semana - Tardes:</strong> 170€</p>
+                  <p><strong>Lunes a Viernes - Mañanas:</strong> {pricing.weekday_morning || 110}€</p>
+                  <p><strong>Lunes a Jueves - Tardes:</strong> {pricing.weekday_afternoon || 110}€</p>
+                  <p><strong>Viernes - Tardes:</strong> {pricing.friday_afternoon || 155}€</p>
+                  <p><strong>Fines de semana - Mañanas:</strong> {pricing.weekend_morning || 145}€</p>
+                  <p><strong>Fines de semana - Tardes:</strong> {pricing.weekend_afternoon || 185}€</p>
                   <p><strong>Nocturno:</strong> A consultar</p>
                 </div>
               </div>

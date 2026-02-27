@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useBooking } from './BookingContext';
 import FullCalendar from '@/components/FullCalendar';
-import { calculateBasePrice, TIME_SLOTS, type TimeSlot } from '@/utils/pricing';
+import { isWeekend, isFriday, isHoliday, isHolidayEve, TIME_SLOTS, type TimeSlot } from '@/utils/pricing';
 import { formatDate } from '@/utils/formatters';
 import { ChevronRight, Calendar, Clock, AlertCircle } from 'lucide-react';
 
@@ -15,13 +15,24 @@ export default function Step1Calendar() {
   const [bookedSlots, setBookedSlots] = useState<BookedSlot[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [pricing, setPricing] = useState<Record<string, number>>({});
 
   useEffect(() => {
-    const fetchBookedSlots = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch('/api/google-calendar-slots');
-        if (response.ok) {
-          const data = await response.json();
+        // Fetch pricing
+        const pricingRes = await fetch('/api/pricing/current');
+        if (pricingRes.ok) {
+          const pricingData = await pricingRes.json();
+          if (pricingData.success) {
+            setPricing(pricingData.pricing);
+          }
+        }
+
+        // Fetch booked slots
+        const slotsRes = await fetch('/api/google-calendar-slots');
+        if (slotsRes.ok) {
+          const data = await slotsRes.json();
           const slots = (data.bookedSlots || []).map((slot: any) => ({
             date: new Date(slot.date),
             timeSlot: slot.timeSlot,
@@ -29,20 +40,44 @@ export default function Step1Calendar() {
           setBookedSlots(slots);
         }
       } catch (err) {
-        console.error('Error fetching booked slots:', err);
-        // Don't block user if calendar fetch fails
+        console.error('Error fetching data:', err);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchBookedSlots();
+    fetchData();
   }, []);
+
+  const calculatePriceFromDb = (date: Date, slot: TimeSlot): number | 'consult' => {
+    if (slot === 'night') return 'consult';
+
+    const isHolidayDay = isHoliday(date);
+    const isWeekendDay = isWeekend(date);
+    const isFridayDay = isFriday(date);
+    const isHolidayEveDay = isHolidayEve(date);
+
+    let ruleKey: string;
+
+    if (isHolidayDay) {
+      ruleKey = `holiday_${slot}`;
+    } else if (isWeekendDay) {
+      ruleKey = `weekend_${slot}`;
+    } else if (isFridayDay && slot === 'afternoon') {
+      ruleKey = 'friday_afternoon';
+    } else if (isHolidayEveDay && slot === 'afternoon') {
+      ruleKey = 'friday_afternoon';
+    } else {
+      ruleKey = `weekday_${slot}`;
+    }
+
+    return pricing[ruleKey] || 110;
+  };
 
   const handleSlotSelect = (date: Date, timeSlot: TimeSlot) => {
     dispatch({ type: 'SET_DATE', date });
     dispatch({ type: 'SET_TIME_SLOT', timeSlot });
-    const price = calculateBasePrice(date, timeSlot);
+    const price = calculatePriceFromDb(date, timeSlot);
     dispatch({ type: 'SET_BASE_PRICE', price });
   };
 
@@ -65,7 +100,7 @@ export default function Step1Calendar() {
   };
 
   const getTimeSlotPrice = (date: Date, slot: TimeSlot): string => {
-    const price = calculateBasePrice(date, slot);
+    const price = calculatePriceFromDb(date, slot);
     return price === 'consult' ? 'A consultar' : `${price}€`;
   };
 

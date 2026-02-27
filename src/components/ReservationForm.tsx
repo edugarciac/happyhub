@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { reservationSchema, ReservationFormData } from '@/utils/validators';
-import { calculateBasePrice, type TimeSlot } from '@/utils/pricing';
+import { isWeekend, isFriday, isHoliday, isHolidayEve, type TimeSlot } from '@/utils/pricing';
 import { createReservation } from '@/lib/apiClient';
 import { Loader2 } from 'lucide-react';
 
@@ -20,6 +20,7 @@ export default function ReservationForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [selectedExtras, setSelectedExtras] = useState<string[]>([]);
+  const [pricing, setPricing] = useState<Record<string, number>>({});
 
   const {
     register,
@@ -38,6 +39,23 @@ export default function ReservationForm({
   });
 
   useEffect(() => {
+    // Fetch pricing from database
+    const fetchPricing = async () => {
+      try {
+        const response = await fetch('/api/pricing/current');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            setPricing(data.pricing);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching pricing:', error);
+      }
+    };
+
+    fetchPricing();
+
     if (preselectedTimeSlot) {
       setValue('timeSlot', preselectedTimeSlot);
     }
@@ -47,7 +65,33 @@ export default function ReservationForm({
   const timeSlot = watch('timeSlot');
   const guests = watch('guests');
 
-  const basePrice = date && timeSlot ? calculateBasePrice(new Date(date), timeSlot) : 0;
+  const calculatePriceFromDb = (dateStr: string, slot: TimeSlot): number | 'consult' => {
+    if (slot === 'night') return 'consult';
+
+    const date = new Date(dateStr);
+    const isHolidayDay = isHoliday(date);
+    const isWeekendDay = isWeekend(date);
+    const isFridayDay = isFriday(date);
+    const isHolidayEveDay = isHolidayEve(date);
+
+    let ruleKey: string;
+
+    if (isHolidayDay) {
+      ruleKey = `holiday_${slot}`;
+    } else if (isWeekendDay) {
+      ruleKey = `weekend_${slot}`;
+    } else if (isFridayDay && slot === 'afternoon') {
+      ruleKey = 'friday_afternoon';
+    } else if (isHolidayEveDay && slot === 'afternoon') {
+      ruleKey = 'friday_afternoon';
+    } else {
+      ruleKey = `weekday_${slot}`;
+    }
+
+    return pricing[ruleKey] || 110;
+  };
+
+  const basePrice = date && timeSlot ? calculatePriceFromDb(date, timeSlot) : 0;
   const totalPrice = typeof basePrice === 'number' ? basePrice : 0;
 
   const handleExtraToggle = (extra: string) => {

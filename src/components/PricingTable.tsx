@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Check, Info } from 'lucide-react';
 
@@ -9,13 +10,6 @@ interface PriceRow {
   highlight?: boolean;
 }
 
-const PRICING: PriceRow[] = [
-  { day: 'Lunes a Jueves', morning: 110, afternoon: 110, night: 'consult' },
-  { day: 'Viernes', morning: 110, afternoon: 140, night: 'consult', highlight: true },
-  { day: 'Sábados y Domingos', morning: 130, afternoon: 170, night: 'consult', highlight: true },
-  { day: 'Festivos', morning: 130, afternoon: 170, night: 'consult', highlight: true },
-];
-
 const INCLUDED = [
   'Uso exclusivo del espacio',
   'Mobiliario básico (mesas y sillas)',
@@ -26,6 +20,59 @@ const INCLUDED = [
 ];
 
 export default function PricingTable() {
+  const [pricing, setPricing] = useState<Record<string, number>>({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPricing = async () => {
+      try {
+        const response = await fetch('/api/pricing/current');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            setPricing(data.pricing);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching pricing:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPricing();
+  }, []);
+
+  const pricingRows: PriceRow[] = [
+    {
+      day: 'Lunes a Jueves',
+      morning: pricing.weekday_morning || 110,
+      afternoon: pricing.weekday_afternoon || 110,
+      night: 'consult'
+    },
+    {
+      day: 'Viernes',
+      morning: pricing.weekday_morning || 110,
+      afternoon: pricing.friday_afternoon || 155,
+      night: 'consult',
+      highlight: true
+    },
+    {
+      day: 'Sábados y Domingos',
+      morning: pricing.weekend_morning || 145,
+      afternoon: pricing.weekend_afternoon || 185,
+      night: 'consult',
+      highlight: true
+    },
+    {
+      day: 'Festivos',
+      morning: pricing.holiday_morning || 145,
+      afternoon: pricing.holiday_afternoon || 185,
+      night: 'consult',
+      highlight: true
+    },
+  ];
+
   const formatPrice = (price: number | 'consult') => {
     if (price === 'consult') return 'Consultar';
     return `${price}€`;
@@ -62,7 +109,7 @@ export default function PricingTable() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {PRICING.map((row, index) => (
+                  {pricingRows.map((row, index) => (
                     <tr
                       key={index}
                       className={row.highlight ? 'bg-primary-50' : 'bg-white'}
