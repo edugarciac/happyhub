@@ -40,25 +40,33 @@ export default function RegisterPage() {
     setError('');
 
     try {
+      console.log('Enviando registro...', { email: data.email, name: data.name });
+
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
 
+      console.log('Response status:', response.status);
+
       const result = await response.json();
+      console.log('Response data:', result);
 
       if (!response.ok) {
-        setError(result.error || 'Error al registrarse');
+        const errorMsg = result.error || 'Error al registrarse';
+        console.error('Registration failed:', errorMsg);
+        setError(errorMsg);
         setLoading(false);
         return;
       }
 
+      console.log('Registration successful, redirecting to /login');
       // Don't auto-login, redirect to login page
       // User must explicitly log in after registration
       router.push('/login');
     } catch (err: any) {
-      console.error('Register error:', err);
+      console.error('Register exception:', err);
       setError(err.message || 'Error de conexión. Por favor, inténtalo de nuevo');
       setLoading(false);
     }
