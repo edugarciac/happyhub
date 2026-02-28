@@ -93,18 +93,38 @@ export default async function handler(
       reservationId,
     });
   } catch (error: any) {
-    console.error('Error al procesar la reserva:', error);
+    console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.error('❌ Error al procesar la reserva:');
+    console.error('Message:', error.message);
+    console.error('Code:', error.code);
+    console.error('Response:', error.response?.data);
+    console.error('URL:', process.env.N8N_WEBHOOK_URL);
+    console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-    if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') {
+    if (error.code === 'ECONNREFUSED') {
       return res.status(503).json({
         success: false,
-        error: 'Servicio de reservas temporalmente no disponible',
+        error: 'No se puede conectar con n8n. Verifica que esté corriendo',
+      });
+    }
+
+    if (error.code === 'ETIMEDOUT') {
+      return res.status(503).json({
+        success: false,
+        error: 'Timeout conectando con n8n. El servidor no respondió',
+      });
+    }
+
+    if (error.code === 'ENOTFOUND') {
+      return res.status(503).json({
+        success: false,
+        error: 'No se puede resolver la dirección de n8n',
       });
     }
 
     return res.status(500).json({
       success: false,
-      error: error.response?.data?.message || 'Error al procesar la reserva',
+      error: error.response?.data?.message || error.message || 'Error al procesar la reserva',
     });
   }
 }
