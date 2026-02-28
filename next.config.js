@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
+  reactStrictMode: false, // Disabled to prevent double rendering issues
   images: {
     domains: ['localhost'],
     unoptimized: true, // Required for Amplify static export
