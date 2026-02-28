@@ -105,24 +105,19 @@ export default function Disponibilidad() {
         <meta name="description" content="Consulta las fechas disponibles para tu evento en HappyHub" />
       </Head>
 
-      {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary-50 to-secondary-50 pt-32 pb-8">
-        <div className="container-custom text-center">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            Consulta Disponibilidad
-          </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-2">
-            Selecciona la fecha y franja horaria perfecta para tu celebración
-          </p>
-          <p className="text-sm text-gray-500">
-            Verde = Disponible | Rojo = Reservado | M = Mañana | T = Tarde | N = Noche
-          </p>
-        </div>
-      </section>
-
-      {/* Full screen calendar */}
-      <section className="py-8 bg-white min-h-screen">
+      {/* Calendar Section - Direct Access */}
+      <section className="pt-24 pb-8 bg-white min-h-screen">
         <div className="container-custom max-w-[1600px]">
+          {/* Page title inline with calendar */}
+          <div className="mb-6 text-center">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Elige Fecha y Hora
+            </h1>
+            <p className="text-sm text-gray-500">
+              Verde = Disponible | Rojo = Reservado | M = Mañana | T = Tarde | N = Noche
+            </p>
+          </div>
+
           {isLoading ? (
             <div className="flex items-center justify-center min-h-[400px]">
               <div className="text-center">
