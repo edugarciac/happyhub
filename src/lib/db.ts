@@ -12,7 +12,11 @@ neonConfig.webSocketConstructor = ws;
 const connectionString = process.env.DATABASE_URL ||
   `postgresql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`;
 
-const pool = new NeonPool({ connectionString });
+const pool = new NeonPool({
+  connectionString,
+  connectionTimeoutMillis: 5000,  // fail after 5s instead of hanging
+  idleTimeoutMillis: 10000,
+});
 
 // Export pool for direct use
 export default pool;

@@ -80,7 +80,9 @@ async function handleLogin(req: NextApiRequest, res: NextApiResponse<AuthRespons
   } catch (error: any) {
     console.error('Error en login:', error);
 
-    if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
+    if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND' ||
+        error.code === 'ETIMEDOUT' || error.code === 'ECONNRESET' ||
+        error.code === 'EHOSTUNREACH') {
       return res.status(503).json({
         success: false,
         error: 'Error de conexión con la base de datos. Intenta de nuevo en unos segundos',
