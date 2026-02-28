@@ -91,7 +91,7 @@
 **n8n Workflow (PRODUCTION - Nueva Instancia Robusta):**
 - URL Principal: https://n8n.happyhub.es (con HTTPS vía nginx)
 - URL Alternativa: http://52.208.80.224:5678 (bloqueada por firewall corporativo)
-- Webhook: https://n8n.happyhub.es/webhook/reservation-new
+- Webhook: https://n8n.happyhub.es/webhook/reservation-request (ACTIVE)
 - Usuario: admin
 - Contraseña: ChangeThisPassword123! (CAMBIAR EN PRIMER LOGIN)
 - EC2 Instance: i-0b869fcbf14768c25 (t3.small, 2GB RAM, 30GB gp3)

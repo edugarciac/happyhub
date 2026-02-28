@@ -98,8 +98,8 @@ GOOGLE_CLIENT_ID=<your-client-id>.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=GOCSPX-<your-secret>
 NEXT_PUBLIC_GOOGLE_OAUTH_ENABLED=true
 
-# n8n (USA DOMINIO CON HTTPS)
-N8N_WEBHOOK_URL=https://n8n.happyhub.es/webhook/reservation-new
+# n8n (USA DOMINIO CON HTTPS - CORRECT PATH)
+N8N_WEBHOOK_URL=https://n8n.happyhub.es/webhook/reservation-request
 
 # WhatsApp (ver .env.local para token completo)
 WHATSAPP_API_TOKEN=<your-whatsapp-token>
