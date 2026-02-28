@@ -118,8 +118,24 @@ export default function Step3CustomerData() {
 
       const result = await response.json();
 
+      // Handle specific error cases
+      if (response.status === 409) {
+        // Conflict - slot already booked
+        setSubmitError(result.error || 'Lo siento, esta fecha y hora ya está reservada. Por favor, elige otra fecha.');
+        setIsSubmitting(false);
+        return;
+      }
+
       if (!response.ok) {
-        throw new Error(result.error || 'Error al enviar la reserva');
+        setSubmitError(result.error || `Error al enviar la reserva (código ${response.status})`);
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!result.success) {
+        setSubmitError(result.error || 'Error al procesar la reserva');
+        setIsSubmitting(false);
+        return;
       }
 
       // Success! Move to next step (confirmation)
@@ -132,7 +148,6 @@ export default function Step3CustomerData() {
     } catch (error: any) {
       console.error('Error submitting reservation:', error);
       setSubmitError(error.message || 'Error al procesar tu solicitud. Por favor, inténtalo de nuevo.');
-    } finally {
       setIsSubmitting(false);
     }
   };
