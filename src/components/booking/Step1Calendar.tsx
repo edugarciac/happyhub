@@ -89,14 +89,20 @@ export default function Step1Calendar() {
   };
 
   const handleContinue = () => {
+    console.log('Continue clicked. State:', { date: state.date, timeSlot: state.timeSlot, basePrice: state.basePrice });
+
     if (!state.date || !state.timeSlot) {
+      console.warn('Missing date or timeSlot');
       setError('Por favor, selecciona una fecha y franja horaria');
       return;
     }
     if (state.basePrice === 'consult') {
+      console.warn('Night slot selected - requires consultation');
       setError('El horario nocturno requiere consulta previa. Por favor, contacta con nosotros.');
       return;
     }
+
+    console.log('All validation passed, going to next step');
     setError(null);
     nextStep();
   };
