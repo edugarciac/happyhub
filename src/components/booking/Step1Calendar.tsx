@@ -75,10 +75,17 @@ export default function Step1Calendar() {
   };
 
   const handleSlotSelect = (date: Date, timeSlot: TimeSlot) => {
+    // Clear any previous error
+    setError(null);
+
+    // Update state
     dispatch({ type: 'SET_DATE', date });
     dispatch({ type: 'SET_TIME_SLOT', timeSlot });
     const price = calculatePriceFromDb(date, timeSlot);
     dispatch({ type: 'SET_BASE_PRICE', price });
+
+    // Force re-render by updating local state
+    console.log('Slot selected:', { date, timeSlot, price });
   };
 
   const handleContinue = () => {

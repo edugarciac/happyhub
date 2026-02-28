@@ -104,7 +104,7 @@ export default function BookingSuccess() {
         <meta name="description" content="Tu reserva en HappyHub ha sido confirmada" />
       </Head>
 
-      <main className="min-h-screen bg-gradient-to-br from-green-50 to-primary-50 py-16 px-4">
+      <main className="min-h-screen bg-gradient-to-br from-green-50 to-primary-50 pt-24 pb-16 px-4">
         <div className="container-custom max-w-2xl mx-auto">
           <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
             {/* Success icon */}

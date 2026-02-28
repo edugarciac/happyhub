@@ -86,7 +86,7 @@ function StepContent() {
 
 function BookingWizardContent() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pt-28 pb-8 px-4">
       <div className="container-custom max-w-6xl mx-auto">
         <StepIndicator />
         <StepContent />
