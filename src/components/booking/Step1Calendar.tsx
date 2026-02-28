@@ -14,19 +14,25 @@ export default function Step1Calendar() {
   const { state, dispatch, nextStep } = useBooking();
   const [bookedSlots, setBookedSlots] = useState<BookedSlot[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [pricingLoading, setPricingLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [pricing, setPricing] = useState<Record<string, number>>({});
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch pricing
+        // Fetch pricing first (critical for price calculation)
         const pricingRes = await fetch('/api/pricing/current');
         if (pricingRes.ok) {
           const pricingData = await pricingRes.json();
           if (pricingData.success) {
+            console.log('Pricing loaded:', pricingData.pricing);
             setPricing(pricingData.pricing);
+            setPricingLoading(false);
           }
+        } else {
+          console.error('Failed to load pricing');
+          setPricingLoading(false);
         }
 
         // Fetch booked slots
@@ -41,6 +47,7 @@ export default function Step1Calendar() {
         }
       } catch (err) {
         console.error('Error fetching data:', err);
+        setPricingLoading(false);
       } finally {
         setIsLoading(false);
       }
@@ -78,14 +85,21 @@ export default function Step1Calendar() {
     // Clear any previous error
     setError(null);
 
-    // Update state
+    // Wait for pricing to load
+    if (pricingLoading) {
+      console.warn('Pricing still loading, waiting...');
+      setError('Cargando precios, espera un momento...');
+      return;
+    }
+
+    // Calculate price
+    const price = calculatePriceFromDb(date, timeSlot);
+    console.log('Slot selected:', { date, timeSlot, price, pricingAvailable: Object.keys(pricing).length > 0 });
+
+    // Update state - do all dispatches together
     dispatch({ type: 'SET_DATE', date });
     dispatch({ type: 'SET_TIME_SLOT', timeSlot });
-    const price = calculatePriceFromDb(date, timeSlot);
     dispatch({ type: 'SET_BASE_PRICE', price });
-
-    // Force re-render by updating local state
-    console.log('Slot selected:', { date, timeSlot, price });
   };
 
   const handleContinue = () => {
