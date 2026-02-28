@@ -38,11 +38,21 @@ if (process.env.NEXT_PUBLIC_GOOGLE_OAUTH_ENABLED === 'true' &&
   providers.unshift(GoogleProvider({
     clientId: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    authorization: {
+      params: {
+        prompt: "consent",
+        access_type: "offline",
+        response_type: "code",
+        // Reduce URL length by limiting scopes
+        scope: "openid email profile",
+      },
+    },
   }));
 }
 
 export const authOptions: NextAuthOptions = {
   providers,
+  debug: process.env.NODE_ENV === 'development',
   callbacks: {
     async signIn({ user, account, profile }) {
       // Handle Google OAuth sign-in
