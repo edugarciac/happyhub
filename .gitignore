@@ -70,3 +70,4 @@ aws-credentials-happyhub.json
 /build
 /tokens
 AMPLIFY_ENV_VARS_GOOGLE.txt
+docs/GOOGLE_OAUTH_CREDENTIALS.md

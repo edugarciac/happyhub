@@ -15,6 +15,9 @@
 - `CLAUDE_API_KEY` - Optional: Claude API for n8n (in `.env.local`)
 - `WHATSAPP_API_TOKEN` - WhatsApp Business API token (in `.env.local`) - Added 2026-02-27
 - `DATABASE_URL` - Neon PostgreSQL connection string (in `.env.local`)
+- `GOOGLE_CLIENT_ID` - Google OAuth2 Client ID (in `.env.local`) - Added 2026-02-28
+- `GOOGLE_CLIENT_SECRET` - Google OAuth2 Client Secret (in `.env.local`) - Added 2026-02-28
+- `NEXT_PUBLIC_GOOGLE_OAUTH_ENABLED` - Enable/disable Google OAuth (true/false) - Added 2026-02-28
 
 **Environment Files:**
 - `.env` - Local secrets (gitignored)
