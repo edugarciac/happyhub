@@ -142,6 +142,11 @@ export default function Step1Calendar() {
         <p className="text-gray-600">
           Selecciona el día y la franja horaria para tu evento
         </p>
+        {pricingLoading && (
+          <p className="text-sm text-yellow-600 mt-2">
+            Cargando precios...
+          </p>
+        )}
       </div>
 
       {/* Calendar */}
