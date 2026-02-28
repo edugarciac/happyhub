@@ -1,21 +1,18 @@
 // PostgreSQL Database Connection Pool
 // Uses environment variables from .env.local
 
-import { Pool as NeonPool, neonConfig } from '@neondatabase/serverless';
+import { Pool } from 'pg';
 import { QueryResult, QueryResultRow } from 'pg';
-import ws from 'ws';
 
-// Configure Neon to use ws for WebSocket connections in Node.js
-neonConfig.webSocketConstructor = ws;
-
-// Create connection pool using Neon serverless driver
+// Create connection pool using standard pg driver (AWS RDS Aurora / PostgreSQL)
 const connectionString = process.env.DATABASE_URL ||
   `postgresql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`;
 
-const pool = new NeonPool({
+const pool = new Pool({
   connectionString,
   connectionTimeoutMillis: 5000,  // fail after 5s instead of hanging
   idleTimeoutMillis: 10000,
+  ssl: process.env.DB_SSL === 'false' ? false : { rejectUnauthorized: false },
 });
 
 // Export pool for direct use
