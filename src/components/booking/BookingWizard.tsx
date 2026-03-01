@@ -95,9 +95,14 @@ function BookingWizardContent() {
   );
 }
 
-export default function BookingWizard() {
+interface BookingWizardProps {
+  preselectedDate?: string;
+  preselectedTimeSlot?: 'morning' | 'afternoon' | 'night';
+}
+
+export default function BookingWizard({ preselectedDate, preselectedTimeSlot }: BookingWizardProps) {
   return (
-    <BookingProvider>
+    <BookingProvider initialDate={preselectedDate} initialTimeSlot={preselectedTimeSlot}>
       <BookingWizardContent />
     </BookingProvider>
   );
