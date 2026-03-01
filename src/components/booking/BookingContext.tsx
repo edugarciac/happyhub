@@ -119,8 +119,29 @@ interface BookingContextType {
 
 const BookingContext = createContext<BookingContextType | undefined>(undefined);
 
-export function BookingProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(bookingReducer, initialState);
+interface BookingProviderProps {
+  children: ReactNode;
+  initialDate?: string;
+  initialTimeSlot?: TimeSlot;
+}
+
+export function BookingProvider({ children, initialDate, initialTimeSlot }: BookingProviderProps) {
+  // Create initial state with preselected values
+  const getInitialState = (): BookingState => {
+    const state = { ...initialState };
+
+    // If date and timeSlot are provided, skip to step 2
+    if (initialDate && initialTimeSlot) {
+      state.step = 2; // Start at Step 2 (Configuration)
+      state.date = new Date(initialDate);
+      state.timeSlot = initialTimeSlot;
+      // basePrice will be calculated in Step2Configuration
+    }
+
+    return state;
+  };
+
+  const [state, dispatch] = useReducer(bookingReducer, getInitialState());
 
   const goToStep = (step: number) => {
     dispatch({ type: 'SET_STEP', step });
