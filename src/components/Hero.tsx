@@ -88,13 +88,6 @@ export default function Hero({
                 {ctaText}
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </a>
-              <a
-                href="/disponibilidad"
-                className="btn-outline group"
-              >
-                Ver disponibilidad
-                <Sparkles className="ml-2 w-5 h-5 group-hover:rotate-12 transition-transform" />
-              </a>
             </div>
 
             {showStats && (

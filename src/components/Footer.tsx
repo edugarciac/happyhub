@@ -103,11 +103,11 @@ export default function Footer() {
               </li>
               <li>
                 <a
-                  href="/disponibilidad"
+                  href="/reservas"
                   className="text-gray-400 hover:text-primary-400 transition-colors flex items-center group"
                 >
                   <span className="mr-2 group-hover:mr-3 transition-all">→</span>
-                  Disponibilidad
+                  Reserva tu fecha
                 </a>
               </li>
             </ul>

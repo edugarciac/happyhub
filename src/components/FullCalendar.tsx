@@ -17,9 +17,11 @@ interface DaySlots {
 interface FullCalendarProps {
   onSlotSelect: (date: Date, timeSlot: 'morning' | 'afternoon' | 'night') => void;
   bookedSlots?: { date: Date; timeSlot: 'morning' | 'afternoon' | 'night' }[];
+  selectedDate?: Date | null;
+  selectedTimeSlot?: 'morning' | 'afternoon' | 'night' | null;
 }
 
-export default function FullCalendar({ onSlotSelect, bookedSlots = [] }: FullCalendarProps) {
+export default function FullCalendar({ onSlotSelect, bookedSlots = [], selectedDate, selectedTimeSlot }: FullCalendarProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   // Get days in month
@@ -84,6 +86,16 @@ export default function FullCalendar({ onSlotSelect, bookedSlots = [] }: FullCal
     }
 
     return days;
+  };
+
+  const isSlotSelected = (date: Date, timeSlot: 'morning' | 'afternoon' | 'night'): boolean => {
+    if (!selectedDate || !selectedTimeSlot) return false;
+    return (
+      selectedDate.getDate() === date.getDate() &&
+      selectedDate.getMonth() === date.getMonth() &&
+      selectedDate.getFullYear() === date.getFullYear() &&
+      selectedTimeSlot === timeSlot
+    );
   };
 
   const isSlotBooked = (date: Date, timeSlot: 'morning' | 'afternoon' | 'night'): boolean => {
@@ -182,7 +194,9 @@ export default function FullCalendar({ onSlotSelect, bookedSlots = [] }: FullCal
                     }}
                     disabled={!slot.available || !isCurrentMonth}
                     className={`text-[10px] md:text-xs font-semibold py-1 px-1 rounded transition-all ${
-                      slot.available && isCurrentMonth
+                      slot.available && isCurrentMonth && isSlotSelected(daySlot.date, slot.id)
+                        ? 'bg-green-700 text-white scale-105 cursor-pointer shadow-md ring-2 ring-green-900'
+                        : slot.available && isCurrentMonth
                         ? 'bg-green-500 text-white hover:bg-green-600 hover:scale-105 cursor-pointer shadow-sm'
                         : 'bg-red-400 text-white cursor-not-allowed opacity-70'
                     }`}
@@ -204,6 +218,12 @@ export default function FullCalendar({ onSlotSelect, bookedSlots = [] }: FullCal
             M
           </div>
           <span className="text-gray-700">Disponible</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-6 bg-green-700 rounded text-white text-xs font-bold flex items-center justify-center ring-2 ring-green-900">
+            M
+          </div>
+          <span className="text-gray-700">Seleccionado</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-8 h-6 bg-red-400 rounded text-white text-xs font-bold flex items-center justify-center">

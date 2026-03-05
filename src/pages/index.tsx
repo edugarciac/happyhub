@@ -424,13 +424,6 @@ export default function Home() {
                 Reservar ahora
                 <ArrowRight className="ml-2 w-6 h-6" />
               </a>
-              <a
-                href="/disponibilidad"
-                className="border-2 border-white text-white px-10 py-5 rounded-2xl font-bold hover:bg-white hover:text-primary-700 transition-all text-lg inline-flex items-center justify-center hover:scale-105"
-              >
-                Ver disponibilidad
-                <Calendar className="ml-2 w-6 h-6" />
-              </a>
             </div>
             <p className="text-white/80 mt-8 text-sm">
               Sin compromiso • Respuesta en menos de 24h • Pago 100% seguro

@@ -1,3 +1,7 @@
+export async function getServerSideProps() {
+  return { redirect: { destination: '/reservas', permanent: true } };
+}
+
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -126,7 +130,7 @@ export default function Disponibilidad() {
               </div>
             </div>
           ) : (
-            <FullCalendar onSlotSelect={handleSlotSelect} bookedSlots={bookedSlots} />
+            <FullCalendar onSlotSelect={handleSlotSelect} bookedSlots={bookedSlots} selectedDate={selectedDate} selectedTimeSlot={selectedTimeSlot} />
           )}
 
           {/* Selection summary */}

@@ -1,6 +1,8 @@
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import BookingWizard from '@/components/booking/BookingWizard';
+import dynamic from 'next/dynamic';
+
+const BookingWizard = dynamic(() => import('@/components/booking/BookingWizard'), { ssr: false });
 
 export default function Reservas() {
   const router = useRouter();

@@ -1,11 +1,52 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useBooking, EXTRAS, Extra } from './BookingContext';
 import PriceSummary from './PriceSummary';
+import { isWeekend, isFriday, isHoliday, isHolidayEve, type TimeSlot } from '@/utils/pricing';
 import { ChevronLeft, ChevronRight, Users, Package, Check, AlertCircle } from 'lucide-react';
 
 export default function Step2Configuration() {
   const { state, dispatch, nextStep, prevStep, calculateExtrasPrice } = useBooking();
   const [error, setError] = useState<string | null>(null);
+
+  // Calculate basePrice when arriving with a preselected date/slot (skipping step 1)
+  useEffect(() => {
+    if (!state.date || !state.timeSlot || state.basePrice !== 0) return;
+
+    const fetchAndSetPrice = async () => {
+      try {
+        const res = await fetch('/api/pricing/current');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!data.success) return;
+        const pricing: Record<string, number> = data.pricing;
+
+        const date = state.date!;
+        const slot = state.timeSlot!;
+
+        if (slot === 'night') {
+          dispatch({ type: 'SET_BASE_PRICE', price: 'consult' });
+          return;
+        }
+
+        let ruleKey: string;
+        if (isHoliday(date)) {
+          ruleKey = `holiday_${slot}`;
+        } else if (isWeekend(date)) {
+          ruleKey = `weekend_${slot}`;
+        } else if ((isFriday(date) || isHolidayEve(date)) && slot === 'afternoon') {
+          ruleKey = 'friday_afternoon';
+        } else {
+          ruleKey = `weekday_${slot}`;
+        }
+
+        dispatch({ type: 'SET_BASE_PRICE', price: pricing[ruleKey] || 110 });
+      } catch {
+        // fallback: leave price as-is
+      }
+    };
+
+    fetchAndSetPrice();
+  }, [state.date, state.timeSlot, state.basePrice, dispatch]);
 
   const handleGuestsChange = (value: number) => {
     const guests = Math.max(1, Math.min(150, value));

@@ -21,7 +21,7 @@ export default function Header() {
     { href: '/', label: 'Inicio' },
     { href: '/como-funciona', label: 'Cómo Funciona' },
     { href: '/servicios', label: 'Servicios' },
-    { href: '/disponibilidad', label: 'Disponibilidad' },
+    { href: '/reservas', label: 'Reserva tu fecha' },
     { href: '/contacto', label: 'Contacto' },
   ];
 

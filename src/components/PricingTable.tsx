@@ -191,10 +191,10 @@ export default function PricingTable() {
           {/* CTA */}
           <div className="text-center">
             <Link
-              href="/disponibilidad"
+              href="/reservas"
               className="btn-primary text-lg px-8 py-4 inline-flex items-center gap-2"
             >
-              Ver disponibilidad y reservar
+              Reserva tu fecha
             </Link>
             <p className="text-sm text-gray-500 mt-4">
               Precios vigentes desde enero 2025
