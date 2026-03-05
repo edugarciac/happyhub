@@ -25,8 +25,8 @@ export default function Disponibilidad() {
           }
         }
 
-        // Fetch booked slots from Google Calendar
-        const slotsRes = await fetch('/api/google-calendar-slots');
+        // Fetch booked slots from database
+        const slotsRes = await fetch('/api/booked-slots');
         if (slotsRes.ok) {
           const data = await slotsRes.json();
           const slots = (data.bookedSlots || []).map((slot: any) => ({
