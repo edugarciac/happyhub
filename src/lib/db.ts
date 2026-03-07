@@ -55,6 +55,49 @@ export async function checkConnection(): Promise<boolean> {
   }
 }
 
+// Ensure the users table exists (idempotent, safe to call on every cold start)
+let usersTableReady = false;
+
+export async function ensureUsersTable(): Promise<void> {
+  if (usersTableReady) return;
+
+  const client = await pool.connect();
+  try {
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        password_hash VARCHAR(255) NOT NULL,
+        name VARCHAR(255),
+        phone VARCHAR(50),
+        role VARCHAR(50) DEFAULT 'client' CHECK (role IN ('client', 'provider', 'admin')),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+      CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
+    `);
+
+    // Seed default accounts if the table was just created
+    await client.query(`
+      INSERT INTO users (email, password_hash, name, phone, role) VALUES
+      ('admin@happyhub.es',     '$2a$10$K7L/MQGyhqG3XzBGKHOV9uC5fN8CfVRlkN7yWAJXJKdQJLO4J7PHC', 'Admin HappyHub', '+34666000001', 'admin'),
+      ('proveedor@happyhub.es', '$2a$10$K7L/MQGyhqG3XzBGKHOV9uC5fN8CfVRlkN7yWAJXJKdQJLO4J7PHC', 'Proveedor Demo', '+34666000003', 'provider'),
+      ('cliente@happyhub.es',   '$2a$10$K7L/MQGyhqG3XzBGKHOV9uC5fN8CfVRlkN7yWAJXJKdQJLO4J7PHC', 'Cliente Demo',   '+34666000002', 'client')
+      ON CONFLICT (email) DO NOTHING;
+    `);
+
+    usersTableReady = true;
+    console.log('✅ users table ready');
+  } catch (error) {
+    console.error('Error ensuring users table:', error);
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 // Initialize database schema if not exists
 export async function initializeSchema(): Promise<void> {
   const client = await pool.connect();

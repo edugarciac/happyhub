@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import jwt from 'jsonwebtoken';
 import { verifyPassword, getUserById } from '../../utils/db/users';
+import { ensureUsersTable } from '../../lib/db';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
@@ -46,6 +47,9 @@ async function handleLogin(req: NextApiRequest, res: NextApiResponse<AuthRespons
         error: 'Email y contraseña son obligatorios',
       });
     }
+
+    // Ensure users table exists (creates it if missing, idempotent)
+    await ensureUsersTable();
 
     // Verify user credentials against database
     const user = await verifyPassword(email, password);
