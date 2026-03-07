@@ -22,6 +22,7 @@ export default function Header() {
     { href: '/como-funciona', label: 'Cómo Funciona' },
     { href: '/servicios', label: 'Servicios' },
     { href: '/reservas', label: 'Reserva tu fecha' },
+    { href: '/scanner', label: 'Escaner Tickets' },
     { href: '/contacto', label: 'Contacto' },
   ];
 
