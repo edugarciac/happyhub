@@ -7,7 +7,7 @@ export default function Servicios() {
     {
       id: 'catering',
       name: 'Catering',
-      price: '€15 por persona',
+      price: 'Precio a consultar',
       description: 'Menú completo adaptado a tus preferencias',
       features: [
         'Entrantes variados',
@@ -21,7 +21,7 @@ export default function Servicios() {
     {
       id: 'animacion',
       name: 'Animación',
-      price: '€150 fijo',
+      price: 'Precio a consultar',
       description: 'Entretenimiento profesional para todas las edades',
       features: [
         'Animadores profesionales',
@@ -35,7 +35,7 @@ export default function Servicios() {
     {
       id: 'decoracion',
       name: 'Decoración',
-      price: '€100 fijo',
+      price: 'Precio a consultar',
       description: 'Ambientación temática personalizada',
       features: [
         'Globos y guirnaldas',
@@ -49,7 +49,7 @@ export default function Servicios() {
     {
       id: 'fotografia',
       name: 'Fotografía',
-      price: '€200 fijo',
+      price: 'Precio a consultar',
       description: 'Reportaje fotográfico profesional',
       features: [
         'Fotógrafo profesional',
@@ -63,7 +63,7 @@ export default function Servicios() {
     {
       id: 'tarta',
       name: 'Tarta Personalizada',
-      price: '€50 fijo',
+      price: 'Precio a consultar',
       description: 'Tarta artesanal hecha a medida',
       features: [
         'Diseño personalizado',

@@ -130,7 +130,6 @@ export default function Home() {
   ];
 
   const stats = [
-    { icon: Award, value: '500+', label: 'Eventos exitosos' },
     { icon: Star, value: '4.9/5', label: 'Valoración media' },
     { icon: Users, value: '98%', label: 'Clientes satisfechos' },
     { icon: Zap, value: '24/7', label: 'Soporte disponible' },
@@ -344,7 +343,7 @@ export default function Home() {
               Lo que dicen nuestros clientes
             </h2>
             <p className="section-subtitle max-w-3xl mx-auto">
-              Más de 500 familias han confiado en nosotros para sus momentos más especiales
+              Muchas familias han confiado en nosotros para sus momentos más especiales
             </p>
           </div>
 
