@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useBooking, EXTRAS, Extra } from './BookingContext';
+import { useBooking, EXTRAS, Extra, SelectedSlot } from './BookingContext';
 import PriceSummary from './PriceSummary';
 import { isWeekend, isFriday, isHoliday, isHolidayEve, type TimeSlot } from '@/utils/pricing';
 import { ChevronLeft, ChevronRight, Users, Package, Check, AlertCircle } from 'lucide-react';
@@ -8,9 +8,12 @@ export default function Step2Configuration() {
   const { state, dispatch, nextStep, prevStep, calculateExtrasPrice } = useBooking();
   const [error, setError] = useState<string | null>(null);
 
-  // Calculate basePrice when arriving with a preselected date/slot (skipping step 1)
+  // Calculate basePrice when arriving with preselected slots (skipping step 1)
   useEffect(() => {
-    if (!state.date || !state.timeSlot || state.basePrice !== 0) return;
+    if (state.selectedSlots.length === 0 || state.basePrice !== 0) return;
+    // Only run if there are slots with unknown price (price === 0)
+    const hasUnknownPrice = state.selectedSlots.some((s: SelectedSlot) => s.price === 0);
+    if (!hasUnknownPrice) return;
 
     const fetchAndSetPrice = async () => {
       try {
@@ -20,33 +23,37 @@ export default function Step2Configuration() {
         if (!data.success) return;
         const pricing: Record<string, number> = data.pricing;
 
-        const date = state.date!;
-        const slot = state.timeSlot!;
+        const updatedSlots = state.selectedSlots.map((s: SelectedSlot) => {
+          if (s.price !== 0) return s; // already known
 
-        if (slot === 'night') {
-          dispatch({ type: 'SET_BASE_PRICE', price: 'consult' });
-          return;
-        }
+          const { date, timeSlot: slot } = s;
 
-        let ruleKey: string;
-        if (isHoliday(date)) {
-          ruleKey = `holiday_${slot}`;
-        } else if (isWeekend(date)) {
-          ruleKey = `weekend_${slot}`;
-        } else if ((isFriday(date) || isHolidayEve(date)) && slot === 'afternoon') {
-          ruleKey = 'friday_afternoon';
-        } else {
-          ruleKey = `weekday_${slot}`;
-        }
+          if (slot === 'night') {
+            return { ...s, price: 'consult' as const };
+          }
 
-        dispatch({ type: 'SET_BASE_PRICE', price: pricing[ruleKey] || 110 });
+          let ruleKey: string;
+          if (isHoliday(date)) {
+            ruleKey = `holiday_${slot}`;
+          } else if (isWeekend(date)) {
+            ruleKey = `weekend_${slot}`;
+          } else if ((isFriday(date) || isHolidayEve(date)) && slot === 'afternoon') {
+            ruleKey = 'friday_afternoon';
+          } else {
+            ruleKey = `weekday_${slot}`;
+          }
+
+          return { ...s, price: pricing[ruleKey] || 110 };
+        });
+
+        dispatch({ type: 'SET_SLOTS', slots: updatedSlots });
       } catch {
-        // fallback: leave price as-is
+        // fallback: leave prices as-is
       }
     };
 
     fetchAndSetPrice();
-  }, [state.date, state.timeSlot, state.basePrice, dispatch]);
+  }, [state.selectedSlots, state.basePrice, dispatch]);
 
   const handleGuestsChange = (value: number) => {
     const guests = Math.max(1, Math.min(150, value));

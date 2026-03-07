@@ -9,18 +9,21 @@ import FullCalendar from '@/components/FullCalendar';
 import { formatDate } from '@/utils/formatters';
 import { isWeekend, isFriday, isHoliday, isHolidayEve, type TimeSlot } from '@/utils/pricing';
 
+interface SelectedSlot {
+  date: Date;
+  timeSlot: TimeSlot;
+  price: number | 'consult';
+}
+
 export default function Disponibilidad() {
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(null);
+  const [selectedSlots, setSelectedSlots] = useState<SelectedSlot[]>([]);
   const [bookedSlots, setBookedSlots] = useState<{ date: Date; timeSlot: TimeSlot }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [pricing, setPricing] = useState<Record<string, number>>({});
 
-  // Fetch pricing and booked slots
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch pricing from database
         const pricingRes = await fetch('/api/pricing/current');
         if (pricingRes.ok) {
           const pricingData = await pricingRes.json();
@@ -29,7 +32,6 @@ export default function Disponibilidad() {
           }
         }
 
-        // Fetch booked slots from database
         const slotsRes = await fetch('/api/booked-slots');
         if (slotsRes.ok) {
           const data = await slotsRes.json();
@@ -48,29 +50,6 @@ export default function Disponibilidad() {
 
     fetchData();
   }, []);
-
-  const handleSlotSelect = (date: Date, timeSlot: TimeSlot) => {
-    setSelectedDate(date);
-    setSelectedTimeSlot(timeSlot);
-  };
-
-  const handleReserve = () => {
-    if (selectedDate && selectedTimeSlot) {
-      const dateStr = selectedDate.toISOString().split('T')[0];
-      window.location.href = `/reservas?date=${dateStr}&timeSlot=${selectedTimeSlot}`;
-    }
-  };
-
-  const getTimeSlotLabel = (slot: TimeSlot): string => {
-    switch (slot) {
-      case 'morning':
-        return 'Mañana (11:00-14:30)';
-      case 'afternoon':
-        return 'Tarde (16:30-20:30)';
-      case 'night':
-        return 'Noche (22:00-02:00)';
-    }
-  };
 
   const calculatePriceFromDb = (date: Date, slot: TimeSlot): number | 'consult' => {
     if (slot === 'night') return 'consult';
@@ -94,13 +73,56 @@ export default function Disponibilidad() {
       ruleKey = `weekday_${slot}`;
     }
 
-    return pricing[ruleKey] || 110; // Fallback to 110
+    return pricing[ruleKey] || 110;
   };
 
-  const getTimeSlotPrice = (date: Date, slot: TimeSlot): string => {
-    const price = calculatePriceFromDb(date, slot);
-    return price === 'consult' ? 'A consultar' : `${price}€`;
+  const handleSlotSelect = (date: Date, timeSlot: TimeSlot) => {
+    const price = calculatePriceFromDb(date, timeSlot);
+    const exists = selectedSlots.some(
+      (s: SelectedSlot) =>
+        s.date.getFullYear() === date.getFullYear() &&
+        s.date.getMonth() === date.getMonth() &&
+        s.date.getDate() === date.getDate() &&
+        s.timeSlot === timeSlot
+    );
+
+    if (exists) {
+      setSelectedSlots((prev: SelectedSlot[]) =>
+        prev.filter(
+          (s: SelectedSlot) =>
+            !(
+              s.date.getFullYear() === date.getFullYear() &&
+              s.date.getMonth() === date.getMonth() &&
+              s.date.getDate() === date.getDate() &&
+              s.timeSlot === timeSlot
+            )
+        )
+      );
+    } else {
+      setSelectedSlots((prev: SelectedSlot[]) => [...prev, { date, timeSlot, price }]);
+    }
   };
+
+  const handleReserve = () => {
+    if (selectedSlots.length === 0) return;
+    // Pass the first slot via URL for backward compat; wizard will start at step 1
+    const first = selectedSlots[0];
+    const dateStr = first.date.toISOString().split('T')[0];
+    window.location.href = `/reservas?date=${dateStr}&timeSlot=${first.timeSlot}`;
+  };
+
+  const getTimeSlotLabel = (slot: TimeSlot): string => {
+    switch (slot) {
+      case 'morning': return 'Mañana (11:00-14:30)';
+      case 'afternoon': return 'Tarde (16:30-20:30)';
+      case 'night': return 'Noche (22:00-02:00)';
+    }
+  };
+
+  const hasConsult = selectedSlots.some((s: SelectedSlot) => s.price === 'consult');
+  const totalPrice = hasConsult
+    ? 'A consultar'
+    : selectedSlots.reduce((sum: number, s: SelectedSlot) => sum + (s.price as number), 0);
 
   return (
     <>
@@ -109,16 +131,12 @@ export default function Disponibilidad() {
         <meta name="description" content="Consulta las fechas disponibles para tu evento en HappyHub" />
       </Head>
 
-      {/* Calendar Section - Direct Access */}
       <section className="pt-24 pb-8 bg-white min-h-screen">
         <div className="container-custom max-w-[1600px]">
-          {/* Page title inline with calendar */}
           <div className="mb-6 text-center">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Elige Fecha y Hora
-            </h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Elige Fecha y Hora</h1>
             <p className="text-sm text-gray-500">
-              Verde = Disponible | Rojo = Reservado | M = Mañana | T = Tarde | N = Noche
+              Puedes seleccionar varias franjas | Verde = Disponible | Rojo = Reservado | M = Mañana | T = Tarde | N = Noche
             </p>
           </div>
 
@@ -130,47 +148,53 @@ export default function Disponibilidad() {
               </div>
             </div>
           ) : (
-            <FullCalendar onSlotSelect={handleSlotSelect} bookedSlots={bookedSlots} selectedDate={selectedDate} selectedTimeSlot={selectedTimeSlot} />
+            <FullCalendar
+              onSlotSelect={handleSlotSelect}
+              bookedSlots={bookedSlots}
+              selectedSlots={selectedSlots}
+            />
           )}
 
           {/* Selection summary */}
-          {selectedDate && selectedTimeSlot && (
+          {selectedSlots.length > 0 && (
             <div className="mt-8 max-w-3xl mx-auto">
               <div className="card bg-gradient-to-r from-primary-50 to-secondary-50 border-2 border-primary-300">
-                <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                  <div className="flex-1 text-center md:text-left">
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                      Selección actual
-                    </h3>
-                    <p className="text-lg text-gray-700">
-                      <span className="font-semibold">
-                        {formatDate(selectedDate, 'EEEE, d MMMM yyyy')}
-                      </span>
-                    </p>
-                    <p className="text-md text-gray-600 mt-1">
-                      {getTimeSlotLabel(selectedTimeSlot)}
-                    </p>
-                  </div>
-                  <div className="flex flex-col items-center gap-3">
-                    <div className="text-center">
-                      <div className="text-sm text-gray-600 mb-1">Precio base</div>
-                      <div className="text-4xl font-bold text-primary-600">
-                        {getTimeSlotPrice(selectedDate, selectedTimeSlot)}
+                <h3 className="text-xl font-bold text-gray-900 mb-4">
+                  {selectedSlots.length === 1 ? 'Franja seleccionada' : `${selectedSlots.length} franjas seleccionadas`}
+                </h3>
+
+                <div className="space-y-2 mb-4">
+                  {selectedSlots.map((slot, i) => (
+                    <div key={i} className="flex justify-between items-center bg-white rounded-lg px-4 py-2 shadow-sm">
+                      <div>
+                        <p className="font-semibold text-gray-900 text-sm">
+                          {formatDate(slot.date, 'EEEE, d MMMM yyyy')}
+                        </p>
+                        <p className="text-gray-500 text-xs">{getTimeSlotLabel(slot.timeSlot)}</p>
                       </div>
+                      <span className={`font-bold text-sm ${slot.price === 'consult' ? 'text-orange-600' : 'text-primary-600'}`}>
+                        {slot.price === 'consult' ? 'A consultar' : `${slot.price}€`}
+                      </span>
                     </div>
-                    {calculatePriceFromDb(selectedDate, selectedTimeSlot) !== 'consult' ? (
-                      <button
-                        onClick={handleReserve}
-                        className="btn-primary whitespace-nowrap px-8"
-                      >
-                        Solicitar Reserva
-                      </button>
-                    ) : (
-                      <Link href="/contacto" className="btn-secondary whitespace-nowrap px-8">
-                        Consultar disponibilidad
-                      </Link>
-                    )}
+                  ))}
+                </div>
+
+                <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-3 border-t border-primary-200">
+                  <div>
+                    <div className="text-sm text-gray-600">Precio base total</div>
+                    <div className={`text-4xl font-bold ${hasConsult ? 'text-orange-600' : 'text-primary-600'}`}>
+                      {typeof totalPrice === 'number' ? `${totalPrice}€` : totalPrice}
+                    </div>
                   </div>
+                  {!hasConsult ? (
+                    <button onClick={handleReserve} className="btn-primary whitespace-nowrap px-8">
+                      Solicitar Reserva
+                    </button>
+                  ) : (
+                    <Link href="/contacto" className="btn-secondary whitespace-nowrap px-8">
+                      Consultar disponibilidad
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>
@@ -215,9 +239,7 @@ export default function Disponibilidad() {
                 <p className="text-gray-600">
                   Se requiere un <strong>depósito del 30%</strong> para confirmar la reserva.
                 </p>
-                <p className="text-gray-600 mt-2">
-                  El resto se abona el día del evento.
-                </p>
+                <p className="text-gray-600 mt-2">El resto se abona el día del evento.</p>
               </div>
 
               <div className="border-l-4 border-secondary-500 pl-4">
@@ -225,9 +247,7 @@ export default function Disponibilidad() {
                 <p className="text-gray-600 mb-2">
                   Cancelación <strong>gratuita hasta 15 días</strong> antes del evento.
                 </p>
-                <p className="text-gray-600">
-                  Consulta nuestra política completa de cancelaciones.
-                </p>
+                <p className="text-gray-600">Consulta nuestra política completa de cancelaciones.</p>
               </div>
 
               <div className="border-l-4 border-primary-500 pl-4">

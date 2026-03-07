@@ -76,17 +76,29 @@ export default function Step3CustomerData() {
         return;
       }
 
-      // Format date and time for n8n
-      const date = state.date;
-      const dateStr = date ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}` : '';
-
-      // Map timeSlot to time string
+      // Format slots for n8n
       const timeMap: Record<string, string> = {
         morning: '11:00',
         afternoon: '16:30',
-        night: '22:00'
+        night: '22:00',
       };
-      const timeStr = state.timeSlot ? timeMap[state.timeSlot] : '11:00';
+
+      const primarySlot = state.selectedSlots[0] || null;
+      const primaryDate = primarySlot?.date ?? null;
+      const primaryDateStr = primaryDate
+        ? `${primaryDate.getFullYear()}-${String(primaryDate.getMonth() + 1).padStart(2, '0')}-${String(primaryDate.getDate()).padStart(2, '0')}`
+        : '';
+      const primaryTimeStr = primarySlot ? timeMap[primarySlot.timeSlot] : '11:00';
+
+      const slotsPayload = state.selectedSlots.map((s: { date: Date; timeSlot: string; price: number | 'consult' }) => {
+        const d = s.date;
+        return {
+          date: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`,
+          time: timeMap[s.timeSlot],
+          timeSlot: s.timeSlot,
+          price: s.price,
+        };
+      });
 
       // Send reservation to n8n (which will handle WhatsApp, DB, Calendar, etc.)
       const response = await fetch('/api/webhook-reserva', {
@@ -99,12 +111,14 @@ export default function Step3CustomerData() {
           phone: data.phone,
           eventType: data.eventType,
           message: data.message || '',
-          // Booking data
-          date: dateStr,
-          time: timeStr,
-          timeSlot: state.timeSlot,
+          // Booking data (primary slot for backward compat)
+          date: primaryDateStr,
+          time: primaryTimeStr,
+          timeSlot: primarySlot?.timeSlot,
+          // All selected slots
+          selectedSlots: slotsPayload,
           guests: state.guests,
-          duration: '4', // Default 4 hours
+          duration: '4',
           extras: state.selectedExtras || [],
           // Pricing
           basePrice: state.basePrice,

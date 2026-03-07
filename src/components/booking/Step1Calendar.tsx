@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useBooking } from './BookingContext';
+import { useBooking, SelectedSlot } from './BookingContext';
 import FullCalendar from '@/components/FullCalendar';
 import { isWeekend, isFriday, isHoliday, isHolidayEve, TIME_SLOTS, type TimeSlot } from '@/utils/pricing';
 import { formatDate } from '@/utils/formatters';
-import { ChevronRight, Calendar, Clock, AlertCircle } from 'lucide-react';
+import { ChevronRight, Calendar, Clock, AlertCircle, X } from 'lucide-react';
 
 interface BookedSlot {
   date: Date;
@@ -21,21 +21,17 @@ export default function Step1Calendar() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch pricing first (critical for price calculation)
         const pricingRes = await fetch('/api/pricing/current');
         if (pricingRes.ok) {
           const pricingData = await pricingRes.json();
           if (pricingData.success) {
-            console.log('Pricing loaded:', pricingData.pricing);
             setPricing(pricingData.pricing);
             setPricingLoading(false);
           }
         } else {
-          console.error('Failed to load pricing');
           setPricingLoading(false);
         }
 
-        // Fetch booked slots
         const slotsRes = await fetch('/api/booked-slots');
         if (slotsRes.ok) {
           const data = await slotsRes.json();
@@ -82,41 +78,28 @@ export default function Step1Calendar() {
   };
 
   const handleSlotSelect = (date: Date, timeSlot: TimeSlot) => {
-    // Clear any previous error
     setError(null);
 
-    // Wait for pricing to load
     if (pricingLoading) {
-      console.warn('Pricing still loading, waiting...');
       setError('Cargando precios, espera un momento...');
       return;
     }
 
-    // Calculate price
     const price = calculatePriceFromDb(date, timeSlot);
-    console.log('Slot selected:', { date, timeSlot, price, pricingAvailable: Object.keys(pricing).length > 0 });
+    const slot: SelectedSlot = { date, timeSlot, price };
+    dispatch({ type: 'TOGGLE_SLOT', slot });
+  };
 
-    // Update state - do all dispatches together
-    dispatch({ type: 'SET_DATE', date });
-    dispatch({ type: 'SET_TIME_SLOT', timeSlot });
-    dispatch({ type: 'SET_BASE_PRICE', price });
+  const handleRemoveSlot = (slot: SelectedSlot) => {
+    dispatch({ type: 'TOGGLE_SLOT', slot });
   };
 
   const handleContinue = () => {
-    console.log('Continue clicked. State:', { date: state.date, timeSlot: state.timeSlot, basePrice: state.basePrice });
-
-    if (!state.date || !state.timeSlot) {
-      console.warn('Missing date or timeSlot');
-      setError('Por favor, selecciona una fecha y franja horaria');
-      return;
-    }
-    if (state.basePrice === 'consult') {
-      console.warn('Night slot selected - requires consultation');
-      setError('El horario nocturno requiere consulta previa. Por favor, contacta con nosotros.');
+    if (state.selectedSlots.length === 0) {
+      setError('Por favor, selecciona al menos una franja horaria');
       return;
     }
 
-    console.log('All validation passed, going to next step');
     setError(null);
     nextStep();
   };
@@ -126,10 +109,16 @@ export default function Step1Calendar() {
     return info ? `${info.label} (${info.startTime} - ${info.endTime})` : slot;
   };
 
-  const getTimeSlotPrice = (date: Date, slot: TimeSlot): string => {
-    const price = calculatePriceFromDb(date, slot);
+  const formatSlotPrice = (price: number | 'consult'): string => {
     return price === 'consult' ? 'A consultar' : `${price}€`;
   };
+
+  const hasConsult = state.selectedSlots.some((s: SelectedSlot) => s.price === 'consult');
+  const totalDisplay = hasConsult
+    ? 'A consultar'
+    : state.basePrice === 0
+    ? null
+    : `${state.basePrice}€`;
 
   return (
     <div className="space-y-8">
@@ -140,12 +129,10 @@ export default function Step1Calendar() {
         </div>
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Elige fecha y hora</h2>
         <p className="text-gray-600">
-          Selecciona el día y la franja horaria para tu evento
+          Selecciona una o más franjas horarias para tu evento
         </p>
         {pricingLoading && (
-          <p className="text-sm text-yellow-600 mt-2">
-            Cargando precios...
-          </p>
+          <p className="text-sm text-yellow-600 mt-2">Cargando precios...</p>
         )}
       </div>
 
@@ -159,34 +146,67 @@ export default function Step1Calendar() {
         </div>
       ) : (
         <div className="bg-white rounded-xl shadow-lg p-4 md:p-6">
-          <FullCalendar onSlotSelect={handleSlotSelect} bookedSlots={bookedSlots} selectedDate={state.date} selectedTimeSlot={state.timeSlot} />
+          <FullCalendar
+            onSlotSelect={handleSlotSelect}
+            bookedSlots={bookedSlots}
+            selectedSlots={state.selectedSlots}
+          />
         </div>
       )}
 
-{/* Selection Summary */}
-      {state.date && state.timeSlot && (
+      {/* Selected slots summary */}
+      {state.selectedSlots.length > 0 && (
         <div className="bg-gradient-to-r from-primary-50 to-secondary-50 rounded-xl p-6 border-2 border-primary-300">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="bg-white rounded-full p-3 shadow">
-                <Clock className="w-6 h-6 text-primary-600" />
-              </div>
-              <div>
-                <p className="font-bold text-gray-900 text-lg">
-                  {formatDate(state.date, 'EEEE, d MMMM yyyy')}
-                </p>
-                <p className="text-gray-600">
-                  {getTimeSlotLabel(state.timeSlot)}
-                </p>
-              </div>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="bg-white rounded-full p-2 shadow">
+              <Clock className="w-5 h-5 text-primary-600" />
             </div>
-            <div className="text-center md:text-right">
-              <p className="text-sm text-gray-500">Precio base</p>
-              <p className="text-3xl font-bold text-primary-600">
-                {getTimeSlotPrice(state.date, state.timeSlot)}
-              </p>
-            </div>
+            <h3 className="font-bold text-gray-900 text-lg">
+              {state.selectedSlots.length === 1 ? 'Franja seleccionada' : `${state.selectedSlots.length} franjas seleccionadas`}
+            </h3>
           </div>
+
+          <div className="space-y-2 mb-4">
+            {state.selectedSlots.map((slot: SelectedSlot, i: number) => (
+              <div
+                key={i}
+                className="flex items-center justify-between bg-white rounded-lg px-4 py-3 shadow-sm"
+              >
+                <div>
+                  <p className="font-semibold text-gray-900 text-sm">
+                    {formatDate(slot.date, 'EEEE, d MMMM yyyy')}
+                  </p>
+                  <p className="text-gray-500 text-xs">{getTimeSlotLabel(slot.timeSlot)}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className={`font-bold text-sm ${slot.price === 'consult' ? 'text-orange-600' : 'text-primary-600'}`}>
+                    {formatSlotPrice(slot.price)}
+                  </span>
+                  <button
+                    onClick={() => handleRemoveSlot(slot)}
+                    className="text-gray-400 hover:text-red-500 transition-colors"
+                    title="Eliminar esta franja"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Total */}
+          <div className="flex items-center justify-between pt-3 border-t border-primary-200">
+            <span className="text-sm text-gray-600">Precio base total</span>
+            <span className={`text-2xl font-bold ${hasConsult ? 'text-orange-600' : 'text-primary-600'}`}>
+              {totalDisplay}
+            </span>
+          </div>
+
+          {hasConsult && (
+            <p className="text-xs text-orange-600 mt-2">
+              Una de las franjas seleccionadas (nocturna) requiere consulta previa. El equipo se pondrá en contacto contigo para confirmar el precio.
+            </p>
+          )}
         </div>
       )}
 
@@ -202,14 +222,13 @@ export default function Step1Calendar() {
       <div className="flex justify-end">
         <button
           onClick={handleContinue}
-          disabled={!state.date || !state.timeSlot}
+          disabled={state.selectedSlots.length === 0}
           className="btn-primary flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Continuar
           <ChevronRight className="w-5 h-5" />
         </button>
       </div>
-
     </div>
   );
 }

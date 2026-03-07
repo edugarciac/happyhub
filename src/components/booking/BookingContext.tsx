@@ -21,11 +21,16 @@ export const EXTRAS: Extra[] = [
 
 export type EventType = 'cumpleaños' | 'celebracion-familiar' | 'eventos-amigos' | 'eventos-colegio-trabajo' | 'taller' | 'otros';
 
+export interface SelectedSlot {
+  date: Date;
+  timeSlot: TimeSlot;
+  price: number | 'consult'; // 0 means price not yet loaded
+}
+
 export interface BookingState {
   step: number;
-  // Step 1: Date & time
-  date: Date | null;
-  timeSlot: TimeSlot | null;
+  // Step 1: Date & time (multi-slot)
+  selectedSlots: SelectedSlot[];
   // Step 2: Configuration
   guests: number;
   selectedExtras: string[];
@@ -38,16 +43,22 @@ export interface BookingState {
   acceptTerms: boolean;
   // Step 4: Payment
   stripeSessionId: string | null;
-  // Pricing
+  // Pricing (total of all selected slots)
   basePrice: number | 'consult';
   // Reservation ID (after creation)
   reservationId: string | null;
 }
 
+function computeBasePrice(slots: SelectedSlot[]): number | 'consult' {
+  if (slots.length === 0) return 0;
+  if (slots.some(s => s.price === 'consult')) return 'consult';
+  return slots.reduce((sum, s) => sum + (s.price as number), 0);
+}
+
 type BookingAction =
   | { type: 'SET_STEP'; step: number }
-  | { type: 'SET_DATE'; date: Date | null }
-  | { type: 'SET_TIME_SLOT'; timeSlot: TimeSlot | null }
+  | { type: 'TOGGLE_SLOT'; slot: SelectedSlot }
+  | { type: 'SET_SLOTS'; slots: SelectedSlot[] }
   | { type: 'SET_GUESTS'; guests: number }
   | { type: 'TOGGLE_EXTRA'; extraId: string }
   | { type: 'SET_CUSTOMER_DATA'; data: Partial<Pick<BookingState, 'name' | 'email' | 'phone' | 'eventType' | 'message' | 'acceptTerms'>> }
@@ -58,8 +69,7 @@ type BookingAction =
 
 const initialState: BookingState = {
   step: 1,
-  date: null,
-  timeSlot: null,
+  selectedSlots: [],
   guests: 20,
   selectedExtras: [],
   name: '',
@@ -77,10 +87,32 @@ function bookingReducer(state: BookingState, action: BookingAction): BookingStat
   switch (action.type) {
     case 'SET_STEP':
       return { ...state, step: action.step };
-    case 'SET_DATE':
-      return { ...state, date: action.date };
-    case 'SET_TIME_SLOT':
-      return { ...state, timeSlot: action.timeSlot };
+    case 'TOGGLE_SLOT': {
+      const { slot } = action;
+      const exists = state.selectedSlots.some(
+        s =>
+          s.date.getFullYear() === slot.date.getFullYear() &&
+          s.date.getMonth() === slot.date.getMonth() &&
+          s.date.getDate() === slot.date.getDate() &&
+          s.timeSlot === slot.timeSlot
+      );
+      const newSlots = exists
+        ? state.selectedSlots.filter(
+            s =>
+              !(
+                s.date.getFullYear() === slot.date.getFullYear() &&
+                s.date.getMonth() === slot.date.getMonth() &&
+                s.date.getDate() === slot.date.getDate() &&
+                s.timeSlot === slot.timeSlot
+              )
+          )
+        : [...state.selectedSlots, slot];
+      return { ...state, selectedSlots: newSlots, basePrice: computeBasePrice(newSlots) };
+    }
+    case 'SET_SLOTS': {
+      const newSlots = action.slots;
+      return { ...state, selectedSlots: newSlots, basePrice: computeBasePrice(newSlots) };
+    }
     case 'SET_GUESTS':
       return { ...state, guests: action.guests };
     case 'TOGGLE_EXTRA':
@@ -126,16 +158,14 @@ interface BookingProviderProps {
 }
 
 export function BookingProvider({ children, initialDate, initialTimeSlot }: BookingProviderProps) {
-  // Create initial state with preselected values
   const getInitialState = (): BookingState => {
     const state = { ...initialState };
 
-    // If date and timeSlot are provided, skip to step 2
     if (initialDate && initialTimeSlot) {
-      state.step = 2; // Start at Step 2 (Configuration)
-      state.date = new Date(initialDate);
-      state.timeSlot = initialTimeSlot;
-      // basePrice will be calculated in Step2Configuration
+      state.step = 2;
+      // price: 0 means not yet loaded — Step2Configuration will calculate it
+      state.selectedSlots = [{ date: new Date(initialDate), timeSlot: initialTimeSlot, price: 0 }];
+      state.basePrice = 0;
     }
 
     return state;
@@ -174,7 +204,7 @@ export function BookingProvider({ children, initialDate, initialTimeSlot }: Book
   const calculateDepositAmount = (): number => {
     const total = calculateTotalPrice();
     if (total === 'consult') return 0;
-    return Math.ceil(total * 0.3); // 30% deposit, rounded up
+    return Math.ceil(total * 0.3);
   };
 
   return (

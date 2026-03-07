@@ -14,17 +14,20 @@ interface DaySlots {
   slots: TimeSlotStatus[];
 }
 
+interface SelectedSlotRef {
+  date: Date;
+  timeSlot: 'morning' | 'afternoon' | 'night';
+}
+
 interface FullCalendarProps {
   onSlotSelect: (date: Date, timeSlot: 'morning' | 'afternoon' | 'night') => void;
   bookedSlots?: { date: Date; timeSlot: 'morning' | 'afternoon' | 'night' }[];
-  selectedDate?: Date | null;
-  selectedTimeSlot?: 'morning' | 'afternoon' | 'night' | null;
+  selectedSlots?: SelectedSlotRef[];
 }
 
-export default function FullCalendar({ onSlotSelect, bookedSlots = [], selectedDate, selectedTimeSlot }: FullCalendarProps) {
+export default function FullCalendar({ onSlotSelect, bookedSlots = [], selectedSlots = [] }: FullCalendarProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
-  // Get days in month
   const getDaysInMonth = (date: Date): DaySlots[] => {
     const year = date.getFullYear();
     const month = date.getMonth();
@@ -32,14 +35,11 @@ export default function FullCalendar({ onSlotSelect, bookedSlots = [], selectedD
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
 
-    // Get the day of the week for the first day (0 = Sunday, 1 = Monday, etc.)
     let startDayOfWeek = firstDay.getDay();
-    // Convert to Monday = 0, Sunday = 6
     startDayOfWeek = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1;
 
     const days: DaySlots[] = [];
 
-    // Add empty slots for days before the first day of the month
     for (let i = 0; i < startDayOfWeek; i++) {
       const emptyDate = new Date(year, month, -startDayOfWeek + i + 1);
       days.push({
@@ -52,7 +52,6 @@ export default function FullCalendar({ onSlotSelect, bookedSlots = [], selectedD
       });
     }
 
-    // Add days of the current month
     for (let day = 1; day <= daysInMonth; day++) {
       const currentDate = new Date(year, month, day);
       const isPast = currentDate < new Date(new Date().setHours(0, 0, 0, 0));
@@ -89,12 +88,12 @@ export default function FullCalendar({ onSlotSelect, bookedSlots = [], selectedD
   };
 
   const isSlotSelected = (date: Date, timeSlot: 'morning' | 'afternoon' | 'night'): boolean => {
-    if (!selectedDate || !selectedTimeSlot) return false;
-    return (
-      selectedDate.getDate() === date.getDate() &&
-      selectedDate.getMonth() === date.getMonth() &&
-      selectedDate.getFullYear() === date.getFullYear() &&
-      selectedTimeSlot === timeSlot
+    return selectedSlots.some(
+      s =>
+        s.date.getFullYear() === date.getFullYear() &&
+        s.date.getMonth() === date.getMonth() &&
+        s.date.getDate() === date.getDate() &&
+        s.timeSlot === timeSlot
     );
   };
 
@@ -184,27 +183,30 @@ export default function FullCalendar({ onSlotSelect, bookedSlots = [], selectedD
 
               {/* Time slots */}
               <div className="flex flex-col gap-1">
-                {daySlot.slots.map((slot) => (
-                  <button
-                    key={slot.id}
-                    onClick={() => {
-                      if (slot.available && isCurrentMonth) {
-                        onSlotSelect(daySlot.date, slot.id);
-                      }
-                    }}
-                    disabled={!slot.available || !isCurrentMonth}
-                    className={`text-[10px] md:text-xs font-semibold py-1 px-1 rounded transition-all ${
-                      slot.available && isCurrentMonth && isSlotSelected(daySlot.date, slot.id)
-                        ? 'bg-green-700 text-white scale-105 cursor-pointer shadow-md ring-2 ring-green-900'
-                        : slot.available && isCurrentMonth
-                        ? 'bg-green-500 text-white hover:bg-green-600 hover:scale-105 cursor-pointer shadow-sm'
-                        : 'bg-red-400 text-white cursor-not-allowed opacity-70'
-                    }`}
-                    title={`${slot.label} (${slot.time})`}
-                  >
-                    {slot.shortLabel}
-                  </button>
-                ))}
+                {daySlot.slots.map((slot) => {
+                  const selected = slot.available && isCurrentMonth && isSlotSelected(daySlot.date, slot.id);
+                  return (
+                    <button
+                      key={slot.id}
+                      onClick={() => {
+                        if (slot.available && isCurrentMonth) {
+                          onSlotSelect(daySlot.date, slot.id);
+                        }
+                      }}
+                      disabled={!slot.available || !isCurrentMonth}
+                      className={`text-[10px] md:text-xs font-semibold py-1 px-1 rounded transition-all ${
+                        selected
+                          ? 'bg-green-700 text-white scale-105 cursor-pointer shadow-md ring-2 ring-green-900'
+                          : slot.available && isCurrentMonth
+                          ? 'bg-green-500 text-white hover:bg-green-600 hover:scale-105 cursor-pointer shadow-sm'
+                          : 'bg-red-400 text-white cursor-not-allowed opacity-70'
+                      }`}
+                      title={`${slot.label} (${slot.time})${selected ? ' — seleccionado' : ''}`}
+                    >
+                      {slot.shortLabel}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           );
