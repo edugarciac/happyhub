@@ -8,7 +8,7 @@ export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
 
   // Don't show header/footer on coming soon page only
-  const isComingSoonPage = router.pathname === '/coming-soon';
+  const isComingSoonPage = router.pathname === '/';
 
   if (isComingSoonPage) {
     return <Component {...pageProps} />;
