@@ -215,7 +215,7 @@ export default function FullCalendar({ onSlotSelect, bookedSlots = [], selectedD
                       }
                       title={`${slot.label} (${slot.time})`}
                     >
-                      {slot.shortLabel}
+                      {slot.available || !isCurrentMonth ? slot.shortLabel : '😊'}
                     </button>
                   ))}
                 </div>
@@ -241,7 +241,7 @@ export default function FullCalendar({ onSlotSelect, bookedSlots = [], selectedD
         </div>
         <div className="flex items-center gap-2">
           <div className="w-8 h-6 rounded text-white text-xs font-bold flex items-center justify-center" style={{ backgroundColor: '#FF6B35' }}>
-            T
+            😊
           </div>
           <span className="text-gray-700">Reservado</span>
         </div>
