@@ -12,6 +12,7 @@ interface TimeSlotStatus {
 interface DaySlots {
   date: Date;
   slots: TimeSlotStatus[];
+  isPast: boolean;
 }
 
 interface FullCalendarProps {
@@ -44,6 +45,7 @@ export default function FullCalendar({ onSlotSelect, bookedSlots = [], selectedD
       const emptyDate = new Date(year, month, -startDayOfWeek + i + 1);
       days.push({
         date: emptyDate,
+        isPast: true,
         slots: [
           { id: 'morning', label: 'Mañana', shortLabel: 'M', time: '11:00-14:30', available: false },
           { id: 'afternoon', label: 'Tarde', shortLabel: 'T', time: '16:30-20:30', available: false },
@@ -59,6 +61,7 @@ export default function FullCalendar({ onSlotSelect, bookedSlots = [], selectedD
 
       days.push({
         date: currentDate,
+        isPast,
         slots: [
           {
             id: 'morning',
@@ -165,47 +168,58 @@ export default function FullCalendar({ onSlotSelect, bookedSlots = [], selectedD
             daySlot.date.getDate() === new Date().getDate() &&
             daySlot.date.getMonth() === new Date().getMonth() &&
             daySlot.date.getFullYear() === new Date().getFullYear();
+          const isPastDay = daySlot.isPast && isCurrentMonth;
 
           return (
             <div
               key={index}
               className={`border rounded-lg p-1 md:p-2 min-h-[80px] md:min-h-[100px] ${
                 isCurrentMonth ? 'bg-white' : 'bg-gray-50'
-              } ${isToday ? 'border-primary-600 border-2' : 'border-gray-200'}`}
+              } ${isToday ? 'border-2' : 'border-gray-200'}`}
+              style={isToday ? { borderColor: '#00BCD4' } : {}}
             >
               {/* Day number */}
               <div
                 className={`text-center text-xs md:text-sm font-semibold mb-1 ${
-                  isCurrentMonth ? 'text-gray-900' : 'text-gray-400'
+                  isCurrentMonth && !isPastDay ? 'text-gray-900' : 'text-gray-300'
                 }`}
               >
                 {daySlot.date.getDate()}
               </div>
 
-              {/* Time slots */}
-              <div className="flex flex-col gap-1">
-                {daySlot.slots.map((slot) => (
-                  <button
-                    key={slot.id}
-                    onClick={() => {
-                      if (slot.available && isCurrentMonth) {
-                        onSlotSelect(daySlot.date, slot.id);
+              {/* Time slots — hide for past days */}
+              {!isPastDay && (
+                <div className="flex flex-col gap-1">
+                  {daySlot.slots.map((slot) => (
+                    <button
+                      key={slot.id}
+                      onClick={() => {
+                        if (slot.available && isCurrentMonth) {
+                          onSlotSelect(daySlot.date, slot.id);
+                        }
+                      }}
+                      disabled={!slot.available || !isCurrentMonth}
+                      className={`text-[10px] md:text-xs font-semibold py-1 px-1 rounded transition-all ${
+                        slot.available && isCurrentMonth && isSlotSelected(daySlot.date, slot.id)
+                          ? 'text-white scale-105 cursor-pointer shadow-md ring-2'
+                          : slot.available && isCurrentMonth
+                          ? 'text-white hover:scale-105 cursor-pointer shadow-sm hover:opacity-90'
+                          : 'text-white cursor-not-allowed opacity-70'
+                      }`}
+                      style={
+                        slot.available && isCurrentMonth && isSlotSelected(daySlot.date, slot.id)
+                          ? { backgroundColor: '#007a8c', ringColor: '#005f6b' }
+                          : slot.available && isCurrentMonth
+                          ? { backgroundColor: '#00BCD4' }
+                          : { backgroundColor: '#FF6B35' }
                       }
-                    }}
-                    disabled={!slot.available || !isCurrentMonth}
-                    className={`text-[10px] md:text-xs font-semibold py-1 px-1 rounded transition-all ${
-                      slot.available && isCurrentMonth && isSlotSelected(daySlot.date, slot.id)
-                        ? 'bg-green-700 text-white scale-105 cursor-pointer shadow-md ring-2 ring-green-900'
-                        : slot.available && isCurrentMonth
-                        ? 'bg-green-500 text-white hover:bg-green-600 hover:scale-105 cursor-pointer shadow-sm'
-                        : 'bg-red-400 text-white cursor-not-allowed opacity-70'
-                    }`}
-                    title={`${slot.label} (${slot.time})`}
-                  >
-                    {slot.shortLabel}
-                  </button>
-                ))}
-              </div>
+                      title={`${slot.label} (${slot.time})`}
+                    >
+                      {slot.shortLabel}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           );
         })}
@@ -214,19 +228,19 @@ export default function FullCalendar({ onSlotSelect, bookedSlots = [], selectedD
       {/* Legend */}
       <div className="mt-8 flex flex-wrap items-center justify-center gap-4 md:gap-6 text-sm">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-6 bg-green-500 rounded text-white text-xs font-bold flex items-center justify-center">
+          <div className="w-8 h-6 rounded text-white text-xs font-bold flex items-center justify-center" style={{ backgroundColor: '#00BCD4' }}>
             M
           </div>
           <span className="text-gray-700">Disponible</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-8 h-6 bg-green-700 rounded text-white text-xs font-bold flex items-center justify-center ring-2 ring-green-900">
+          <div className="w-8 h-6 rounded text-white text-xs font-bold flex items-center justify-center" style={{ backgroundColor: '#007a8c' }}>
             M
           </div>
           <span className="text-gray-700">Seleccionado</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-8 h-6 bg-red-400 rounded text-white text-xs font-bold flex items-center justify-center">
+          <div className="w-8 h-6 rounded text-white text-xs font-bold flex items-center justify-center" style={{ backgroundColor: '#FF6B35' }}>
             T
           </div>
           <span className="text-gray-700">Reservado</span>
