@@ -216,6 +216,41 @@ Document key architectural choices, their context, and trade-offs.
 - Revisar `bugs.md` al inicio de cada sesión de desarrollo
 - Limpieza manual cada 6 meses (archivar bugs muy antiguos)
 
+### ADR-008: AWS Amplify para Despliegue Frontend (2026-03-08)
+
+**Context:**
+- ADR-006 mencionaba decisión pendiente entre EC2 o Amplify para Next.js
+- Proyecto configurado originalmente con Vercel (vercel.json presente)
+- Necesidad de CI/CD automatizado desde GitHub
+- Infraestructura ya en AWS (EC2 para n8n, Aurora DB, S3, etc.)
+
+**Decision:**
+- Usar AWS Amplify para despliegue automático del frontend Next.js
+- Configuración en `amplify.yml` con variables de entorno
+- Despliegue automático al hacer push a rama `main`
+- Mantener vercel.json para referencia pero no usar Vercel
+
+**Alternatives Considered:**
+- Vercel → Rechazado: No usar, infraestructura consolidada en AWS
+- EC2 con PM2/nginx → Rechazado: Más gestión manual, sin CI/CD automático
+- Elastic Beanstalk → Rechazado: Más complejo que Amplify para Next.js
+- CloudFront + S3 (export estático) → Rechazado: Perdemos SSR y API routes
+
+**Consequences:**
+- ✅ CI/CD automático desde GitHub a producción
+- ✅ Integración nativa con servicios AWS (variables de entorno, secrets)
+- ✅ Escalado automático del frontend
+- ✅ Preview deployments para pull requests
+- ✅ Monitorización integrada en AWS Console
+- ✅ Sin gestión de servidores (serverless)
+- ❌ Coste adicional vs EC2 (pero incluido en crédito AWS)
+- ❌ Lock-in adicional a AWS (pero ya comprometidos con AWS)
+
+**Implementación:**
+- Push a `main` → Amplify detecta cambios → build automático → despliegue
+- Variables de entorno configuradas en AWS Amplify Console
+- Build specification en `amplify.yml`
+
 ## Tips
 
 - Number decisions sequentially
