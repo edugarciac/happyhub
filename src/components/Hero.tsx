@@ -1,4 +1,4 @@
-import { ArrowRight, Star, Sparkles, ChevronDown } from 'lucide-react';
+import { ArrowRight, Star, ChevronDown } from 'lucide-react';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 
@@ -6,7 +6,6 @@ interface HeroProps {
   title?: string;
   subtitle?: string;
   ctaText?: string;
-  showStats?: boolean;
 }
 
 interface ReviewStats {
@@ -18,7 +17,6 @@ export default function Hero({
   title = 'Celebra Momentos Inolvidables',
   subtitle = 'Espacio polivalente para todo tipo de celebraciones. Cumpleaños, eventos familiares, con amigos, o de colegio y trabajo. Cada detalle cobra vida y los recuerdos se vuelven eternos.',
   ctaText = 'Reserva tu fecha',
-  showStats = true,
 }: HeroProps) {
   const [reviewStats, setReviewStats] = useState<ReviewStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -90,26 +88,6 @@ export default function Hero({
               </a>
             </div>
 
-            {showStats && (
-              <div className="grid grid-cols-3 gap-8">
-                <div className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
-                  <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary-600 to-ocean-600 bg-clip-text text-transparent">500+</div>
-                  <div className="text-sm text-gray-600 mt-2 font-medium">Eventos realizados</div>
-                </div>
-                {!loading && reviewStats && reviewStats.count > 0 && (
-                  <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
-                    <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary-600 to-ocean-600 bg-clip-text text-transparent">
-                      {reviewStats.average?.toFixed(1)}
-                    </div>
-                    <div className="text-sm text-gray-600 mt-2 font-medium">Valoración media</div>
-                  </div>
-                )}
-                <div className="animate-fade-in" style={{ animationDelay: '0.6s' }}>
-                  <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary-600 to-ocean-600 bg-clip-text text-transparent">50</div>
-                  <div className="text-sm text-gray-600 mt-2 font-medium">Capacidad máxima</div>
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Right column - Hero Image */}
