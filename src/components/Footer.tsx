@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { Facebook, Instagram, Twitter, Mail, Phone, MapPin, Heart } from 'lucide-react';
+import { Instagram, Mail, Phone, MapPin, Heart } from 'lucide-react';
 
 export default function Footer() {
   const scrollToSection = (sectionId: string) => {
@@ -44,28 +44,12 @@ export default function Footer() {
             </p>
             <div className="flex space-x-3">
               <a
-                href="https://facebook.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-white/10 hover:bg-primary-600 text-white p-3 rounded-xl transition-all hover:scale-110"
-              >
-                <Facebook className="w-5 h-5" />
-              </a>
-              <a
-                href="https://instagram.com"
+                href="https://instagram.com/happyhub.es"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-white/10 hover:bg-primary-600 text-white p-3 rounded-xl transition-all hover:scale-110"
               >
                 <Instagram className="w-5 h-5" />
-              </a>
-              <a
-                href="https://twitter.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-white/10 hover:bg-primary-600 text-white p-3 rounded-xl transition-all hover:scale-110"
-              >
-                <Twitter className="w-5 h-5" />
               </a>
             </div>
           </div>
