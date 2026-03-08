@@ -181,14 +181,14 @@ export default function FullCalendar({ onSlotSelect, bookedSlots = [], selectedD
               {/* Day number */}
               <div
                 className={`text-center text-xs md:text-sm font-semibold mb-1 ${
-                  isCurrentMonth && !isPastDay ? 'text-gray-900' : 'text-gray-300'
+                  isCurrentMonth && !isPastDay ? 'text-gray-900' : 'text-gray-200'
                 }`}
               >
                 {daySlot.date.getDate()}
               </div>
 
-              {/* Time slots — hide for past days */}
-              {!isPastDay && (
+              {/* Time slots — hide for past/out-of-month days */}
+              {!isPastDay && isCurrentMonth && (
                 <div className="flex flex-col gap-1">
                   {daySlot.slots.map((slot) => (
                     <button
