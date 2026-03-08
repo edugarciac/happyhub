@@ -159,7 +159,7 @@ export default function Footer() {
               <Heart className="w-4 h-4 ml-2 text-red-500 fill-current" />
             </p>
             <p className="text-gray-500 text-sm">
-              Hecho con pasión en Barcelona
+              Hecho con pasión en Esplugues de Llobregat
             </p>
           </div>
         </div>
