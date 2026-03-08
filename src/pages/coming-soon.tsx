@@ -6,7 +6,7 @@ export default function ComingSoon() {
   const router = useRouter();
 
   const handleSecretClick = () => {
-    router.push('/');
+    router.push('/preview');
   };
 
   return (
