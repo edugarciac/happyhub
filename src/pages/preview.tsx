@@ -1,16 +1,23 @@
 import Head from 'next/head';
-import Script from 'next/script';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import Hero from '@/components/Hero';
 import PhotoGallery from '@/components/PhotoGallery';
 import PricingTable from '@/components/PricingTable';
 import {
   Calendar, Users, Sparkles, Shield, Clock, Heart,
-  ArrowRight, Star, Cake, Palette, Camera, Music,
-  Utensils, Gift, CheckCircle2, TrendingUp, Zap, Instagram
+  ArrowRight, Cake, Palette, Camera, Music,
+  Utensils, Gift, CheckCircle2, TrendingUp, Instagram
 } from 'lucide-react';
 
 export default function Home() {
+  useEffect(() => {
+    const s = document.createElement('script');
+    s.type = 'module';
+    s.src = 'https://w.behold.so/widget.js';
+    document.head.append(s);
+    return () => { document.head.removeChild(s); };
+  }, []);
+
   const features = [
     {
       icon: Calendar,
@@ -252,8 +259,7 @@ export default function Home() {
 
       {/* Instagram Feed Section */}
       <section id="instagram" className="py-24 bg-gradient-to-br from-primary-50 via-white to-ocean-50">
-        <Script src="https://w.behold.so/widget.js" strategy="lazyOnload" />
-        <div className="container-custom">
+          <div className="container-custom">
           <div className="text-center mb-16">
             <span className="section-tag">
               <Instagram className="w-4 h-4 mr-2" />
@@ -267,7 +273,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div dangerouslySetInnerHTML={{ __html: '<behold-widget feed-id="ijoWKINcQ9XXrzmDCvpI"></behold-widget>' }} />
+          <div data-behold-id="ijoWKINcQ9XXrzmDCvpI" />
 
           <div className="text-center mt-12">
             <a

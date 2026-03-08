@@ -208,7 +208,7 @@ export default function FullCalendar({ onSlotSelect, bookedSlots = [], selectedD
                       }`}
                       style={
                         slot.available && isCurrentMonth && isSlotSelected(daySlot.date, slot.id)
-                          ? { backgroundColor: '#007a8c', ringColor: '#005f6b' }
+                          ? { backgroundColor: '#007a8c' }
                           : slot.available && isCurrentMonth
                           ? { backgroundColor: '#00BCD4' }
                           : { backgroundColor: '#FF6B35' }

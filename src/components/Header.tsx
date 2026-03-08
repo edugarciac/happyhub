@@ -19,7 +19,7 @@ export default function Header() {
 
   const navItems = [
     { href: '/', label: 'Inicio' },
-    { href: '/como-funciona', label: 'Cómo Funciona' },
+    { href: '/como-funciona', label: '¿Cómo lo hacemos?' },
     { href: '/servicios', label: 'Servicios' },
     { href: '/reservas', label: 'Reserva tu fecha' },
     { href: '/contacto', label: 'Contacto' },
