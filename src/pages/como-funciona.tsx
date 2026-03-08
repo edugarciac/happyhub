@@ -80,7 +80,7 @@ export default function ComoFunciona() {
     },
     {
       question: '¿Cuántas personas caben en el espacio?',
-      answer: 'Nuestro espacio tiene capacidad para hasta 150 personas cómodamente.',
+      answer: 'Nuestro espacio tiene capacidad para grupos de distintos tamaños. Consúltanos para más información.',
     },
   ];
 

@@ -230,13 +230,6 @@ export default function Disponibilidad() {
                 </p>
               </div>
 
-              <div className="border-l-4 border-primary-500 pl-4">
-                <h3 className="font-bold text-gray-900 mb-3 text-lg">👥 Capacidad</h3>
-                <p className="text-gray-600">
-                  Nuestro espacio tiene capacidad para hasta <strong>150 personas</strong> cómodamente.
-                </p>
-              </div>
-
               <div className="border-l-4 border-secondary-500 pl-4">
                 <h3 className="font-bold text-gray-900 mb-3 text-lg">🎉 Servicios Extras</h3>
                 <p className="text-gray-600 mb-2">

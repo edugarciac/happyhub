@@ -178,10 +178,6 @@ export default function PricingTable() {
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-primary-500 font-bold">•</span>
-                  <span>Aforo máximo: <strong>150 personas</strong></span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-primary-500 font-bold">•</span>
                   <span>Servicios extras disponibles (catering, animación...)</span>
                 </li>
               </ul>

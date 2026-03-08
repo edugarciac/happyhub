@@ -151,9 +151,6 @@ export default function Step2Configuration() {
               ))}
             </div>
 
-            <p className="text-center text-xs text-gray-400 mt-4">
-              Capacidad máxima: 150 personas
-            </p>
           </div>
 
           {/* Extras */}
