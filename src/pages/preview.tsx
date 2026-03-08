@@ -1,12 +1,13 @@
 import Head from 'next/head';
+import Script from 'next/script';
+import { useEffect, useState } from 'react';
 import Hero from '@/components/Hero';
-import ReviewsSummary from '@/components/ReviewsSummary';
 import PhotoGallery from '@/components/PhotoGallery';
 import PricingTable from '@/components/PricingTable';
 import {
   Calendar, Users, Sparkles, Shield, Clock, Heart,
   ArrowRight, Star, Cake, Palette, Camera, Music,
-  Utensils, Gift, CheckCircle2, TrendingUp, Award, Zap
+  Utensils, Gift, CheckCircle2, TrendingUp, Award, Zap, Instagram
 } from 'lucide-react';
 
 export default function Home() {
@@ -48,7 +49,6 @@ export default function Home() {
       title: 'Cumpleaños',
       icon: Cake,
       duration: '2-5 horas',
-      price: 'Desde €200',
       description: 'Celebra tu día especial en un ambiente mágico y festivo',
       features: ['Decoración temática', 'Animación', 'Menú personalizado'],
     },
@@ -56,7 +56,6 @@ export default function Home() {
       title: 'Celebraciones Familiares',
       icon: Heart,
       duration: '2-5 horas',
-      price: 'Desde €250',
       description: 'El lugar perfecto para reuniones familiares especiales y momentos únicos',
       features: ['Ambiente acogedor', 'Catering adaptable', 'Espacio flexible'],
     },
@@ -64,7 +63,6 @@ export default function Home() {
       title: 'Eventos con Amigos',
       icon: Users,
       duration: '2-5 horas',
-      price: 'Desde €200',
       description: 'Reúne a tu grupo de amigos para celebrar cualquier ocasión especial',
       features: ['Ambiente divertido', 'Zona de juegos', 'DJ y música'],
     },
@@ -72,7 +70,6 @@ export default function Home() {
       title: 'Colegio y Trabajo',
       icon: TrendingUp,
       duration: '2-5 horas',
-      price: 'Desde €250',
       description: 'Espacio polivalente ideal para eventos de colegio, universidad o equipo de trabajo',
       features: ['Equipamiento A/V', 'Catering flexible', 'Configuración adaptable'],
     },
@@ -105,36 +102,6 @@ export default function Home() {
     },
   ];
 
-  const testimonials = [
-    {
-      name: 'María García',
-      event: 'Cumpleaños',
-      rating: 5,
-      image: '🎈',
-      comment: 'Increíble experiencia de principio a fin. Todo estaba perfectamente organizado. El equipo de HappyHub hizo que todo fuera fácil y sin estrés. ¡Volveremos sin duda!',
-    },
-    {
-      name: 'Juan Martínez',
-      event: 'Celebración Familiar',
-      rating: 5,
-      image: '🎊',
-      comment: 'Servicio impecable y atención al detalle excepcional. El catering fue excelente y el espacio se adaptó perfectamente a nuestras necesidades. Nuestros invitados no paran de hablar de lo bien que lo pasaron.',
-    },
-    {
-      name: 'Laura Sánchez',
-      event: 'Evento con Amigos',
-      rating: 5,
-      image: '✨',
-      comment: 'Todo fue perfecto, desde la reserva hasta el último detalle. El equipo fue maravilloso y se ocupó de todo. Muchas gracias por hacer nuestro día tan especial e inolvidable.',
-    },
-  ];
-
-  const stats = [
-    { icon: Star, value: '4.9/5', label: 'Valoración media' },
-    { icon: Users, value: '98%', label: 'Clientes satisfechos' },
-    { icon: Zap, value: '24/7', label: 'Soporte disponible' },
-  ];
-
   const partners = [
     'Catering Premium Madrid',
     'Animaciones Kids Pro',
@@ -164,13 +131,6 @@ export default function Home() {
       </Head>
 
       <Hero />
-
-      {/* Reviews Summary Section */}
-      <section className="py-12 bg-white">
-        <div className="container-custom">
-          <ReviewsSummary />
-        </div>
-      </section>
 
       {/* Photo Gallery Section */}
       <PhotoGallery photos={photos} title="Conoce Nuestro Espacio" />
@@ -214,29 +174,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-20 bg-gradient-to-r from-primary-600 via-ocean-600 to-accent-600 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl"></div>
-        </div>
-
-        <div className="container-custom relative z-10">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center text-white">
-                <div className="flex justify-center mb-4">
-                  <div className="bg-white/20 backdrop-blur-sm p-4 rounded-2xl">
-                    <stat.icon className="w-8 h-8" />
-                  </div>
-                </div>
-                <div className="text-5xl font-bold mb-2">{stat.value}</div>
-                <div className="text-lg opacity-90">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Event Types Section */}
       <section id="events" className="py-24 bg-gray-50">
@@ -271,21 +208,12 @@ export default function Home() {
                   ))}
                 </div>
                 <div className="border-t border-gray-200 pt-4 mt-4">
-                  <div className="text-sm text-gray-600 mb-2">Duración: {event.duration}</div>
-                  <div className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-ocean-600 bg-clip-text text-transparent">
-                    {event.price}
-                  </div>
+                  <div className="text-sm text-gray-600">Duración: {event.duration}</div>
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="text-center mt-12">
-            <a href="/reservas" className="btn-primary group">
-              Ver todos los paquetes
-              <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </a>
-          </div>
         </div>
       </section>
 
@@ -331,42 +259,36 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section id="testimonials" className="py-24 bg-gradient-to-br from-primary-50 via-white to-ocean-50">
+      {/* Instagram Feed Section */}
+      <section id="instagram" className="py-24 bg-gradient-to-br from-primary-50 via-white to-ocean-50">
+        <Script src="https://w.behold.so/widget.js" strategy="lazyOnload" />
         <div className="container-custom">
           <div className="text-center mb-16">
             <span className="section-tag">
-              <Star className="w-4 h-4 mr-2" />
-              Opiniones
+              <Instagram className="w-4 h-4 mr-2" />
+              Instagram
             </span>
             <h2 className="section-title">
-              Lo que dicen nuestros clientes
+              Síguenos en Instagram
             </h2>
             <p className="section-subtitle max-w-3xl mx-auto">
-              Muchas familias han confiado en nosotros para sus momentos más especiales
+              Descubre momentos reales de celebraciones en HappyHub
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <div key={index} className="card">
-                <div className="flex items-center mb-6">
-                  <div className="text-5xl mr-4">{testimonial.image}</div>
-                  <div className="flex-1">
-                    <div className="flex items-center mb-2">
-                      {[...Array(testimonial.rating)].map((_, i) => (
-                        <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
-                      ))}
-                    </div>
-                    <div className="font-bold text-gray-900 text-lg">{testimonial.name}</div>
-                    <div className="text-sm text-primary-600">{testimonial.event}</div>
-                  </div>
-                </div>
-                <p className="text-gray-600 leading-relaxed italic">
-                  &quot;{testimonial.comment}&quot;
-                </p>
-              </div>
-            ))}
+          <div dangerouslySetInnerHTML={{ __html: '<behold-widget feed-id="ijoWKINcQ9XXrzmDCvpI"></behold-widget>' }} />
+
+          <div className="text-center mt-12">
+            <a
+              href="https://instagram.com/happyhub.es"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-primary group inline-flex items-center"
+            >
+              <Instagram className="mr-2 w-5 h-5" />
+              @happyhub.es
+              <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </a>
           </div>
         </div>
       </section>
