@@ -7,7 +7,7 @@ import PricingTable from '@/components/PricingTable';
 import {
   Calendar, Users, Sparkles, Shield, Clock, Heart,
   ArrowRight, Star, Cake, Palette, Camera, Music,
-  Utensils, Gift, CheckCircle2, TrendingUp, Award, Zap, Instagram
+  Utensils, Gift, CheckCircle2, TrendingUp, Zap, Instagram
 } from 'lucide-react';
 
 export default function Home() {
@@ -100,15 +100,6 @@ export default function Home() {
       description: 'Captura cada momento especial con nuestro servicio de fotografía y vídeo profesional.',
       features: ['Reportaje completo', 'Edición profesional', 'Álbum digital'],
     },
-  ];
-
-  const partners = [
-    'Catering Premium Madrid',
-    'Animaciones Kids Pro',
-    'Decoraciones Mágicas',
-    'Fotografía Eventos Plus',
-    'DJ & Music Solutions',
-    'Party Supplies Co.',
   ];
 
   const photos = [
@@ -289,35 +280,6 @@ export default function Home() {
               @happyhub.es
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </a>
-          </div>
-        </div>
-      </section>
-
-      {/* Partners Section */}
-      <section className="py-20 bg-white">
-        <div className="container-custom">
-          <div className="text-center mb-12">
-            <span className="section-tag">
-              <Award className="w-4 h-4 mr-2" />
-              Colaboradores
-            </span>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Trabajamos con los mejores
-            </h2>
-            <p className="text-lg text-gray-600">
-              Proveedores de confianza que garantizan la excelencia de tu evento
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-            {partners.map((partner, index) => (
-              <div
-                key={index}
-                className="bg-gray-50 px-6 py-8 rounded-2xl text-center font-semibold text-gray-700 hover:bg-primary-50 hover:text-primary-700 transition-all hover:scale-105 border border-gray-100"
-              >
-                {partner}
-              </div>
-            ))}
           </div>
         </div>
       </section>
