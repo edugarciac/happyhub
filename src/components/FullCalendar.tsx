@@ -228,15 +228,11 @@ export default function FullCalendar({ onSlotSelect, bookedSlots = [], selectedD
       {/* Legend */}
       <div className="mt-8 flex flex-wrap items-center justify-center gap-4 md:gap-6 text-sm">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-6 rounded text-white text-xs font-bold flex items-center justify-center" style={{ backgroundColor: '#00BCD4' }}>
-            M
-          </div>
+          <div className="w-8 h-6 rounded" style={{ backgroundColor: '#00BCD4' }} />
           <span className="text-gray-700">Disponible</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-8 h-6 rounded text-white text-xs font-bold flex items-center justify-center" style={{ backgroundColor: '#007a8c' }}>
-            M
-          </div>
+          <div className="w-8 h-6 rounded" style={{ backgroundColor: '#007a8c' }} />
           <span className="text-gray-700">Seleccionado</span>
         </div>
         <div className="flex items-center gap-2">
