@@ -20,17 +20,11 @@ function AppContent({ Component, pageProps }: { Component: AppProps['Component']
     return () => router.events.off('routeChangeComplete', handleRouteChange);
   }, [router.events]);
 
-  const isComingSoonPage = router.pathname === '/';
   const isAuthPage = ['/login', '/register', '/verify-email', '/verificacion-pendiente', '/reset-password'].includes(router.pathname);
 
   const showBanner = session?.user &&
     !(session.user as any).emailVerified &&
-    !isAuthPage &&
-    !isComingSoonPage;
-
-  if (isComingSoonPage) {
-    return <Component {...pageProps} />;
-  }
+    !isAuthPage;
 
   return (
     <>

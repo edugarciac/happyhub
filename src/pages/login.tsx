@@ -50,7 +50,7 @@ export default function LoginPage() {
       }
 
       gaEvent('login', { method: 'email' });
-      router.push('/');
+      router.push('/area-privada');
     } catch (err) {
       setError('Error de conexión. Por favor, inténtalo de nuevo');
       setLoading(false);
@@ -62,7 +62,7 @@ export default function LoginPage() {
     setError('');
     try {
       gaEvent('login', { method: 'google' });
-      await signIn('google', { callbackUrl: '/' });
+      await signIn('google', { callbackUrl: '/area-privada' });
     } catch (err) {
       setError('Error al iniciar sesión con Google');
       setGoogleLoading(false);

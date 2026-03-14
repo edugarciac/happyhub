@@ -2,18 +2,11 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import NextAuth from 'next-auth';
 import { authOptions } from '../../../lib/auth';
 
-const handler = NextAuth(authOptions);
+// Ensure NEXTAUTH_URL is set at runtime (Amplify Lambda may not receive .env.production vars)
+if (!process.env.NEXTAUTH_URL) {
+  process.env.NEXTAUTH_URL = 'https://www.happyhub.es';
+}
 
-export default async function wrappedHandler(req: NextApiRequest, res: NextApiResponse) {
-  try {
-    return await handler(req, res);
-  } catch (error: any) {
-    console.error('NextAuth error:', error);
-    return res.status(500).json({
-      nextAuthError: true,
-      message: error.message,
-      name: error.name,
-      stack: error.stack?.split('\n').slice(0, 8),
-    });
-  }
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  return NextAuth(req, res, authOptions);
 }
