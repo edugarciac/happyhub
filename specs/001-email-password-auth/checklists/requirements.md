@@ -34,22 +34,37 @@
 
 **Status**: ✅ PASSED - All checklist items complete
 
-**Validation Date**: 2026-02-20
+**Validation Date**: 2026-03-13
 
 **Summary**:
-- 6 prioritized user stories (P1-P3) covering registration, login, account linking, password reset, session management, and profile
-- 40 functional requirements (FR-001 to FR-040) all testable and unambiguous
+
+- 6 prioritized user stories (P1-P2-P3) covering registration, login, account linking, password reset, session management, and Área privada
+- 55 functional requirements (FR-001 to FR-055) all testable and unambiguous
   - FR-001 to FR-025: Email/password authentication
   - FR-026 to FR-040: Google OAuth integration and account linking
-- 15 measurable success criteria (SC-001 to SC-015) all technology-agnostic
+  - FR-041 to FR-045: Header and navigation behavior (authenticated vs unauthenticated)
+  - FR-046 to FR-055: Área privada (personal data + reservation listing)
+- 18 measurable success criteria (SC-001 to SC-018) all technology-agnostic
   - SC-001 to SC-010: Email/password metrics
   - SC-011 to SC-015: Google OAuth and account linking metrics
-- 14 edge cases identified and addressed (including OAuth-specific scenarios)
+  - SC-016 to SC-018: Área privada performance and correctness
+- 17 edge cases identified and addressed (including OAuth-specific and Área privada scenarios)
 - 1 previous clarification resolved: Brute-force prevention using rate limiting (10 attempts/IP/hour)
 - All mandatory sections complete: User Scenarios, Requirements, Success Criteria, Assumptions, Dependencies, Out of Scope
-- Google OAuth successfully integrated across all sections without creating implementation dependencies
 
-**Changes in Update**:
+**Changes in Update (2026-03-13)**:
+
+- Updated User Story 2 (Login) to describe header behavior: email replaces user icon, logout button, "Área privada" menu item
+- Added 3 new acceptance scenarios to User Story 2 (scenarios 9-11) for header/nav behavior
+- Elevated User Story 6 from P3 to P2, renamed to "Área privada" with personal data and reservation listing
+- Added 13 acceptance scenarios to User Story 6 covering personal data, reservation list, empty states, status badges, and detail view
+- Added 15 new functional requirements (FR-041 to FR-055) for header, navigation, and Área privada
+- Added 3 new success criteria (SC-016 to SC-018) for Área privada performance and correctness
+- Added User Reservation as a new key entity (read-only view from Stripe)
+- Added 3 new edge cases for reservation matching by email, Stripe unavailability, and email mismatch
+
+**Previous changes (2026-02-20)**:
+
 - Added Google OAuth as supported authentication method (removed from Out of Scope)
 - Added User Story 3: Account Linking (P2) for connecting multiple auth methods
 - Updated User Stories 1 & 2 to include Google OAuth registration and login flows

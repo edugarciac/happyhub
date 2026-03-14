@@ -23,6 +23,8 @@ CREATE TABLE IF NOT EXISTS reservations (
   extras JSONB DEFAULT '[]',         -- Array de servicios adicionales
   base_price DECIMAL(10,2) NOT NULL,
   total_price DECIMAL(10,2),
+  deposit_amount DECIMAL(10,2),
+  security_deposit DECIMAL(10,2) DEFAULT 200,
 
   -- Método de pago
   payment_method VARCHAR(20) NOT NULL,  -- card, bizum, cash
@@ -100,7 +102,7 @@ INSERT INTO settings (key, value, description) VALUES
 ('business_name', 'HappyHub', 'Nombre del negocio'),
 ('business_phone', '624645517', 'Teléfono de contacto'),
 ('business_email', 'happyhub.rovellat@gmail.com', 'Email de contacto'),
-('business_address', 'C/ Rovellat, 25, 08950 Esplugues de Llobregat, Barcelona', 'Dirección del local')
+('business_address', 'C/ Rovellat, 27, 08950 Esplugues de Llobregat, Barcelona', 'Dirección del local')
 ON CONFLICT (key) DO NOTHING;
 
 -- Función para actualizar updated_at automáticamente

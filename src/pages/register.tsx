@@ -7,6 +7,7 @@ import { signIn } from 'next-auth/react';
 import Head from 'next/head';
 import Link from 'next/link';
 import GoogleSignInButton from '../components/GoogleSignInButton';
+import { event as gaEvent } from '@/lib/analytics';
 
 const registerSchema = z.object({
   email: z.string().email('Por favor, introduce una dirección de email válida'),
@@ -76,13 +77,16 @@ export default function RegisterPage() {
         return;
       }
 
-      console.log('Registration successful, redirecting to /login');
+      console.log('Registration successful, redirecting to verification pending');
+      gaEvent('sign_up', { method: 'email' });
 
-      // Show success message briefly
-      alert('¡Cuenta creada exitosamente! Ahora puedes iniciar sesión.');
+      // Store token for resend functionality
+      if (result.token) {
+        localStorage.setItem('token', result.token);
+      }
 
-      // Redirect to login page
-      router.push('/login');
+      // Redirect to verification-pending page
+      router.push(`/verificacion-pendiente?email=${encodeURIComponent(data.email)}`);
     } catch (err: any) {
       console.error('Register exception:', err);
 
@@ -102,6 +106,7 @@ export default function RegisterPage() {
     setGoogleLoading(true);
     setError('');
     try {
+      gaEvent('sign_up', { method: 'google' });
       await signIn('google', { callbackUrl: '/' });
     } catch (err) {
       setError('Error al registrarse con Google');

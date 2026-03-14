@@ -16,43 +16,52 @@ export default function Step1Calendar() {
   const [isLoading, setIsLoading] = useState(true);
   const [pricingLoading, setPricingLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [calendarError, setCalendarError] = useState<string | null>(null);
   const [pricing, setPricing] = useState<Record<string, number>>({});
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Fetch pricing first (critical for price calculation)
-        const pricingRes = await fetch('/api/pricing/current');
-        if (pricingRes.ok) {
-          const pricingData = await pricingRes.json();
-          if (pricingData.success) {
-            console.log('Pricing loaded:', pricingData.pricing);
-            setPricing(pricingData.pricing);
-            setPricingLoading(false);
-          }
-        } else {
-          console.error('Failed to load pricing');
+  const fetchData = async () => {
+    setIsLoading(true);
+    setCalendarError(null);
+
+    try {
+      // Fetch pricing
+      const pricingRes = await fetch('/api/pricing/current');
+      if (pricingRes.ok) {
+        const pricingData = await pricingRes.json();
+        if (pricingData.success) {
+          setPricing(pricingData.pricing);
           setPricingLoading(false);
         }
-
-        // Fetch booked slots
-        const slotsRes = await fetch('/api/booked-slots');
-        if (slotsRes.ok) {
-          const data = await slotsRes.json();
-          const slots = (data.bookedSlots || []).map((slot: any) => ({
-            date: new Date(slot.date),
-            timeSlot: slot.timeSlot,
-          }));
-          setBookedSlots(slots);
-        }
-      } catch (err) {
-        console.error('Error fetching data:', err);
+      } else {
         setPricingLoading(false);
-      } finally {
+        setCalendarError('No se han podido cargar los precios. Intentalo de nuevo.');
         setIsLoading(false);
+        return;
       }
-    };
 
+      // Fetch booked slots
+      const slotsRes = await fetch('/api/booked-slots');
+      if (!slotsRes.ok) {
+        setCalendarError('No se ha podido cargar la disponibilidad. Intentalo de nuevo.');
+        setIsLoading(false);
+        return;
+      }
+      const data = await slotsRes.json();
+      const slots = (data.bookedSlots || []).map((slot: any) => ({
+        date: new Date(slot.date),
+        timeSlot: slot.timeSlot,
+      }));
+      setBookedSlots(slots);
+    } catch (err) {
+      console.error('Error fetching data:', err);
+      setPricingLoading(false);
+      setCalendarError('No se ha podido cargar la disponibilidad. Intentalo de nuevo.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchData();
   }, []);
 
@@ -156,6 +165,17 @@ export default function Step1Calendar() {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
             <p className="text-gray-600">Cargando disponibilidad...</p>
           </div>
+        </div>
+      ) : calendarError ? (
+        <div className="flex flex-col items-center justify-center min-h-[300px] bg-red-50 border border-red-200 rounded-xl p-8">
+          <AlertCircle className="w-12 h-12 text-red-400 mb-4" />
+          <p className="text-red-800 text-center mb-4">{calendarError}</p>
+          <button
+            onClick={fetchData}
+            className="btn-primary px-6 py-2"
+          >
+            Reintentar
+          </button>
         </div>
       ) : (
         <div className="bg-white rounded-xl shadow-lg p-4 md:p-6">

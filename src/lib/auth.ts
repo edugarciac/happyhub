@@ -26,6 +26,7 @@ const providers: AuthOptions['providers'] = [
           email: user.email,
           name: user.name,
           role: user.role,
+          emailVerified: user.email_verified,
         };
       },
     }),
@@ -62,13 +63,14 @@ export const authOptions: NextAuthOptions = {
           const existingUser = await getUserByEmail(user.email);
 
           if (!existingUser) {
-            // Create new user from Google profile
+            // Create new user from Google profile (email auto-verified by Google)
             await createUser({
               email: user.email,
               password: Math.random().toString(36), // Random password for OAuth users
               name: user.name || 'Usuario',
               phone: '', // Optional, can be filled later
               role: 'client',
+              email_verified: true,
             });
           }
         } catch (error) {
@@ -83,6 +85,10 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.role = (user as any).role || 'client';
         token.authMethod = account?.provider === 'google' ? 'google' : 'password';
+        // Google OAuth users are auto-verified; credentials users carry their DB state
+        token.emailVerified = account?.provider === 'google'
+          ? true
+          : (user as any).emailVerified ?? false;
       }
       return token;
     },
@@ -91,6 +97,7 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).id = token.id;
         (session.user as any).role = token.role;
         (session.user as any).authMethod = token.authMethod;
+        (session.user as any).emailVerified = token.emailVerified ?? false;
       }
       return session;
     },

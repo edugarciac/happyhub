@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
+import { useSession } from 'next-auth/react';
 import dynamic from 'next/dynamic';
 
 const BookingWizard = dynamic(() => import('@/components/booking/BookingWizard'), { ssr: false });
@@ -7,6 +9,14 @@ const BookingWizard = dynamic(() => import('@/components/booking/BookingWizard')
 export default function Reservas() {
   const router = useRouter();
   const { date, timeSlot } = router.query;
+  const { data: session, status } = useSession();
+
+  useEffect(() => {
+    if (status === 'loading') return;
+    if (session?.user && !(session.user as any).emailVerified) {
+      router.replace('/verificacion-pendiente');
+    }
+  }, [session, status, router]);
 
   return (
     <>

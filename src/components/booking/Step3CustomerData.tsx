@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useBooking, EventType } from './BookingContext';
+import { useBooking, EventType, PaymentMethod } from './BookingContext';
 import PriceSummary from './PriceSummary';
-import { ChevronLeft, ChevronRight, User, AlertCircle, FileText, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, User, AlertCircle, FileText, Loader2, CreditCard } from 'lucide-react';
 
 const customerSchema = z.object({
   name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
@@ -20,6 +20,9 @@ const customerSchema = z.object({
   ], {
     errorMap: () => ({ message: 'Selecciona un tipo de evento' }),
   }),
+  paymentMethod: z.enum(['card', 'bizum', 'cash'], {
+    errorMap: () => ({ message: 'Selecciona un método de pago' }),
+  }),
   message: z.string().optional(),
   acceptTerms: z.boolean().refine(val => val === true, {
     message: 'Debes aceptar los términos y condiciones',
@@ -29,9 +32,12 @@ const customerSchema = z.object({
 type CustomerFormData = z.infer<typeof customerSchema>;
 
 export default function Step3CustomerData() {
-  const { state, dispatch, nextStep, prevStep, calculateTotalPrice, calculateDepositAmount } = useBooking();
+  const { state, dispatch, nextStep, prevStep, goToStep, calculateTotalPrice, calculateDepositAmount } = useBooking();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitErrorDetail, setSubmitErrorDetail] = useState<string | null>(null);
+  const [showErrorDetail, setShowErrorDetail] = useState(false);
+  const [isConflictError, setIsConflictError] = useState(false);
 
   const {
     register,
@@ -44,6 +50,7 @@ export default function Step3CustomerData() {
       email: state.email,
       phone: state.phone,
       eventType: state.eventType || undefined,
+      paymentMethod: state.paymentMethod || undefined,
       message: state.message,
       acceptTerms: state.acceptTerms,
     },
@@ -62,6 +69,7 @@ export default function Step3CustomerData() {
           email: data.email,
           phone: data.phone,
           eventType: data.eventType as EventType,
+          paymentMethod: data.paymentMethod as PaymentMethod,
           message: data.message || '',
           acceptTerms: data.acceptTerms,
         },
@@ -98,6 +106,7 @@ export default function Step3CustomerData() {
           email: data.email,
           phone: data.phone,
           eventType: data.eventType,
+          paymentMethod: data.paymentMethod,
           message: data.message || '',
           // Booking data
           date: dateStr,
@@ -120,20 +129,33 @@ export default function Step3CustomerData() {
 
       // Handle specific error cases
       if (response.status === 409) {
-        // Conflict - slot already booked
-        setSubmitError(result.error || 'Lo siento, esta fecha y hora ya está reservada. Por favor, elige otra fecha.');
+        setSubmitError('Esta fecha y franja horaria ya esta reservada. Por favor, vuelve al paso 1 y elige otra fecha.');
+        setSubmitErrorDetail(`HTTP ${response.status}: ${result.error || result.message || ''}`);
+        setIsConflictError(true);
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (response.status === 503) {
+        setSubmitError('El servicio de reservas no esta disponible en este momento. Intentalo de nuevo en unos minutos.');
+        setSubmitErrorDetail(`HTTP ${response.status}: ${result.detail || result.error || ''}`);
+        setIsConflictError(false);
         setIsSubmitting(false);
         return;
       }
 
       if (!response.ok) {
-        setSubmitError(result.error || `Error al enviar la reserva (código ${response.status})`);
+        setSubmitError('Ha ocurrido un error al procesar tu reserva. Intentalo de nuevo.');
+        setSubmitErrorDetail(`HTTP ${response.status}: ${result.detail || result.error || ''}`);
+        setIsConflictError(false);
         setIsSubmitting(false);
         return;
       }
 
       if (!result.success) {
-        setSubmitError(result.error || 'Error al procesar la reserva');
+        setSubmitError('Error al procesar la reserva. Intentalo de nuevo.');
+        setSubmitErrorDetail(result.error || '');
+        setIsConflictError(false);
         setIsSubmitting(false);
         return;
       }
@@ -147,7 +169,9 @@ export default function Step3CustomerData() {
       nextStep();
     } catch (error: any) {
       console.error('Error submitting reservation:', error);
-      setSubmitError(error.message || 'Error al procesar tu solicitud. Por favor, inténtalo de nuevo.');
+      setSubmitError('No se ha podido conectar con el servidor. Comprueba tu conexion a internet.');
+      setSubmitErrorDetail(error.message || '');
+      setIsConflictError(false);
       setIsSubmitting(false);
     }
   };
@@ -249,6 +273,42 @@ export default function Step3CustomerData() {
 
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="w-4 h-4" />
+                      Método de pago *
+                    </div>
+                  </label>
+                  <div className="grid grid-cols-3 gap-3">
+                    {[
+                      { value: 'card', label: 'Tarjeta', icon: '💳' },
+                      { value: 'bizum', label: 'Bizum', icon: '📱' },
+                      { value: 'cash', label: 'Efectivo', icon: '💵' },
+                    ].map((method) => (
+                      <label
+                        key={method.value}
+                        className={`relative flex flex-col items-center gap-1 p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                          errors.paymentMethod ? 'border-red-300' : 'border-gray-200'
+                        } hover:border-primary-300`}
+                      >
+                        <input
+                          type="radio"
+                          value={method.value}
+                          {...register('paymentMethod')}
+                          className="sr-only peer"
+                        />
+                        <span className="text-2xl">{method.icon}</span>
+                        <span className="text-sm font-medium text-gray-700 peer-checked:text-primary-600">{method.label}</span>
+                        <div className="absolute inset-0 rounded-lg border-2 border-transparent peer-checked:border-primary-500 pointer-events-none" />
+                      </label>
+                    ))}
+                  </div>
+                  {errors.paymentMethod && (
+                    <p className="text-red-500 text-sm mt-1">{errors.paymentMethod.message}</p>
+                  )}
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Mensaje adicional (opcional)
                   </label>
                   <textarea
@@ -315,9 +375,44 @@ export default function Step3CustomerData() {
 
         {/* Error message */}
         {submitError && (
-          <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800 mt-6">
-            <AlertCircle className="w-5 h-5 flex-shrink-0" />
-            <p>{submitError}</p>
+          <div className="p-4 bg-red-50 border border-red-200 rounded-lg mt-6">
+            <div className="flex items-start gap-3 text-red-800">
+              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p>{submitError}</p>
+                {submitErrorDetail && (
+                  <button
+                    type="button"
+                    onClick={() => setShowErrorDetail(!showErrorDetail)}
+                    className="text-xs text-gray-500 mt-2 hover:text-gray-700"
+                  >
+                    {showErrorDetail ? 'Ocultar detalles' : 'Ver detalles del error'}
+                  </button>
+                )}
+                {showErrorDetail && submitErrorDetail && (
+                  <pre className="text-xs text-gray-500 mt-1 bg-gray-100 p-2 rounded overflow-x-auto">{submitErrorDetail}</pre>
+                )}
+                <div className="mt-3">
+                  {isConflictError ? (
+                    <button
+                      type="button"
+                      onClick={() => { setSubmitError(null); setIsConflictError(false); goToStep(1); }}
+                      className="text-sm font-medium text-primary-600 hover:text-primary-800"
+                    >
+                      Volver al calendario
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setSubmitError(null)}
+                      className="text-sm font-medium text-primary-600 hover:text-primary-800"
+                    >
+                      Intentar de nuevo
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         )}
 

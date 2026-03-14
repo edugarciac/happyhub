@@ -411,6 +411,47 @@ paths:
               example:
                 error: 'Debes tener al menos un método de autenticación. Configura una contraseña antes de desvincular Google'
 
+  /user/reservations:
+    get:
+      tags:
+        - User Profile
+      summary: Get authenticated user's reservations
+      operationId: getUserReservations
+      security:
+        - BearerAuth: []
+      description: |
+        Retrieves all reservations associated with the authenticated user's email
+        from Stripe checkout sessions. Sorted by event date (most recent first).
+      responses:
+        '200':
+          description: Reservations retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    example: 3
+                  reservations:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserReservation'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Error retrieving reservations (e.g., Stripe unavailable)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: 'No se pudieron cargar tus reservas. Inténtalo de nuevo más tarde'
+
   /user/set-password:
     post:
       tags:
@@ -553,6 +594,62 @@ components:
           format: date-time
           nullable: true
           example: '2026-02-20T15:45:00Z'
+
+    UserReservation:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Stripe session ID
+        reservationId:
+          type: string
+          example: 'HH-2026-001'
+        date:
+          type: string
+          format: date
+          example: '2026-04-15'
+        timeSlot:
+          type: string
+          enum: [morning, afternoon, night]
+          example: 'afternoon'
+        eventType:
+          type: string
+          example: 'Cumpleaños'
+        guests:
+          type: integer
+          example: 25
+        totalPrice:
+          type: number
+          format: float
+          example: 1200.00
+        depositAmount:
+          type: number
+          format: float
+          example: 300.00
+        depositPaid:
+          type: number
+          format: float
+          example: 300.00
+        paymentStatus:
+          type: string
+          enum: [paid, unpaid, no_payment_required]
+          example: 'paid'
+        status:
+          type: string
+          enum: [pending, approved, rejected, paid]
+          example: 'approved'
+          description: 'Visual status for badge display'
+        extras:
+          type: array
+          items:
+            type: string
+          example: ['DJ', 'Catering']
+        message:
+          type: string
+          example: 'Fiesta de cumpleaños para 25 personas'
+        createdAt:
+          type: string
+          format: date-time
 
     ErrorResponse:
       type: object

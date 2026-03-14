@@ -1,60 +1,82 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import {
   Search,
   Filter,
-  Download,
   ChevronLeft,
   ChevronRight,
   RefreshCw,
-  Eye,
   Calendar,
   Users,
   Mail,
   Phone,
   ArrowLeft,
+  MessageCircle,
+  Printer,
+  Pencil,
+  Trash2,
 } from 'lucide-react';
+import {
+  ReservationStatus,
+  STATUS_LABELS,
+  STATUS_COLORS,
+  TRANSITION_LABELS,
+  getAvailableTransitions,
+} from '@/utils/reservationStatus';
+import { buildWhatsAppUrl } from '@/utils/phone';
+import ConfirmDialog from '@/components/admin/ConfirmDialog';
+import FormModal from '@/components/admin/FormModal';
 
 interface Reservation {
-  id: string;
-  reservationId: string;
+  id: number;
   name: string;
   email: string;
   phone: string;
-  date: string | null;
+  eventType: string;
+  eventDate: string;
   timeSlot: string;
   guests: number;
-  eventType: string;
   extras: string[];
   basePrice: number;
   totalPrice: number;
   depositAmount: number;
-  depositPaid: number;
-  paymentStatus: string;
+  securityDeposit: number;
+  paymentMethod: string;
+  status: ReservationStatus;
   message: string;
   createdAt: string;
+  updatedAt: string;
 }
 
 const TIME_SLOT_LABELS: Record<string, string> = {
-  morning: 'Mañana',
-  afternoon: 'Tarde',
-  night: 'Noche',
+  morning: 'Manana (11:00-14:30)',
+  afternoon: 'Tarde (16:30-20:30)',
+  night: 'Noche (22:00-02:00)',
 };
 
 const EVENT_TYPE_LABELS: Record<string, string> = {
-  'cumpleaños': 'Cumpleaños',
-  'celebracion-familiar': 'Celebración familiar',
+  'cumpleaños': 'Cumpleanos',
+  'celebracion-familiar': 'Celebracion familiar',
   'eventos-amigos': 'Eventos con amigos',
   'eventos-colegio-trabajo': 'Colegio/Trabajo',
   'taller': 'Taller',
   'otros': 'Otros',
 };
 
+function getToken(): string {
+  return localStorage.getItem('token') || '';
+}
+
+function authHeaders(): HeadersInit {
+  return { Authorization: `Bearer ${getToken()}`, 'Content-Type': 'application/json' };
+}
+
 export default function AdminReservations() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
+  const [error, setError] = useState('');
 
   // Filters
   const [search, setSearch] = useState('');
@@ -64,32 +86,157 @@ export default function AdminReservations() {
   const [offset, setOffset] = useState(0);
   const limit = 20;
 
-  const fetchReservations = async () => {
+  // Edit modal
+  const [editReservation, setEditReservation] = useState<Reservation | null>(null);
+  const [editForm, setEditForm] = useState({
+    eventDate: '',
+    timeSlot: '',
+    eventType: '',
+    guests: 0,
+    totalPrice: 0,
+    depositAmount: 0,
+    securityDeposit: 200,
+    notes: '',
+  });
+  const [editError, setEditError] = useState('');
+  const [editSaving, setEditSaving] = useState(false);
+
+  // Delete dialog
+  const [deleteReservation, setDeleteReservation] = useState<Reservation | null>(null);
+
+  // Toast
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  const fetchReservations = useCallback(async () => {
     setLoading(true);
+    setError('');
     try {
-      const params = new URLSearchParams({
-        limit: limit.toString(),
-        offset: offset.toString(),
-        status,
-      });
+      const params = new URLSearchParams({ limit: limit.toString(), offset: offset.toString(), status });
       if (search) params.append('search', search);
       if (dateFrom) params.append('dateFrom', dateFrom);
       if (dateTo) params.append('dateTo', dateTo);
 
-      const response = await fetch(`/api/admin/reservations?${params}`);
+      const response = await fetch(`/api/admin/reservations?${params}`, { headers: authHeaders() });
+      if (!response.ok) {
+        if (response.status === 401) {
+          window.location.href = '/admin/login';
+          return;
+        }
+        throw new Error('Error al cargar reservas');
+      }
       const data = await response.json();
-      setReservations(data.reservations);
-      setTotal(data.total);
-    } catch (err) {
-      console.error('Error fetching reservations:', err);
+      setReservations(data.reservations || []);
+      setTotal(data.total || 0);
+    } catch (err: any) {
+      setError(err.message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [offset, status, search, dateFrom, dateTo]);
 
   useEffect(() => {
     fetchReservations();
-  }, [offset, status]);
+  }, [fetchReservations]);
+
+  const showToast = (message: string, type: 'success' | 'error') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  // Status change
+  const handleStatusChange = async (reservation: Reservation, newStatus: ReservationStatus) => {
+    try {
+      const res = await fetch(`/api/admin/reservations/${reservation.id}/status`, {
+        method: 'PATCH',
+        headers: authHeaders(),
+        body: JSON.stringify({ status: newStatus }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        showToast(data.error || 'Error al cambiar estado', 'error');
+        return;
+      }
+      showToast(`Estado cambiado a ${STATUS_LABELS[newStatus]}`, 'success');
+      fetchReservations();
+    } catch {
+      showToast('Error de conexion', 'error');
+    }
+  };
+
+  // Edit
+  const openEdit = (r: Reservation) => {
+    setEditReservation(r);
+    setEditForm({
+      eventDate: r.eventDate ? r.eventDate.split('T')[0] : '',
+      timeSlot: r.timeSlot,
+      eventType: r.eventType,
+      guests: r.guests,
+      totalPrice: r.totalPrice,
+      depositAmount: r.depositAmount,
+      securityDeposit: r.securityDeposit,
+      notes: r.message,
+    });
+    setEditError('');
+  };
+
+  const handleEditSave = async () => {
+    if (!editReservation) return;
+    setEditSaving(true);
+    setEditError('');
+
+    if (editForm.guests < 1 || editForm.guests > 150) {
+      setEditError('Invitados debe ser entre 1 y 150');
+      setEditSaving(false);
+      return;
+    }
+    if (editForm.totalPrice < 0) {
+      setEditError('El precio no puede ser negativo');
+      setEditSaving(false);
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/admin/reservations/${editReservation.id}`, {
+        method: 'PATCH',
+        headers: authHeaders(),
+        body: JSON.stringify(editForm),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setEditError(data.error || 'Error al guardar');
+        setEditSaving(false);
+        return;
+      }
+      setEditReservation(null);
+      showToast('Reserva actualizada', 'success');
+      fetchReservations();
+    } catch {
+      setEditError('Error de conexion');
+    } finally {
+      setEditSaving(false);
+    }
+  };
+
+  // Delete
+  const handleDelete = async () => {
+    if (!deleteReservation) return;
+    try {
+      const res = await fetch(`/api/admin/reservations/${deleteReservation.id}`, {
+        method: 'DELETE',
+        headers: authHeaders(),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        showToast(data.error || 'Error al eliminar', 'error');
+        return;
+      }
+      showToast('Reserva eliminada', 'success');
+      setDeleteReservation(null);
+      fetchReservations();
+    } catch {
+      showToast('Error de conexion', 'error');
+    }
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,21 +247,7 @@ export default function AdminReservations() {
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return 'N/A';
     const date = new Date(dateStr);
-    return date.toLocaleDateString('es-ES', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    });
-  };
-
-  const getStatusBadge = (paymentStatus: string) => {
-    if (paymentStatus === 'paid') {
-      return <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">Pagado</span>;
-    }
-    if (paymentStatus === 'unpaid') {
-      return <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">Pendiente</span>;
-    }
-    return <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">{paymentStatus}</span>;
+    return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
   };
 
   return (
@@ -124,30 +257,25 @@ export default function AdminReservations() {
       </Head>
 
       <div className="min-h-screen bg-gray-100">
+        {/* Toast */}
+        {toast && (
+          <div className={`fixed top-4 right-4 z-[60] px-4 py-3 rounded-lg shadow-lg text-white text-sm ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
+            {toast.message}
+          </div>
+        )}
+
         {/* Header */}
         <header className="bg-white shadow">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <Link
-                  href="/admin"
-                  className="p-2 text-gray-500 hover:text-gray-700 transition-colors"
-                >
+                <Link href="/admin" className="p-2 text-gray-500 hover:text-gray-700 transition-colors">
                   <ArrowLeft className="w-5 h-5" />
                 </Link>
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">Reservas</h1>
                   <p className="text-gray-500 text-sm">{total} reservas encontradas</p>
                 </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <a
-                  href={`/api/admin/export?dateFrom=${dateFrom}&dateTo=${dateTo}`}
-                  className="btn-outline text-sm flex items-center gap-2"
-                >
-                  <Download className="w-4 h-4" />
-                  Exportar
-                </a>
               </div>
             </div>
           </div>
@@ -165,7 +293,7 @@ export default function AdminReservations() {
                     type="text"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Nombre, email, teléfono..."
+                    placeholder="Nombre, email, telefono, ID..."
                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
                   />
                 </div>
@@ -179,8 +307,11 @@ export default function AdminReservations() {
                   className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
                 >
                   <option value="all">Todos</option>
-                  <option value="paid">Pagados</option>
-                  <option value="pending">Pendientes</option>
+                  <option value="pending">Pendiente</option>
+                  <option value="approved">Aprobada</option>
+                  <option value="rejected">Rechazada</option>
+                  <option value="cancelled">Cancelada</option>
+                  <option value="completed">Completada</option>
                 </select>
               </div>
 
@@ -204,15 +335,16 @@ export default function AdminReservations() {
                 />
               </div>
 
-              <button
-                type="submit"
-                className="btn-primary flex items-center gap-2"
-              >
+              <button type="submit" className="btn-primary flex items-center gap-2">
                 <Filter className="w-4 h-4" />
                 Filtrar
               </button>
             </form>
           </div>
+
+          {error && (
+            <div className="bg-red-50 text-red-700 p-4 rounded-lg mb-6">{error}</div>
+          )}
 
           {/* Table */}
           <div className="bg-white rounded-xl shadow overflow-hidden">
@@ -221,101 +353,143 @@ export default function AdminReservations() {
                 <RefreshCw className="w-8 h-8 animate-spin text-primary-600" />
               </div>
             ) : reservations.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">
-                No se encontraron reservas
-              </div>
+              <div className="text-center py-12 text-gray-500">No se encontraron reservas</div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Reserva
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Cliente
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Fecha/Hora
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Detalles
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Precio
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Estado
-                      </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Acciones
-                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cliente</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha/Hora</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Detalles</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Precio</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones estado</th>
+                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Acciones</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {reservations.map((reservation) => (
-                      <tr key={reservation.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
-                            {reservation.reservationId}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {formatDate(reservation.createdAt)}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="text-sm font-medium text-gray-900">
-                            {reservation.name}
-                          </div>
-                          <div className="text-xs text-gray-500 flex items-center gap-1">
-                            <Mail className="w-3 h-3" />
-                            {reservation.email}
-                          </div>
-                          <div className="text-xs text-gray-500 flex items-center gap-1">
-                            <Phone className="w-3 h-3" />
-                            {reservation.phone}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900 flex items-center gap-1">
-                            <Calendar className="w-4 h-4 text-gray-400" />
-                            {formatDate(reservation.date)}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {TIME_SLOT_LABELS[reservation.timeSlot] || reservation.timeSlot}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="text-sm text-gray-900 flex items-center gap-1">
-                            <Users className="w-4 h-4 text-gray-400" />
-                            {reservation.guests} personas
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {EVENT_TYPE_LABELS[reservation.eventType] || reservation.eventType}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
-                            {reservation.totalPrice}€
-                          </div>
-                          <div className="text-xs text-green-600">
-                            Señal: {reservation.depositPaid}€
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {getStatusBadge(reservation.paymentStatus)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <Link
-                            href={`/admin/reservations/${reservation.reservationId}`}
-                            className="text-primary-600 hover:text-primary-900 flex items-center justify-end gap-1"
-                          >
-                            <Eye className="w-4 h-4" />
-                            Ver
-                          </Link>
-                        </td>
-                      </tr>
-                    ))}
+                    {reservations.map((r) => {
+                      const waUrl = buildWhatsAppUrl(r.phone);
+                      const transitions = getAvailableTransitions(r.status);
+                      const colors = STATUS_COLORS[r.status] || STATUS_COLORS.pending;
+
+                      return (
+                        <tr key={r.id} className="hover:bg-gray-50">
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">#{r.id}</div>
+                            <div className="text-xs text-gray-500">{formatDate(r.createdAt)}</div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="text-sm font-medium text-gray-900">{r.name}</div>
+                            <div className="text-xs text-gray-500 flex items-center gap-1">
+                              <Mail className="w-3 h-3" />{r.email}
+                            </div>
+                            <div className="text-xs text-gray-500 flex items-center gap-1">
+                              <Phone className="w-3 h-3" />{r.phone}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <div className="text-sm text-gray-900 flex items-center gap-1">
+                              <Calendar className="w-4 h-4 text-gray-400" />
+                              {formatDate(r.eventDate)}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {TIME_SLOT_LABELS[r.timeSlot] || r.timeSlot}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="text-sm text-gray-900 flex items-center gap-1">
+                              <Users className="w-4 h-4 text-gray-400" />
+                              {r.guests} personas
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {EVENT_TYPE_LABELS[r.eventType] || r.eventType}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">{r.totalPrice}EUR</div>
+                            <div className="text-xs text-green-600">Senal: {r.depositAmount}EUR</div>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${colors.bg} ${colors.text}`}>
+                              {STATUS_LABELS[r.status] || r.status}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex flex-wrap gap-1">
+                              {transitions.map((t) => (
+                                <button
+                                  key={t}
+                                  onClick={() => handleStatusChange(r, t)}
+                                  className="px-2 py-1 text-xs rounded border border-gray-300 hover:bg-gray-100 transition-colors"
+                                >
+                                  {TRANSITION_LABELS[t]}
+                                </button>
+                              ))}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <div className="flex items-center justify-end gap-1">
+                              {waUrl ? (
+                                <a
+                                  href={waUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="p-1.5 text-green-600 hover:bg-green-50 rounded transition-colors"
+                                  title="WhatsApp"
+                                >
+                                  <MessageCircle className="w-4 h-4" />
+                                </a>
+                              ) : (
+                                <span className="p-1.5 text-gray-300 cursor-not-allowed">
+                                  <MessageCircle className="w-4 h-4" />
+                                </span>
+                              )}
+                              {r.email ? (
+                                <a
+                                  href={`mailto:${r.email}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                  title="Email"
+                                >
+                                  <Mail className="w-4 h-4" />
+                                </a>
+                              ) : (
+                                <span className="p-1.5 text-gray-300 cursor-not-allowed">
+                                  <Mail className="w-4 h-4" />
+                                </span>
+                              )}
+                              <a
+                                href={`/admin/reservations/${r.id}/contract`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-1.5 text-gray-600 hover:bg-gray-100 rounded transition-colors"
+                                title="Imprimir contrato"
+                              >
+                                <Printer className="w-4 h-4" />
+                              </a>
+                              <button
+                                onClick={() => openEdit(r)}
+                                className="p-1.5 text-gray-600 hover:bg-gray-100 rounded transition-colors"
+                                title="Editar"
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => setDeleteReservation(r)}
+                                className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                title="Eliminar"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -348,6 +522,137 @@ export default function AdminReservations() {
           </div>
         </main>
       </div>
+
+      {/* Edit Modal */}
+      <FormModal
+        isOpen={!!editReservation}
+        onClose={() => setEditReservation(null)}
+        title={`Editar reserva #${editReservation?.id || ''}`}
+      >
+        <div className="space-y-4">
+          {editError && <div className="text-red-600 text-sm bg-red-50 p-3 rounded">{editError}</div>}
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Fecha del evento</label>
+              <input
+                type="date"
+                value={editForm.eventDate}
+                onChange={(e) => setEditForm({ ...editForm, eventDate: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Franja horaria</label>
+              <select
+                value={editForm.timeSlot}
+                onChange={(e) => setEditForm({ ...editForm, timeSlot: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              >
+                <option value="morning">Manana</option>
+                <option value="afternoon">Tarde</option>
+                <option value="night">Noche</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de evento</label>
+              <input
+                type="text"
+                value={editForm.eventType}
+                onChange={(e) => setEditForm({ ...editForm, eventType: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Invitados</label>
+              <input
+                type="number"
+                min="1"
+                max="150"
+                value={editForm.guests}
+                onChange={(e) => setEditForm({ ...editForm, guests: parseInt(e.target.value) || 0 })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Precio total (EUR)</label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={editForm.totalPrice}
+                onChange={(e) => setEditForm({ ...editForm, totalPrice: parseFloat(e.target.value) || 0 })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Senal (EUR)</label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={editForm.depositAmount}
+                onChange={(e) => setEditForm({ ...editForm, depositAmount: parseFloat(e.target.value) || 0 })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Fianza (EUR)</label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={editForm.securityDeposit}
+                onChange={(e) => setEditForm({ ...editForm, securityDeposit: parseFloat(e.target.value) || 0 })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Notas</label>
+            <textarea
+              value={editForm.notes}
+              onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+            />
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <button
+              onClick={() => setEditReservation(null)}
+              className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleEditSave}
+              disabled={editSaving}
+              className="flex-1 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
+            >
+              {editSaving ? 'Guardando...' : 'Guardar'}
+            </button>
+          </div>
+        </div>
+      </FormModal>
+
+      {/* Delete Dialog */}
+      <ConfirmDialog
+        isOpen={!!deleteReservation}
+        onClose={() => setDeleteReservation(null)}
+        onConfirm={handleDelete}
+        title="Eliminar reserva"
+        message={`Vas a eliminar la reserva #${deleteReservation?.id} de ${deleteReservation?.name}.\n\nEsta accion no se puede deshacer.`}
+        confirmText="Eliminar"
+        variant="danger"
+      />
     </>
   );
 }

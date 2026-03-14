@@ -29,12 +29,20 @@ export default function ResetPasswordPage() {
     setError('');
 
     try {
-      // TODO: Implement password reset API endpoint
-      // For now, show success message
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      setSuccess(true);
+      const res = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (res.ok) {
+        setSuccess(true);
+      } else {
+        const result = await res.json();
+        setError(result.error || 'Error al enviar el email. Por favor, inténtalo de nuevo');
+      }
     } catch (err) {
-      setError('Error al enviar el email. Por favor, inténtalo de nuevo');
+      setError('Error de conexión. Por favor, inténtalo de nuevo');
     } finally {
       setLoading(false);
     }

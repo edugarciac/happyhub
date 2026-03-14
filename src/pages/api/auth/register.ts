@@ -2,6 +2,8 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { z } from 'zod';
 import { createUser, getUserByEmail } from '../../../utils/db/users';
 import jwt from 'jsonwebtoken';
+import { generateVerificationToken } from '../../../utils/emailVerification';
+import { sendVerificationEmail } from '../../../lib/email';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
@@ -50,12 +52,16 @@ export default async function handler(
       });
     }
 
-    // Create user
+    // Create user (email_verified = false by default)
     const user = await createUser(data);
 
-    // Generate JWT
+    // Generate verification token and send email
+    const verificationToken = await generateVerificationToken(user.id);
+    await sendVerificationEmail(user.email, user.name, verificationToken);
+
+    // Generate JWT with emailVerified: false
     const token = jwt.sign(
-      { userId: user.id, email: user.email, role: user.role },
+      { userId: user.id, email: user.email, role: user.role, emailVerified: false },
       JWT_SECRET,
       { expiresIn: '30d' }
     );

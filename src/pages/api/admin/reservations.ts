@@ -1,110 +1,102 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { stripe } from '@/lib/stripe';
+import { query } from '@/lib/db';
+import { verifyAdminToken } from '@/utils/adminAuth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  const admin = verifyAdminToken(req);
+  if (!admin) {
+    return res.status(401).json({ success: false, error: 'No autorizado' });
+  }
+
   const {
-    status = 'all', // 'all', 'paid', 'pending'
+    status = 'all',
     dateFrom,
     dateTo,
     search,
-    limit = '50',
+    limit = '20',
     offset = '0',
   } = req.query;
 
   try {
-    // Get checkout sessions with pagination
-    const sessions = await stripe.checkout.sessions.list({
-      limit: 100, // Get more to filter
-    });
+    const conditions: string[] = [];
+    const params: any[] = [];
+    let paramIdx = 1;
 
-    let filteredSessions = sessions.data;
-
-    // Filter by payment status
-    if (status === 'paid') {
-      filteredSessions = filteredSessions.filter(s => s.payment_status === 'paid');
-    } else if (status === 'pending') {
-      filteredSessions = filteredSessions.filter(s => s.payment_status !== 'paid');
+    if (status && status !== 'all') {
+      conditions.push(`r.status = $${paramIdx++}`);
+      params.push(status);
     }
 
-    // Filter by date range
     if (dateFrom) {
-      const fromDate = new Date(dateFrom as string);
-      filteredSessions = filteredSessions.filter(s => {
-        if (!s.metadata?.date) return false;
-        return new Date(s.metadata.date) >= fromDate;
-      });
+      conditions.push(`r.event_date >= $${paramIdx++}`);
+      params.push(dateFrom);
     }
 
     if (dateTo) {
-      const toDate = new Date(dateTo as string);
-      filteredSessions = filteredSessions.filter(s => {
-        if (!s.metadata?.date) return false;
-        return new Date(s.metadata.date) <= toDate;
-      });
+      conditions.push(`r.event_date <= $${paramIdx++}`);
+      params.push(dateTo);
     }
 
-    // Filter by search query
-    if (search && typeof search === 'string') {
-      const searchLower = search.toLowerCase();
-      filteredSessions = filteredSessions.filter(s => {
-        const metadata = s.metadata;
-        if (!metadata) return false;
-        return (
-          metadata.name?.toLowerCase().includes(searchLower) ||
-          metadata.email?.toLowerCase().includes(searchLower) ||
-          metadata.phone?.includes(search) ||
-          metadata.reservationId?.toLowerCase().includes(searchLower)
-        );
-      });
+    if (search && typeof search === 'string' && search.trim()) {
+      const searchPattern = `%${search.trim()}%`;
+      conditions.push(
+        `(r.name ILIKE $${paramIdx} OR r.email ILIKE $${paramIdx} OR r.phone ILIKE $${paramIdx} OR CAST(r.id AS TEXT) ILIKE $${paramIdx})`
+      );
+      params.push(searchPattern);
+      paramIdx++;
     }
 
-    // Sort by event date (newest first)
-    filteredSessions.sort((a, b) => {
-      const dateA = a.metadata?.date ? new Date(a.metadata.date).getTime() : 0;
-      const dateB = b.metadata?.date ? new Date(b.metadata.date).getTime() : 0;
-      return dateB - dateA;
-    });
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
-    // Apply pagination
-    const limitNum = parseInt(limit as string);
-    const offsetNum = parseInt(offset as string);
-    const paginatedSessions = filteredSessions.slice(offsetNum, offsetNum + limitNum);
+    const countResult = await query(
+      `SELECT COUNT(*) as total FROM reservations r ${whereClause}`,
+      params
+    );
+    const total = parseInt(countResult.rows[0].total);
 
-    // Map to reservation objects
-    const reservations = paginatedSessions.map(session => ({
-      id: session.id,
-      reservationId: session.metadata?.reservationId || session.id,
-      name: session.metadata?.name || 'N/A',
-      email: session.metadata?.email || session.customer_email || 'N/A',
-      phone: session.metadata?.phone || 'N/A',
-      date: session.metadata?.date || null,
-      timeSlot: session.metadata?.timeSlot || 'N/A',
-      guests: parseInt(session.metadata?.guests || '0'),
-      eventType: session.metadata?.eventType || 'N/A',
-      extras: session.metadata?.extras ? session.metadata.extras.split(',').filter(Boolean) : [],
-      basePrice: parseFloat(session.metadata?.basePrice || '0'),
-      totalPrice: parseFloat(session.metadata?.totalPrice || '0'),
-      depositAmount: parseFloat(session.metadata?.depositAmount || '0'),
-      depositPaid: session.amount_total ? session.amount_total / 100 : 0,
-      paymentStatus: session.payment_status,
-      message: session.metadata?.message || '',
-      createdAt: new Date(session.created * 1000).toISOString(),
+    const limitNum = Math.min(parseInt(limit as string) || 20, 100);
+    const offsetNum = parseInt(offset as string) || 0;
+
+    const result = await query(
+      `SELECT r.id, r.name, r.email, r.phone, r.event_type, r.event_date, r.time_slot,
+              r.guests, r.extras, r.base_price, r.total_price, r.deposit_amount,
+              r.security_deposit, r.payment_method, r.status, r.customer_message,
+              r.created_at, r.updated_at
+       FROM reservations r
+       ${whereClause}
+       ORDER BY r.event_date DESC, r.created_at DESC
+       LIMIT $${paramIdx++} OFFSET $${paramIdx++}`,
+      [...params, limitNum, offsetNum]
+    );
+
+    const reservations = result.rows.map((r: any) => ({
+      id: r.id,
+      name: r.name,
+      email: r.email,
+      phone: r.phone,
+      eventType: r.event_type,
+      eventDate: r.event_date,
+      timeSlot: r.time_slot,
+      guests: r.guests,
+      extras: r.extras || [],
+      basePrice: parseFloat(r.base_price),
+      totalPrice: parseFloat(r.total_price || '0'),
+      depositAmount: parseFloat(r.deposit_amount || '0'),
+      securityDeposit: r.security_deposit ? parseFloat(r.security_deposit) : 200,
+      paymentMethod: r.payment_method,
+      status: r.status,
+      message: r.customer_message || '',
+      createdAt: r.created_at,
+      updatedAt: r.updated_at,
     }));
 
-    return res.status(200).json({
-      total: filteredSessions.length,
-      limit: limitNum,
-      offset: offsetNum,
-      reservations,
-    });
+    return res.status(200).json({ total, limit: limitNum, offset: offsetNum, reservations });
   } catch (error: any) {
     console.error('Error fetching reservations:', error);
-    return res.status(500).json({
-      error: error.message || 'Error fetching reservations',
-    });
+    return res.status(500).json({ error: 'Error al obtener reservas' });
   }
 }

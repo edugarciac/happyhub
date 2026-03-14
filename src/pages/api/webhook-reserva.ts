@@ -8,12 +8,17 @@ interface ReservationData {
   eventType: string;
   date: string;
   time: string;
+  timeSlot: string;
   guests: number;
   duration: string;
   extras?: string[];
   paymentMethod: string;
   message?: string;
+  basePrice: number;
   totalPrice: number;
+  depositAmount: number;
+  source?: string;
+  timestamp?: string;
 }
 
 interface ResponseData {
@@ -21,6 +26,7 @@ interface ResponseData {
   message?: string;
   reservationId?: string;
   error?: string;
+  detail?: string;
 }
 
 export default async function handler(
@@ -94,37 +100,37 @@ export default async function handler(
     });
   } catch (error: any) {
     console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.error('❌ Error al procesar la reserva:');
+    console.error('Error al procesar la reserva:');
     console.error('Message:', error.message);
     console.error('Code:', error.code);
+    console.error('Status:', error.response?.status);
     console.error('Response:', error.response?.data);
     console.error('URL:', process.env.N8N_WEBHOOK_URL);
     console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-    if (error.code === 'ECONNREFUSED') {
+    if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT' || error.code === 'ENOTFOUND') {
       return res.status(503).json({
         success: false,
-        error: 'No se puede conectar con n8n. Verifica que esté corriendo',
+        error: 'El servicio de reservas no esta disponible en este momento.',
+        detail: error.message,
       });
     }
 
-    if (error.code === 'ETIMEDOUT') {
-      return res.status(503).json({
+    // Forward n8n HTTP status codes (409 conflict, etc.)
+    if (error.response?.status) {
+      const n8nStatus = error.response.status;
+      const n8nData = error.response.data;
+      return res.status(n8nStatus).json({
         success: false,
-        error: 'Timeout conectando con n8n. El servidor no respondió',
-      });
-    }
-
-    if (error.code === 'ENOTFOUND') {
-      return res.status(503).json({
-        success: false,
-        error: 'No se puede resolver la dirección de n8n',
+        error: n8nData?.error || n8nData?.message || 'Error al procesar la reserva.',
+        detail: JSON.stringify(n8nData),
       });
     }
 
     return res.status(500).json({
       success: false,
-      error: error.response?.data?.message || error.message || 'Error al procesar la reserva',
+      error: 'Error al procesar la reserva.',
+      detail: error.message,
     });
   }
 }

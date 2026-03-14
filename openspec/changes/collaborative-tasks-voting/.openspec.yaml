@@ -1,0 +1,6 @@
+change: collaborative-tasks-voting
+status: proposed
+priority: P1
+module: M3 - Evento colaborativo
+depends_on: collaborative-event-core
+created: 2026-03-14

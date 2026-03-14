@@ -9,6 +9,7 @@ export interface User {
   name: string;
   phone?: string;
   role: 'client' | 'provider' | 'admin';
+  email_verified: boolean;
   created_at: Date;
   updated_at: Date;
 }
@@ -19,6 +20,7 @@ export interface UserResponse {
   name: string;
   phone?: string;
   role: 'client' | 'provider' | 'admin';
+  email_verified: boolean;
 }
 
 /**
@@ -50,19 +52,21 @@ export async function createUser(data: {
   name: string;
   phone?: string;
   role?: 'client' | 'provider' | 'admin';
+  email_verified?: boolean;
 }): Promise<UserResponse> {
   const passwordHash = await bcrypt.hash(data.password, 10);
 
   const result = await queryOne<User>(
-    `INSERT INTO users (email, password_hash, name, phone, role)
-     VALUES ($1, $2, $3, $4, $5)
-     RETURNING id, email, name, phone, role, created_at, updated_at`,
+    `INSERT INTO users (email, password_hash, name, phone, role, email_verified)
+     VALUES ($1, $2, $3, $4, $5, $6)
+     RETURNING id, email, name, phone, role, email_verified`,
     [
       data.email,
       passwordHash,
       data.name,
       data.phone || null,
-      data.role || 'client'
+      data.role || 'client',
+      data.email_verified ?? false,
     ]
   );
 
@@ -76,6 +80,7 @@ export async function createUser(data: {
     name: result.name,
     phone: result.phone,
     role: result.role,
+    email_verified: result.email_verified,
   };
 }
 
@@ -114,7 +119,7 @@ export async function updateUserProfile(
          phone = COALESCE($3, phone),
          updated_at = NOW()
      WHERE id = $1
-     RETURNING id, email, name, phone, role`,
+     RETURNING id, email, name, phone, role, email_verified`,
     [userId, data.name, data.phone]
   );
 
@@ -128,6 +133,7 @@ export async function updateUserProfile(
     name: result.name,
     phone: result.phone,
     role: result.role,
+    email_verified: result.email_verified,
   };
 }
 

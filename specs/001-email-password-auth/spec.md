@@ -2,7 +2,7 @@
 
 **Feature Branch**: `001-email-password-auth`
 **Created**: 2026-02-19
-**Updated**: 2026-02-20
+**Updated**: 2026-03-13
 **Status**: Draft
 **Input**: User description: "Add user authentication with email/password and Google OAuth. Support multiple auth methods, account linking, and seamless user experience."
 
@@ -30,7 +30,7 @@ A new customer wants to create an account on HappyHub to book events. They can c
 
 ### User Story 2 - User Login (Priority: P1)
 
-A registered customer wants to access their account by entering their email and password OR by clicking "Sign in with Google" if their account is linked to Google. Upon successful authentication, they can view their reservations, update their profile, and access protected features.
+A registered customer wants to access their account by entering their email and password OR by clicking "Sign in with Google" if their account is linked to Google. Upon successful authentication, the site header changes to reflect the authenticated state: the user icon is replaced by the user's email address and a logout button. A new navigation item "Área privada" becomes visible, linking to the user's private area. From there, the user can view their reservations, update their profile, and access protected features.
 
 **Why this priority**: Login is equally critical to registration as it enables returning users to access their accounts and manage their bookings. Supporting both authentication methods provides flexibility and convenience. Without login, users cannot access any of their previous reservations or personalized features. This completes the core authentication cycle.
 
@@ -46,6 +46,9 @@ A registered customer wants to access their account by entering their email and 
 6. **Given** a user tries to sign in with Google using an unregistered Google account, **When** the OAuth flow completes, **Then** the system displays "No account found. Please sign up first"
 7. **Given** a user successfully logs in, **When** the session is established, **Then** the system stores an authentication token that persists across page navigation
 8. **Given** a user has logged in on one device, **When** they log in on another device, **Then** both sessions remain active (no single-session restriction)
+9. **Given** a user successfully logs in (via either method), **When** the header renders, **Then** the user icon is replaced by the user's email address (truncated if necessary) and a logout button
+10. **Given** a user successfully logs in, **When** the navigation menu renders, **Then** a new menu item "Área privada" appears linking to `/area-privada`
+11. **Given** an unauthenticated visitor views the site, **When** the header renders, **Then** a user icon is shown linking to the login page and the "Área privada" menu item is not visible
 
 ---
 
@@ -104,22 +107,29 @@ A logged-in user can explicitly log out of their account, clearing their session
 
 ---
 
-### User Story 6 - Profile Management (Priority: P3)
+### User Story 6 - Área privada (Private area) (Priority: P2)
 
-A logged-in user can view and update their profile information including name, phone number, password (if set), and authentication methods (email/password and/or Google). They can also view their registered email address (which cannot be changed without support intervention) and manage account linking from this page.
+A logged-in user can access their "Área privada" from the navigation menu. This private area serves as the user's personal dashboard and contains two main sections: (1) personal data, where they can view and update their profile information (name, phone, password, authentication methods, email as read-only), and (2) a list of their reservations showing key fields and their current status.
 
-**Why this priority**: Profile management enables users to keep their information current and manage their authentication preferences, which is important for communication and service delivery. However, it's not required for the initial MVP as users can provide updated information when making reservations. This becomes more important as the platform matures and users expect self-service account management.
+**Why this priority**: The private area is the primary destination after login and provides the core value of having an account: seeing your reservation history and managing personal data. Without it, authentication has no tangible benefit for the user. Elevated from P3 to P2 because it is directly tied to the login experience and gives meaning to the authentication flow.
 
-**Independent Test**: Can be fully tested by logging in, navigating to the profile page, updating fields (name, phone, password, linked accounts), saving changes, and verifying that the updated information persists and is reflected in subsequent actions (e.g., new reservations use updated phone number, new login methods work).
+**Independent Test**: Can be fully tested by logging in, clicking "Área privada" in the navigation, verifying the personal data section shows the user's information with editable fields, and verifying the reservations section shows a list of the user's bookings with their status.
 
 **Acceptance Scenarios**:
 
-1. **Given** a logged-in user is on their profile page, **When** they update their name or phone number and save, **Then** the changes are persisted and reflected immediately throughout the application
-2. **Given** a user with an email/password account wants to change their password, **When** they enter their current password and a new password meeting strength requirements, **Then** their password is updated and they remain logged in
-3. **Given** a user with a Google-only account wants to set a password, **When** they enter a new password meeting strength requirements (no current password needed), **Then** their password is set and they can now log in with email/password
-4. **Given** a user attempts to change their password without entering the correct current password, **When** they submit the form, **Then** the system displays "Current password is incorrect" and does not update the password
-5. **Given** a user views their profile, **When** the page loads, **Then** they can see their email address displayed as read-only with a message "Contact support to change your email"
-6. **Given** a user is on their profile page, **When** they view the "Linked Accounts" section, **Then** they see which authentication methods are active (Email/Password, Google) and options to link/unlink accounts
+1. **Given** a logged-in user clicks "Área privada" in the navigation, **When** the page loads, **Then** they see two sections: "Datos personales" (personal data) and "Mis reservas" (my reservations)
+2. **Given** a logged-in user is on the Área privada page, **When** they view the personal data section, **Then** they see their name, phone, email (read-only), and authentication methods with options to edit
+3. **Given** a logged-in user updates their name or phone number and saves, **When** the save completes, **Then** the changes are persisted and reflected immediately throughout the application
+4. **Given** a user with an email/password account wants to change their password, **When** they enter their current password and a new password meeting strength requirements, **Then** their password is updated and they remain logged in
+5. **Given** a user with a Google-only account wants to set a password, **When** they enter a new password meeting strength requirements (no current password needed), **Then** their password is set and they can now log in with email/password
+6. **Given** a user attempts to change their password without entering the correct current password, **When** they submit the form, **Then** the system displays "Current password is incorrect" and does not update the password
+7. **Given** a user views their profile, **When** the page loads, **Then** they can see their email address displayed as read-only with a message "Contacta con soporte para cambiar tu email"
+8. **Given** a user is on the Área privada page, **When** they view the "Cuentas vinculadas" section, **Then** they see which authentication methods are active (Email/Password, Google) and options to link/unlink accounts
+9. **Given** a logged-in user is on the Área privada page, **When** they view the "Mis reservas" section, **Then** they see a list of their reservations showing: date, time slot, event type, number of guests, total price, and status
+10. **Given** a user has no reservations, **When** the reservations section loads, **Then** the system displays a friendly message "Aún no tienes reservas" with a CTA linking to "Reserva tu fecha"
+11. **Given** a user has reservations, **When** the list renders, **Then** reservations are sorted by date (most recent first) and each shows a colored status badge (pending = yellow, approved = green, rejected = red, paid = blue)
+12. **Given** a user clicks on a reservation in the list, **When** the detail opens, **Then** they can see the full reservation details including extras, deposit paid, and any messages
+13. **Given** an unauthenticated visitor navigates to `/area-privada`, **When** the page loads, **Then** they are redirected to the login page
 
 ---
 
@@ -139,6 +149,9 @@ A logged-in user can view and update their profile information including name, p
 - What happens when a user with both authentication methods changes their Google account email but keeps the same Google ID? (System recognizes them by Google ID, updates email if different from HappyHub account email only with user confirmation)
 - How does the system handle account linking race conditions (e.g., simultaneous link requests from multiple tabs)? (Use database-level unique constraints and atomic operations to prevent duplicate links)
 - What happens if a user tries to create an account with Google while an email/password account with the same email exists but user doesn't know their password? (Provide clear message: "An account with this email already exists. Please log in with email/password and link your Google account from profile settings, or use password reset")
+- What happens if a user made reservations before creating an account, using the same email? (Reservations are matched by email, so existing reservations appear in the Área privada once the user registers with that email)
+- What happens if Stripe is unavailable when loading the reservation list? (Display error message "No se pudieron cargar tus reservas. Inténtalo de nuevo más tarde" with a retry button)
+- What happens when a user's email in their account differs from the email used at booking time? (Only reservations matching the current account email are shown; reservations made with a different email are not visible)
 
 ## Requirements *(mandatory)*
 
@@ -185,12 +198,34 @@ A logged-in user can view and update their profile information including name, p
 - **FR-039**: System MUST securely handle OAuth tokens and refresh tokens following OAuth 2.0 best practices
 - **FR-040**: System MUST display clear authentication method indicators in profile settings showing which methods are active (Email/Password, Google)
 
+#### Header and navigation behavior
+
+- **FR-041**: System MUST display the user's email address in the header when authenticated, replacing the user icon shown to unauthenticated visitors
+- **FR-042**: System MUST display a logout button next to the user's email in the header when authenticated
+- **FR-043**: System MUST show a navigation item "Área privada" linking to `/area-privada` only when the user is authenticated
+- **FR-044**: System MUST hide the "Área privada" navigation item when the user is not authenticated
+- **FR-045**: System MUST truncate long email addresses in the header to avoid breaking the layout
+
+#### Área privada (private area)
+
+- **FR-046**: System MUST provide a protected page at `/area-privada` accessible only to authenticated users
+- **FR-047**: System MUST redirect unauthenticated users accessing `/area-privada` to the login page
+- **FR-048**: System MUST display a "Datos personales" section showing: name (editable), phone (editable), email (read-only), and authentication methods linked
+- **FR-049**: System MUST display a "Mis reservas" section listing all reservations associated with the authenticated user's email
+- **FR-050**: System MUST show the following fields for each reservation in the list: date, time slot, event type, number of guests, total price, and status
+- **FR-051**: System MUST display reservation status using colored badges: pending (yellow), approved (green), rejected (red), paid (blue)
+- **FR-052**: System MUST sort the reservation list by event date, most recent first
+- **FR-053**: System MUST display a friendly empty state "Aún no tienes reservas" with a CTA to "Reserva tu fecha" when the user has no reservations
+- **FR-054**: System MUST allow users to click on a reservation to view full details (extras, deposit paid, messages)
+- **FR-055**: System MUST match reservations to the authenticated user by comparing the user's email with the reservation email stored in Stripe metadata
+
 ### Key Entities
 
 - **User Account**: Represents a registered user with attributes including unique email address (primary identifier), hashed password (optional, null for Google-only accounts), full name, phone number, Google OAuth identifier (optional), account creation date, last login date, authentication methods enabled (email/password, Google, or both), and account status (active/inactive). Related to Reservation entities for tracking bookings.
 - **Authentication Token**: Represents an active user session with attributes including token value, associated user account, creation timestamp, expiration timestamp (30 days from creation), authentication method used (email/password or Google), and device/browser information. Used to maintain authenticated state across requests.
 - **Password Reset Request**: Represents a password reset action with attributes including unique token, associated user account, creation timestamp, expiration timestamp (24 hours from creation), and used status. Only one valid reset token per user at any time. Only applicable for accounts with email/password authentication enabled.
 - **OAuth Account Link**: Represents a connection between a HappyHub account and a Google account with attributes including Google user ID (OAuth sub), associated HappyHub user account, link creation date, last used date, and link status (active/revoked). Enables users to authenticate using multiple methods.
+- **User Reservation (read-only view)**: Represents a booking made by the user, retrieved from Stripe checkout sessions filtered by user email. Key display fields: reservation ID, event date, time slot (morning/afternoon/night), event type, number of guests, total price, deposit paid, payment status, and overall reservation status (pending/approved/rejected/paid). Reservations are not created through the Área privada, only viewed.
 
 ## Success Criteria *(mandatory)*
 
@@ -211,6 +246,9 @@ A logged-in user can view and update their profile information including name, p
 - **SC-013**: Google OAuth authentication completes in under 10 seconds from button click to authenticated state
 - **SC-014**: Account linking operations (link/unlink Google account) complete in under 15 seconds with clear confirmation feedback
 - **SC-015**: 95% of Google OAuth flows complete successfully without errors (handling for Google service unavailability included)
+- **SC-016**: Authenticated users can navigate from login to viewing their reservations in the Área privada in under 3 seconds
+- **SC-017**: The reservation list in Área privada correctly displays all reservations associated with the user's email, with 100% accuracy on status badges
+- **SC-018**: The "Área privada" menu item is visible only to authenticated users and never shown to unauthenticated visitors
 
 ## Assumptions *(mandatory)*
 

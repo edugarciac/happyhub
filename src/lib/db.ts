@@ -71,20 +71,35 @@ export async function ensureUsersTable(): Promise<void> {
         name VARCHAR(255),
         phone VARCHAR(50),
         role VARCHAR(50) DEFAULT 'client' CHECK (role IN ('client', 'provider', 'admin')),
+        email_verified BOOLEAN DEFAULT false,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
       CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
       CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
+
+      -- Add email_verified column if missing (for existing databases)
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT false;
+
+      CREATE TABLE IF NOT EXISTS email_verification_tokens (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        token VARCHAR(64) UNIQUE NOT NULL,
+        expires_at TIMESTAMP NOT NULL,
+        used BOOLEAN DEFAULT false,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_email_verification_tokens_token ON email_verification_tokens(token);
     `);
 
     // Seed default accounts if the table was just created
     await client.query(`
-      INSERT INTO users (email, password_hash, name, phone, role) VALUES
-      ('admin@happyhub.es',     '$2a$10$K7L/MQGyhqG3XzBGKHOV9uC5fN8CfVRlkN7yWAJXJKdQJLO4J7PHC', 'Admin HappyHub', '+34666000001', 'admin'),
-      ('proveedor@happyhub.es', '$2a$10$K7L/MQGyhqG3XzBGKHOV9uC5fN8CfVRlkN7yWAJXJKdQJLO4J7PHC', 'Proveedor Demo', '+34666000003', 'provider'),
-      ('cliente@happyhub.es',   '$2a$10$K7L/MQGyhqG3XzBGKHOV9uC5fN8CfVRlkN7yWAJXJKdQJLO4J7PHC', 'Cliente Demo',   '+34666000002', 'client')
+      INSERT INTO users (email, password_hash, name, phone, role, email_verified) VALUES
+      ('admin@happyhub.es',     '$2a$10$K7L/MQGyhqG3XzBGKHOV9uC5fN8CfVRlkN7yWAJXJKdQJLO4J7PHC', 'Admin HappyHub', '+34666000001', 'admin', true),
+      ('proveedor@happyhub.es', '$2a$10$K7L/MQGyhqG3XzBGKHOV9uC5fN8CfVRlkN7yWAJXJKdQJLO4J7PHC', 'Proveedor Demo', '+34666000003', 'provider', true),
+      ('cliente@happyhub.es',   '$2a$10$K7L/MQGyhqG3XzBGKHOV9uC5fN8CfVRlkN7yWAJXJKdQJLO4J7PHC', 'Cliente Demo',   '+34666000002', 'client', true)
       ON CONFLICT (email) DO NOTHING;
     `);
 
@@ -127,6 +142,7 @@ export async function initializeSchema(): Promise<void> {
         name VARCHAR(255),
         phone VARCHAR(50),
         role VARCHAR(50) DEFAULT 'client',
+        email_verified BOOLEAN DEFAULT false,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
@@ -140,24 +156,28 @@ export async function initializeSchema(): Promise<void> {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
-      -- Reservations table
+      -- Reservations table (matches database/schema.sql and OpenSpec B2)
       CREATE TABLE reservations (
         id SERIAL PRIMARY KEY,
-        user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) NOT NULL,
+        phone VARCHAR(50) NOT NULL,
+        event_type VARCHAR(50) NOT NULL,
         event_date DATE NOT NULL,
-        time_slot VARCHAR(50) NOT NULL,
-        event_type VARCHAR(100),
-        guests INTEGER,
+        time_slot VARCHAR(20) NOT NULL,
+        guests INT NOT NULL,
+        extras JSONB DEFAULT '[]',
+        base_price DECIMAL(10,2) NOT NULL,
         total_price DECIMAL(10,2),
-        deposit_paid BOOLEAN DEFAULT FALSE,
         deposit_amount DECIMAL(10,2),
-        status VARCHAR(50) DEFAULT 'pending',
-        stripe_payment_intent_id VARCHAR(255),
-        stripe_checkout_session_id VARCHAR(255),
+        security_deposit DECIMAL(10,2) DEFAULT 200,
+        payment_method VARCHAR(20) NOT NULL,
+        status VARCHAR(20) DEFAULT 'pending',
+        customer_message TEXT,
         google_calendar_event_id VARCHAR(255),
-        notes TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(event_date, time_slot)
       );
 
       -- Providers table
@@ -190,12 +210,23 @@ export async function initializeSchema(): Promise<void> {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
+      -- Email verification tokens
+      CREATE TABLE email_verification_tokens (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        token VARCHAR(64) UNIQUE NOT NULL,
+        expires_at TIMESTAMP NOT NULL,
+        used BOOLEAN DEFAULT false,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
       -- Indexes
       CREATE INDEX idx_users_email ON users(email);
       CREATE INDEX idx_reservations_date ON reservations(event_date);
-      CREATE INDEX idx_reservations_user ON reservations(user_id);
+      CREATE INDEX idx_reservations_email ON reservations(email);
       CREATE INDEX idx_providers_service_type ON providers(service_type);
       CREATE INDEX idx_services_reservation ON services(reservation_id);
+      CREATE INDEX idx_email_verification_tokens_token ON email_verification_tokens(token);
     `);
 
     console.log('✅ Schema created');
@@ -205,10 +236,10 @@ export async function initializeSchema(): Promise<void> {
 
     await client.query(`
       -- Demo users (password: happyhub123)
-      INSERT INTO users (email, password_hash, name, phone, role) VALUES
-      ('admin@happyhub.es', '$2a$10$K7L/MQGyhqG3XzBGKHOV9uC5fN8CfVRlkN7yWAJXJKdQJLO4J7PHC', 'Admin HappyHub', '+34666000001', 'admin'),
-      ('cliente@happyhub.es', '$2a$10$K7L/MQGyhqG3XzBGKHOV9uC5fN8CfVRlkN7yWAJXJKdQJLO4J7PHC', 'Cliente Demo', '+34666000002', 'client'),
-      ('proveedor@happyhub.es', '$2a$10$K7L/MQGyhqG3XzBGKHOV9uC5fN8CfVRlkN7yWAJXJKdQJLO4J7PHC', 'Proveedor Demo', '+34666000003', 'provider');
+      INSERT INTO users (email, password_hash, name, phone, role, email_verified) VALUES
+      ('admin@happyhub.es', '$2a$10$K7L/MQGyhqG3XzBGKHOV9uC5fN8CfVRlkN7yWAJXJKdQJLO4J7PHC', 'Admin HappyHub', '+34666000001', 'admin', true),
+      ('cliente@happyhub.es', '$2a$10$K7L/MQGyhqG3XzBGKHOV9uC5fN8CfVRlkN7yWAJXJKdQJLO4J7PHC', 'Cliente Demo', '+34666000002', 'client', true),
+      ('proveedor@happyhub.es', '$2a$10$K7L/MQGyhqG3XzBGKHOV9uC5fN8CfVRlkN7yWAJXJKdQJLO4J7PHC', 'Proveedor Demo', '+34666000003', 'provider', true);
 
       -- Event types
       INSERT INTO event_types (name, description, icon) VALUES

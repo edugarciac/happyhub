@@ -7,12 +7,12 @@ export const CONTACT_INFO = {
   phoneFormatted: '624 645 517',
   phoneInternational: '+34624645517',
   address: {
-    street: 'C/ Rovellat, 25',
+    street: 'C/ Rovellat, 27',
     postalCode: '08950',
     city: 'Esplugues de Llobregat',
     province: 'Barcelona',
     country: 'España',
-    full: 'C/ Rovellat, 25, 08950 Esplugues de Llobregat, Barcelona, España',
+    full: 'C/ Rovellat, 27, 08950 Esplugues de Llobregat, Barcelona, España',
   },
   schedule: {
     weekdays: 'Lunes - Viernes: 9:00 - 20:00',

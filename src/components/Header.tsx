@@ -2,11 +2,13 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useState, useEffect } from 'react';
-import { Menu, X, User } from 'lucide-react';
+import { Menu, X, User, LogOut } from 'lucide-react';
+import { useSession, signOut } from 'next-auth/react';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const { data: session } = useSession();
   const router = useRouter();
 
   useEffect(() => {
@@ -17,12 +19,20 @@ export default function Header() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const handleLogout = async () => {
+    localStorage.removeItem('token');
+    await signOut({ redirect: false });
+    router.push('/');
+  };
+
   const navItems = [
     { href: '/', label: 'Inicio' },
     { href: '/como-funciona', label: '¿Cómo lo hacemos?' },
     { href: '/servicios', label: 'Servicios' },
+    { href: '/partners', label: 'Partners' },
     { href: '/reservas', label: 'Reserva tu fecha' },
     { href: '/contacto', label: 'Contacto' },
+    ...(session?.user ? [{ href: '/area-privada', label: 'Área privada' }] : []),
   ];
 
   return (
@@ -63,13 +73,28 @@ export default function Header() {
                 {item.label}
               </Link>
             ))}
-            <Link
-              href="/login"
-              className="text-gray-700 hover:text-primary-600 transition-colors p-2 rounded-xl hover:bg-primary-50 ml-2"
-              title="Iniciar sesión"
-            >
-              <User className="w-5 h-5" />
-            </Link>
+            {session?.user ? (
+              <div className="flex items-center ml-2 space-x-2">
+                <span className="text-sm font-medium text-gray-700 max-w-[160px] truncate" title={session.user.email || ''}>
+                  {session.user.email}
+                </span>
+                <button
+                  onClick={handleLogout}
+                  className="text-gray-500 hover:text-red-500 transition-colors p-2 rounded-xl hover:bg-red-50"
+                  title="Cerrar sesión"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="text-gray-700 hover:text-primary-600 transition-colors p-2 rounded-xl hover:bg-primary-50 ml-2"
+                title="Iniciar sesión"
+              >
+                <User className="w-5 h-5" />
+              </Link>
+            )}
             <Link
               href="/reservas"
               className="btn-primary ml-4 !py-2.5 !px-6 text-sm"
@@ -101,13 +126,28 @@ export default function Header() {
                 {item.label}
               </Link>
             ))}
-            <Link
-              href="/login"
-              onClick={() => setIsMenuOpen(false)}
-              className="block text-gray-700 hover:text-primary-600 font-medium transition-colors px-4 py-3 rounded-xl hover:bg-primary-50"
-            >
-              Iniciar Sesión
-            </Link>
+            {session?.user ? (
+              <div className="flex items-center justify-between px-4 py-3">
+                <span className="text-sm font-medium text-gray-700 truncate">
+                  {session.user.email}
+                </span>
+                <button
+                  onClick={() => { setIsMenuOpen(false); handleLogout(); }}
+                  className="text-red-500 hover:text-red-700 text-sm font-medium flex items-center"
+                >
+                  <LogOut className="w-4 h-4 mr-1" />
+                  Salir
+                </button>
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                onClick={() => setIsMenuOpen(false)}
+                className="block text-gray-700 hover:text-primary-600 font-medium transition-colors px-4 py-3 rounded-xl hover:bg-primary-50"
+              >
+                Iniciar Sesión
+              </Link>
+            )}
             <Link
               href="/reservas"
               onClick={() => setIsMenuOpen(false)}

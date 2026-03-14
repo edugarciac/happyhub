@@ -10,7 +10,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const result = await query<{ event_date: string; time_slot: string }>(
       `SELECT TO_CHAR(event_date, 'YYYY-MM-DD') AS event_date, time_slot
        FROM reservations
-       WHERE status IN ('pending', 'approved')
+       WHERE status IN ('pending', 'approved', 'confirmed')
          AND event_date >= CURRENT_DATE`
     );
 

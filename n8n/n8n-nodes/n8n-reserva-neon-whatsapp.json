@@ -17,10 +17,10 @@
     },
     {
       "parameters": {
-        "functionCode": "// Normalizar datos de entrada\nconst body = items[0].json.body || items[0].json;\n\n// Extraer datos\nconst data = {\n  nombre: body.name || body.nombre,\n  email: body.email,\n  telefono: body.phone || body.telefono,\n  fecha: body.date || body.fecha,\n  hora: body.time || body.hora,\n  timeSlot: body.timeSlot || 'afternoon',\n  pax: body.guests || body.pax || 20,\n  duracion: body.duration || '4',\n  extras: body.extras || [],\n  tipoEvento: body.eventType || body.tipoEvento || 'cumpleaños',\n  mensaje: body.message || body.mensaje || '',\n  precioTotal: body.totalPrice || body.precioTotal || 0,\n  depositoAmount: body.depositAmount || body.depositoAmount || 0,\n  basePrice: body.basePrice || 0\n};\n\n// Calcular fechas para Calendar\nconst [year, month, day] = data.fecha.split('-');\nconst [hours, minutes] = data.hora.split(':');\nconst startDateTime = new Date(year, month - 1, day, hours, minutes);\nconst durationHours = parseInt(data.duracion);\nconst endDateTime = new Date(startDateTime);\nendDateTime.setHours(endDateTime.getHours() + durationHours);\n\nreturn [{\n  json: {\n    ...data,\n    fechaHoraInicio: startDateTime.toISOString(),\n    fechaHoraFin: endDateTime.toISOString(),\n    timeMin: startDateTime.toISOString(),\n    timeMax: endDateTime.toISOString(),\n    fechaFormateada: `${day}/${month}/${year}`,\n    horaFormateada: `${hours}:${minutes}h`,\n    timestamp: new Date().toISOString()\n  }\n}];"
+        "functionCode": "// Normalizar datos de entrada\nconst body = items[0].json.body || items[0].json;\n\nconst data = {\n  nombre: body.name || body.nombre || '',\n  email: body.email || '',\n  telefono: body.phone || body.telefono || '',\n  fecha: body.date || body.fecha || '',\n  hora: body.time || body.hora || '',\n  timeSlot: body.timeSlot || 'afternoon',\n  pax: parseInt(body.guests || body.pax || 20),\n  duracion: body.duration || '4',\n  extras: JSON.stringify(body.extras || []),\n  tipoEvento: body.eventType || body.tipoEvento || 'cumpleanos',\n  mensaje: (body.message || body.mensaje || '').replace(/'/g, \"''\"),\n  precioBase: parseFloat(body.basePrice || 0),\n  precioTotal: parseFloat(body.totalPrice || body.precioTotal || 0),\n  depositoAmount: parseFloat(body.depositAmount || body.depositoAmount || 0),\n  metodoPago: body.paymentMethod || 'cash'\n};\n\n// Calcular fechas para Calendar\nconst [year, month, day] = data.fecha.split('-');\nconst [hours, minutes] = data.hora.split(':');\nconst startDateTime = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hours), parseInt(minutes || '0'));\nconst durationHours = parseInt(data.duracion);\nconst endDateTime = new Date(startDateTime);\nendDateTime.setHours(endDateTime.getHours() + durationHours);\n\nreturn [{\n  json: {\n    ...data,\n    fechaHoraInicio: startDateTime.toISOString(),\n    fechaHoraFin: endDateTime.toISOString(),\n    fechaFormateada: `${day}/${month}/${year}`,\n    horaFormateada: `${hours}:${minutes || '00'}h`,\n    timestamp: new Date().toISOString()\n  }\n}];"
       },
       "id": "normalize_data",
-      "name": "Normalizar Datos",
+      "name": "NormalizarDatos",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
       "position": [450, 300]
@@ -28,11 +28,11 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT id FROM reservations WHERE event_date = '{{ $json.fecha }}' AND time_slot = '{{ $json.timeSlot }}' AND status IN ('pending', 'confirmed') LIMIT 1",
+        "query": "=SELECT COUNT(*) as total FROM reservations WHERE event_date = '{{ $json.fecha }}' AND time_slot = '{{ $json.timeSlot }}' AND status IN ('pending', 'approved', 'confirmed')",
         "options": {}
       },
       "id": "check_availability_db",
-      "name": "Verificar Disponibilidad (Neon)",
+      "name": "VerificarDisponibilidad",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.4,
       "position": [650, 300],
@@ -48,7 +48,7 @@
         "conditions": {
           "number": [
             {
-              "value1": "={{ $json.length || 0 }}",
+              "value1": "={{ $json.total }}",
               "operation": "equal",
               "value2": 0
             }
@@ -56,7 +56,7 @@
         }
       },
       "id": "if_available",
-      "name": "¿Fecha Disponible?",
+      "name": "FechaDisponible",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
       "position": [850, 300]
@@ -64,13 +64,13 @@
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={\n  \"success\": false,\n  \"error\": \"Lo siento, la fecha y hora ya está reservada.\",\n  \"message\": \"Lo siento, la fecha y hora indicada ya está reservada.\"\n}",
+        "responseBody": "={\n  \"success\": false,\n  \"error\": \"Esta fecha y franja horaria ya esta reservada.\",\n  \"message\": \"Lo siento, la fecha y hora indicada ya esta reservada.\"\n}",
         "options": {
           "responseCode": 409
         }
       },
       "id": "response_conflict",
-      "name": "Respuesta: No Disponible",
+      "name": "RespuestaNoDisponible",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
       "position": [1050, 450]
@@ -78,11 +78,11 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "INSERT INTO reservations (event_date, time_slot, event_type, guests, total_price, deposit_amount, status, notes, created_at) VALUES ('{{ $node['Normalizar Datos'].json.fecha }}', '{{ $node['Normalizar Datos'].json.timeSlot }}', '{{ $node['Normalizar Datos'].json.tipoEvento }}', {{ $node['Normalizar Datos'].json.pax }}, {{ $node['Normalizar Datos'].json.precioTotal }}, {{ $node['Normalizar Datos'].json.depositoAmount }}, 'pending', '{{ $node['Normalizar Datos'].json.mensaje }}', NOW()) RETURNING id",
+        "query": "=INSERT INTO reservations (name, email, phone, event_type, event_date, time_slot, guests, extras, base_price, total_price, deposit_amount, payment_method, customer_message, status, created_at) VALUES ('{{ $('NormalizarDatos').item.json.nombre }}', '{{ $('NormalizarDatos').item.json.email }}', '{{ $('NormalizarDatos').item.json.telefono }}', '{{ $('NormalizarDatos').item.json.tipoEvento }}', '{{ $('NormalizarDatos').item.json.fecha }}', '{{ $('NormalizarDatos').item.json.timeSlot }}', {{ $('NormalizarDatos').item.json.pax }}, '{{ $('NormalizarDatos').item.json.extras }}'::jsonb, {{ $('NormalizarDatos').item.json.precioBase }}, {{ $('NormalizarDatos').item.json.precioTotal }}, {{ $('NormalizarDatos').item.json.depositoAmount }}, '{{ $('NormalizarDatos').item.json.metodoPago }}', '{{ $('NormalizarDatos').item.json.mensaje }}', 'pending', NOW()) RETURNING id",
         "options": {}
       },
       "id": "save_to_neon",
-      "name": "Guardar en Neon DB",
+      "name": "GuardarEnNeonDB",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.4,
       "position": [1050, 150],
@@ -97,16 +97,17 @@
       "parameters": {
         "operation": "create",
         "calendarId": "primary",
-        "start": "={{ $node['Normalizar Datos'].json.fechaHoraInicio }}",
-        "end": "={{ $node['Normalizar Datos'].json.fechaHoraFin }}",
-        "summary": "HappyHub - {{ $node['Normalizar Datos'].json.nombre }}",
-        "description": "Tipo: {{ $node['Normalizar Datos'].json.tipoEvento }}\\nPersonas: {{ $node['Normalizar Datos'].json.pax }}\\nTeléfono: {{ $node['Normalizar Datos'].json.telefono }}\\nEmail: {{ $node['Normalizar Datos'].json.email }}\\nTotal: {{ $node['Normalizar Datos'].json.precioTotal }}€",
-        "options": {
+        "start": "={{ $('NormalizarDatos').item.json.fechaHoraInicio }}",
+        "end": "={{ $('NormalizarDatos').item.json.fechaHoraFin }}",
+        "summary": "=HappyHub - {{ $('NormalizarDatos').item.json.nombre }} - {{ $('NormalizarDatos').item.json.tipoEvento }}",
+        "additionalFields": {
+          "description": "=Tipo de evento: {{ $('NormalizarDatos').item.json.tipoEvento }}\nNombre: {{ $('NormalizarDatos').item.json.nombre }}\nParticipantes: {{ $('NormalizarDatos').item.json.pax }} personas\nTelefono: {{ $('NormalizarDatos').item.json.telefono }}\nEmail: {{ $('NormalizarDatos').item.json.email }}\nMetodo de pago: {{ $('NormalizarDatos').item.json.metodoPago }}\nPrecio base: {{ $('NormalizarDatos').item.json.precioBase }} EUR\nPrecio total: {{ $('NormalizarDatos').item.json.precioTotal }} EUR\nSenal (30%): {{ $('NormalizarDatos').item.json.depositoAmount }} EUR\nExtras: {{ $('NormalizarDatos').item.json.extras }}\nMensaje: {{ $('NormalizarDatos').item.json.mensaje }}",
+          "location": "HappyHub - C/ Rovellat, 27, 08950 Esplugues de Llobregat",
           "sendUpdates": "all"
         }
       },
       "id": "create_calendar_event",
-      "name": "Crear Evento Calendar",
+      "name": "CrearEventoCalendar",
       "type": "n8n-nodes-base.googleCalendar",
       "typeVersion": 1,
       "position": [1250, 150],
@@ -119,10 +120,10 @@
     },
     {
       "parameters": {
-        "functionCode": "// Generar ID de reserva\nconst dbResult = $node['Guardar en Neon DB'].json;\nconst reservationId = `RES-${new Date().toISOString().split('T')[0].replace(/-/g, '')}-${String(dbResult.id).padStart(3, '0')}`;\n\nconst data = $node['Normalizar Datos'].json;\n\nreturn [{\n  json: {\n    reservationId: reservationId,\n    nombre: data.nombre,\n    email: data.email,\n    telefono: data.telefono,\n    fecha: data.fechaFormateada,\n    hora: data.horaFormateada,\n    pax: data.pax,\n    total: data.precioTotal,\n    deposito: data.depositoAmount,\n    tipoEvento: data.tipoEvento,\n    calendarEventId: $node['Crear Evento Calendar'].json.id || '',\n    dbId: dbResult.id\n  }\n}];"
+        "functionCode": "const dbResult = $('GuardarEnNeonDB').item.json;\nconst data = $('NormalizarDatos').item.json;\nconst calendarEvent = $('CrearEventoCalendar').item.json;\n\nconst reservationId = `RES-${data.fecha.replace(/-/g, '')}-${String(dbResult.id).padStart(3, '0')}`;\n\nreturn [{\n  json: {\n    reservationId,\n    nombre: data.nombre,\n    email: data.email,\n    telefono: data.telefono,\n    fecha: data.fechaFormateada,\n    hora: data.horaFormateada,\n    pax: data.pax,\n    tipoEvento: data.tipoEvento,\n    extras: data.extras,\n    metodoPago: data.metodoPago,\n    total: data.precioTotal,\n    deposito: data.depositoAmount,\n    calendarEventId: calendarEvent.id || '',\n    dbId: dbResult.id\n  }\n}];"
       },
       "id": "prepare_response",
-      "name": "Preparar Respuesta",
+      "name": "PrepararRespuesta",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
       "position": [1450, 150]
@@ -130,7 +131,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://graph.facebook.com/v18.0/{{ $env.WHATSAPP_PHONE_NUMBER_ID }}/messages",
+        "url": "=https://graph.facebook.com/v18.0/{{ $env.WHATSAPP_PHONE_NUMBER_ID }}/messages",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "sendHeaders": true,
@@ -138,7 +139,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "Bearer {{ $env.WHATSAPP_ACCESS_TOKEN }}"
+              "value": "=Bearer {{ $env.WHATSAPP_ACCESS_TOKEN }}"
             },
             {
               "name": "Content-Type",
@@ -152,18 +153,19 @@
         },
         "jsonParameters": true,
         "options": {},
-        "bodyParametersJson": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $json.telefono }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"¡Hola {{ $json.nombre }}! 🎉\\n\\nTu reserva en HappyHub ha sido recibida correctamente.\\n\\n📅 Fecha: {{ $json.fecha }}\\n🕐 Hora: {{ $json.hora }}\\n👥 Invitados: {{ $json.pax }}\\n💰 Total: {{ $json.total }}€\\n💳 Señal (30%): {{ $json.deposito }}€\\n🔖 Nº Reserva: {{ $json.reservationId }}\\n\\nNos pondremos en contacto contigo en las próximas 24 horas para confirmar todos los detalles y enviarte el enlace de pago.\\n\\n¿Necesitas ayuda? Responde a este mensaje.\\n\\nGracias por confiar en HappyHub 💙\"\n  }\n}"
+        "bodyParametersJson": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $json.telefono }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"Hola {{ $json.nombre }}!\\n\\nTu reserva en HappyHub ha sido recibida correctamente.\\n\\nFecha: {{ $json.fecha }}\\nHora: {{ $json.hora }}\\nInvitados: {{ $json.pax }}\\nTotal: {{ $json.total }} EUR\\nSenal (30%): {{ $json.deposito }} EUR\\nN. Reserva: {{ $json.reservationId }}\\n\\nNos pondremos en contacto contigo en las proximas 24 horas para confirmar todos los detalles y enviarte el enlace de pago.\\n\\nNecesitas ayuda? Responde a este mensaje.\\n\\nGracias por confiar en HappyHub\"\n  }\n}"
       },
       "id": "send_whatsapp_customer",
-      "name": "WhatsApp Cliente",
+      "name": "WhatsAppCliente",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1650, 100]
+      "position": [1650, 100],
+      "continueOnFail": true
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "https://graph.facebook.com/v18.0/{{ $env.WHATSAPP_PHONE_NUMBER_ID }}/messages",
+        "url": "=https://graph.facebook.com/v18.0/{{ $env.WHATSAPP_PHONE_NUMBER_ID }}/messages",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "sendHeaders": true,
@@ -171,7 +173,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "Bearer {{ $env.WHATSAPP_ACCESS_TOKEN }}"
+              "value": "=Bearer {{ $env.WHATSAPP_ACCESS_TOKEN }}"
             },
             {
               "name": "Content-Type",
@@ -181,13 +183,36 @@
         },
         "sendBody": true,
         "jsonParameters": true,
-        "bodyParametersJson": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $env.ADMIN_WHATSAPP_NUMBER }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"🔔 Nueva Reserva Recibida\\n\\n👤 Cliente: {{ $json.nombre }}\\n📧 Email: {{ $json.email }}\\n📱 Teléfono: {{ $json.telefono }}\\n📅 Fecha: {{ $json.fecha }} {{ $json.hora }}\\n👥 Invitados: {{ $json.pax }}\\n🎉 Tipo: {{ $json.tipoEvento }}\\n💰 Total: {{ $json.total }}€\\n💳 Señal: {{ $json.deposito }}€\\n🔖 ID: {{ $json.reservationId }}\\n\\n✅ Guardado en BD (ID: {{ $json.dbId }})\\n📅 Calendario actualizado\"\n  }\n}"
+        "bodyParametersJson": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $env.ADMIN_WHATSAPP_NUMBER }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"Nueva Reserva Recibida\\n\\nCliente: {{ $json.nombre }}\\nEmail: {{ $json.email }}\\nTelefono: {{ $json.telefono }}\\nFecha: {{ $json.fecha }} {{ $json.hora }}\\nInvitados: {{ $json.pax }}\\nTipo: {{ $json.tipoEvento }}\\nMetodo pago: {{ $json.metodoPago }}\\nTotal: {{ $json.total }} EUR\\nSenal: {{ $json.deposito }} EUR\\nID: {{ $json.reservationId }}\\n\\nGuardado en BD (ID: {{ $json.dbId }})\\nCalendario actualizado\"\n  }\n}"
       },
       "id": "send_whatsapp_admin",
-      "name": "WhatsApp Admin",
+      "name": "WhatsAppAdmin",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1650, 200]
+      "position": [1650, 250],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "fromEmail": "=happyhub.rovellat@gmail.com",
+        "toEmail": "={{ $json.email }}",
+        "subject": "=Confirmacion de reserva {{ $json.reservationId }} - HappyHub",
+        "text": "",
+        "html": "=<div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;\">\n  <div style=\"background: linear-gradient(135deg, #FF6B35, #F7931E); padding: 30px; text-align: center; border-radius: 12px 12px 0 0;\">\n    <h1 style=\"color: white; margin: 0; font-size: 28px;\">HappyHub</h1>\n    <p style=\"color: rgba(255,255,255,0.9); margin: 8px 0 0;\">Tu espacio para celebrar</p>\n  </div>\n  <div style=\"padding: 30px; background: #fff; border: 1px solid #eee;\">\n    <h2 style=\"color: #FF6B35; margin-top: 0;\">Hola {{ $json.nombre }}!</h2>\n    <p>Tu reserva ha sido recibida correctamente. A continuacion tienes el resumen:</p>\n    <table style=\"width: 100%; border-collapse: collapse; margin: 20px 0;\">\n      <tr style=\"border-bottom: 1px solid #eee;\"><td style=\"padding: 10px 0; color: #888;\">N. Reserva</td><td style=\"padding: 10px 0; font-weight: bold;\">{{ $json.reservationId }}</td></tr>\n      <tr style=\"border-bottom: 1px solid #eee;\"><td style=\"padding: 10px 0; color: #888;\">Fecha</td><td style=\"padding: 10px 0;\">{{ $json.fecha }}</td></tr>\n      <tr style=\"border-bottom: 1px solid #eee;\"><td style=\"padding: 10px 0; color: #888;\">Hora</td><td style=\"padding: 10px 0;\">{{ $json.hora }}</td></tr>\n      <tr style=\"border-bottom: 1px solid #eee;\"><td style=\"padding: 10px 0; color: #888;\">Invitados</td><td style=\"padding: 10px 0;\">{{ $json.pax }} personas</td></tr>\n      <tr style=\"border-bottom: 1px solid #eee;\"><td style=\"padding: 10px 0; color: #888;\">Tipo de evento</td><td style=\"padding: 10px 0;\">{{ $json.tipoEvento }}</td></tr>\n      <tr style=\"border-bottom: 1px solid #eee;\"><td style=\"padding: 10px 0; color: #888;\">Extras</td><td style=\"padding: 10px 0;\">{{ $json.extras }}</td></tr>\n      <tr style=\"border-bottom: 1px solid #eee;\"><td style=\"padding: 10px 0; color: #888;\">Metodo de pago</td><td style=\"padding: 10px 0;\">{{ $json.metodoPago }}</td></tr>\n      <tr style=\"border-bottom: 1px solid #eee;\"><td style=\"padding: 10px 0; color: #888;\">Precio total</td><td style=\"padding: 10px 0; font-weight: bold; font-size: 18px;\">{{ $json.total }} EUR</td></tr>\n      <tr><td style=\"padding: 10px 0; color: #888;\">Senal (30%)</td><td style=\"padding: 10px 0; font-weight: bold; color: #FF6B35;\">{{ $json.deposito }} EUR</td></tr>\n    </table>\n    <div style=\"background: #FFF3E0; border-left: 4px solid #FF6B35; padding: 15px; margin: 20px 0; border-radius: 0 8px 8px 0;\">\n      <p style=\"margin: 0; font-size: 14px;\"><strong>Proximos pasos:</strong> Nos pondremos en contacto contigo en las proximas 24 horas para confirmar todos los detalles y enviarte el enlace de pago de la senal.</p>\n    </div>\n    <p style=\"font-size: 14px; color: #666;\">Si tienes alguna pregunta, no dudes en contactarnos:</p>\n    <p style=\"font-size: 14px;\">📞 <a href=\"tel:+34624645517\" style=\"color: #FF6B35;\">624 645 517</a><br>📧 <a href=\"mailto:happyhub.rovellat@gmail.com\" style=\"color: #FF6B35;\">happyhub.rovellat@gmail.com</a></p>\n  </div>\n  <div style=\"padding: 20px; text-align: center; background: #f9f9f9; border-radius: 0 0 12px 12px; border: 1px solid #eee; border-top: 0;\">\n    <p style=\"margin: 0; font-size: 12px; color: #999;\">HappyHub - C/ Rovellat, 27, 08950 Esplugues de Llobregat</p>\n  </div>\n</div>",
+        "options": {}
+      },
+      "id": "send_email_customer",
+      "name": "EmailCliente",
+      "type": "n8n-nodes-base.sendEmail",
+      "typeVersion": 1,
+      "position": [1650, 400],
+      "credentials": {
+        "smtp": {
+          "id": "smtp_happyhub",
+          "name": "SMTP HappyHub Gmail"
+        }
+      },
+      "continueOnFail": true
     },
     {
       "parameters": {
@@ -198,7 +223,7 @@
         }
       },
       "id": "response_success",
-      "name": "Respuesta: Éxito",
+      "name": "RespuestaExito",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
       "position": [1850, 150]
@@ -209,96 +234,101 @@
       "main": [
         [
           {
-            "node": "Normalizar Datos",
+            "node": "NormalizarDatos",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Normalizar Datos": {
+    "NormalizarDatos": {
       "main": [
         [
           {
-            "node": "Verificar Disponibilidad (Neon)",
+            "node": "VerificarDisponibilidad",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Verificar Disponibilidad (Neon)": {
+    "VerificarDisponibilidad": {
       "main": [
         [
           {
-            "node": "¿Fecha Disponible?",
+            "node": "FechaDisponible",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "¿Fecha Disponible?": {
+    "FechaDisponible": {
       "main": [
         [
           {
-            "node": "Guardar en Neon DB",
+            "node": "GuardarEnNeonDB",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Respuesta: No Disponible",
+            "node": "RespuestaNoDisponible",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Guardar en Neon DB": {
+    "GuardarEnNeonDB": {
       "main": [
         [
           {
-            "node": "Crear Evento Calendar",
+            "node": "CrearEventoCalendar",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Crear Evento Calendar": {
+    "CrearEventoCalendar": {
       "main": [
         [
           {
-            "node": "Preparar Respuesta",
+            "node": "PrepararRespuesta",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Preparar Respuesta": {
+    "PrepararRespuesta": {
       "main": [
         [
           {
-            "node": "WhatsApp Cliente",
+            "node": "WhatsAppCliente",
             "type": "main",
             "index": 0
           },
           {
-            "node": "WhatsApp Admin",
+            "node": "WhatsAppAdmin",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "EmailCliente",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "WhatsApp Cliente": {
+    "WhatsAppCliente": {
       "main": [
         [
           {
-            "node": "Respuesta: Éxito",
+            "node": "RespuestaExito",
             "type": "main",
             "index": 0
           }
@@ -313,6 +343,6 @@
   "staticData": null,
   "tags": [],
   "triggerCount": 0,
-  "updatedAt": "2026-02-22T00:00:00.000Z",
-  "versionId": "1"
+  "updatedAt": "2026-03-13T00:00:00.000Z",
+  "versionId": "3"
 }

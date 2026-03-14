@@ -7,6 +7,7 @@ import { signIn } from 'next-auth/react';
 import Head from 'next/head';
 import Link from 'next/link';
 import GoogleSignInButton from '../components/GoogleSignInButton';
+import { event as gaEvent } from '@/lib/analytics';
 
 const loginSchema = z.object({
   email: z.string().email('Por favor, introduce una dirección de email válida'),
@@ -34,31 +35,22 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const response = await fetch('/api/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+      const result = await signIn('credentials', {
+        redirect: false,
+        email: data.email,
+        password: data.password,
       });
 
-      const result = await response.json();
-
-      if (!response.ok) {
-        setError(result.error || 'Error al iniciar sesión');
+      if (result?.error) {
+        setError(result.error === 'CredentialsSignin'
+          ? 'Email o contraseña incorrectos'
+          : result.error);
         setLoading(false);
         return;
       }
 
-      // Store JWT token
-      localStorage.setItem('token', result.token);
-
-      // Redirect based on role
-      if (result.user.role === 'admin') {
-        router.push('/admin/dashboard');
-      } else if (result.user.role === 'provider') {
-        router.push('/proveedores');
-      } else {
-        router.push('/');
-      }
+      gaEvent('login', { method: 'email' });
+      router.push('/');
     } catch (err) {
       setError('Error de conexión. Por favor, inténtalo de nuevo');
       setLoading(false);
@@ -69,6 +61,7 @@ export default function LoginPage() {
     setGoogleLoading(true);
     setError('');
     try {
+      gaEvent('login', { method: 'google' });
       await signIn('google', { callbackUrl: '/' });
     } catch (err) {
       setError('Error al iniciar sesión con Google');

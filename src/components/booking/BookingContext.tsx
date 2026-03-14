@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useReducer, ReactNode } from 'react';
 import { TimeSlot } from '@/utils/pricing';
+import { event as gaEvent } from '@/lib/analytics';
 
 export interface Extra {
   id: string;
@@ -20,6 +21,7 @@ export const EXTRAS: Extra[] = [
 ];
 
 export type EventType = 'cumpleaños' | 'celebracion-familiar' | 'eventos-amigos' | 'eventos-colegio-trabajo' | 'taller' | 'otros';
+export type PaymentMethod = 'card' | 'bizum' | 'cash';
 
 export interface BookingState {
   step: number;
@@ -36,6 +38,7 @@ export interface BookingState {
   eventType: EventType | null;
   message: string;
   acceptTerms: boolean;
+  paymentMethod: PaymentMethod | null;
   // Step 4: Payment
   stripeSessionId: string | null;
   // Pricing
@@ -50,7 +53,7 @@ type BookingAction =
   | { type: 'SET_TIME_SLOT'; timeSlot: TimeSlot | null }
   | { type: 'SET_GUESTS'; guests: number }
   | { type: 'TOGGLE_EXTRA'; extraId: string }
-  | { type: 'SET_CUSTOMER_DATA'; data: Partial<Pick<BookingState, 'name' | 'email' | 'phone' | 'eventType' | 'message' | 'acceptTerms'>> }
+  | { type: 'SET_CUSTOMER_DATA'; data: Partial<Pick<BookingState, 'name' | 'email' | 'phone' | 'eventType' | 'message' | 'acceptTerms' | 'paymentMethod'>> }
   | { type: 'SET_BASE_PRICE'; price: number | 'consult' }
   | { type: 'SET_STRIPE_SESSION'; sessionId: string }
   | { type: 'SET_RESERVATION_ID'; id: string }
@@ -68,6 +71,7 @@ const initialState: BookingState = {
   eventType: null,
   message: '',
   acceptTerms: false,
+  paymentMethod: null,
   stripeSessionId: null,
   basePrice: 0,
   reservationId: null,
@@ -147,8 +151,12 @@ export function BookingProvider({ children, initialDate, initialTimeSlot }: Book
     dispatch({ type: 'SET_STEP', step });
   };
 
+  const STEP_NAMES = ['', 'calendar', 'configuration', 'customer_data', 'confirmation'];
+
   const nextStep = () => {
-    dispatch({ type: 'SET_STEP', step: Math.min(state.step + 1, 4) });
+    const next = Math.min(state.step + 1, 4);
+    gaEvent('booking_step', { step_number: next, step_name: STEP_NAMES[next] });
+    dispatch({ type: 'SET_STEP', step: next });
   };
 
   const prevStep = () => {

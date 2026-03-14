@@ -1,9 +1,14 @@
 import Head from 'next/head';
 import { Mail, Phone, MapPin, Clock, MessageCircle, Send } from 'lucide-react';
+import { event as gaEvent } from '@/lib/analytics';
 
 export default function Contacto() {
   const whatsappNumber = '34624645517';
   const whatsappMessage = encodeURIComponent('Hola HappyHub, me gustaría obtener más información sobre las reservas.');
+
+  const trackContact = (method: string) => {
+    gaEvent('contact_form_submit', { method });
+  };
 
   return (
     <>
@@ -66,7 +71,7 @@ export default function Contacto() {
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-1">Dirección</h3>
                     <p className="text-gray-600">
-                      C/ Rovellat, 25<br />
+                      C/ Rovellat, 27<br />
                       08950 Esplugues de Llobregat<br />
                       Barcelona, España
                     </p>
@@ -139,6 +144,7 @@ export default function Contacto() {
                     href={`https://wa.me/${whatsappNumber}?text=${whatsappMessage}`}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() => trackContact('whatsapp')}
                     className="btn-primary w-full !bg-green-600 hover:!bg-green-700 !text-white flex items-center justify-center text-lg py-4 shadow-xl hover:shadow-2xl transition-all"
                   >
                     <MessageCircle className="w-6 h-6 mr-3" />
@@ -189,6 +195,7 @@ export default function Contacto() {
                     <p>¿Prefieres email?</p>
                     <a
                       href="mailto:happyhub.rovellat@gmail.com"
+                      onClick={() => trackContact('email')}
                       className="text-primary-600 hover:underline font-medium"
                     >
                       happyhub.rovellat@gmail.com

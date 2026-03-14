@@ -19,7 +19,7 @@ Implement dual authentication system for HappyHub allowing users to register and
 **Project Type**: Web application (Next.js frontend + API routes backend)
 **Performance Goals**: <2s login/registration, <10s OAuth flow, <15s account linking, 100 concurrent users
 **Constraints**: <200ms API response time (p95), OAuth requires HTTPS, localStorage for tokens, 30-day session expiry
-**Scale/Scope**: Initial: 1000 users, 6 user stories, 40 functional requirements, ~15 API endpoints, ~8 pages/components
+**Scale/Scope**: Initial: 1000 users, 6 user stories, 55 functional requirements, ~12 API endpoints, ~14 pages/components
 
 ## Constitution Check
 
@@ -102,6 +102,7 @@ src/
 │   │   │   └── session.ts            # Session validation
 │   │   └── user/
 │   │       ├── profile.ts            # Get/update profile
+│   │       ├── reservations.ts       # Get user's reservations (by email)
 │   │       ├── link-google.ts        # Link Google account
 │   │       ├── unlink-google.ts      # Unlink Google account
 │   │       └── set-password.ts       # Set password for OAuth-only accounts
@@ -109,7 +110,7 @@ src/
 │   ├── login.tsx                      # Login page
 │   ├── reset-password.tsx             # Password reset request page
 │   ├── reset/[token].tsx              # Password reset confirmation page
-│   └── profile.tsx                    # User profile & account linking page
+│   └── area-privada.tsx               # Private area: personal data + reservations
 ├── components/
 │   ├── auth/
 │   │   ├── RegisterForm.tsx           # Email/password registration form
@@ -117,6 +118,10 @@ src/
 │   │   ├── GoogleSignInButton.tsx     # Google OAuth button
 │   │   ├── PasswordResetForm.tsx      # Password reset form
 │   │   └── AccountLinkingPanel.tsx    # Link/unlink auth methods
+│   ├── private-area/
+│   │   ├── PersonalDataSection.tsx    # Editable personal data form
+│   │   ├── ReservationList.tsx        # User's reservation list with status badges
+│   │   └── ReservationCard.tsx        # Single reservation card (date, slot, type, guests, price, status)
 │   └── layout/
 │       └── AuthLayout.tsx             # Shared layout for auth pages
 ├── utils/
@@ -230,12 +235,12 @@ This feature introduces:
   - Frontend pages/components: ~1,000 lines
   - Tests: ~300 lines
 - **Database Tables**: 5 tables (users, accounts, password_credentials, password_reset_tokens, sessions)
-- **API Endpoints**: 11 endpoints
-- **Frontend Pages**: 5 pages (register, login, reset-password, reset/[token], profile)
-- **Components**: 6 components (forms, buttons, panels)
+- **API Endpoints**: 12 endpoints (including user reservations)
+- **Frontend Pages**: 5 pages (register, login, reset-password, reset/[token], area-privada)
+- **Components**: 9 components (forms, buttons, panels, reservation list/card, personal data)
 - **User Stories Covered**: 6 stories (P1-P3)
-- **Functional Requirements**: 40 requirements (FR-001 to FR-040)
-- **Success Criteria**: 15 measurable outcomes (SC-001 to SC-015)
+- **Functional Requirements**: 55 requirements (FR-001 to FR-055)
+- **Success Criteria**: 18 measurable outcomes (SC-001 to SC-018)
 
 ### Technology Stack Summary
 
