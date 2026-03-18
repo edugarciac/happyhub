@@ -6,12 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import Head from 'next/head';
 import Link from 'next/link';
-import User from 'lucide-react/dist/esm/icons/user';
-import Lock from 'lucide-react/dist/esm/icons/lock';
-import Calendar from 'lucide-react/dist/esm/icons/calendar';
-import ChevronDown from 'lucide-react/dist/esm/icons/chevron-down';
-import ChevronUp from 'lucide-react/dist/esm/icons/chevron-up';
-import RefreshCw from 'lucide-react/dist/esm/icons/refresh-cw';
+import { User, Lock, Calendar, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
 
 // -- Types --
 
