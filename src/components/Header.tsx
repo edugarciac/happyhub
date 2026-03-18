@@ -32,7 +32,11 @@ export default function Header() {
     { href: '/partners', label: 'Partners' },
     { href: '/reservas', label: 'Reserva tu fecha' },
     { href: '/contacto', label: 'Contacto' },
-    ...(session?.user ? [{ href: '/area-privada', label: 'Área privada' }] : []),
+    ...(session?.user
+      ? [(session.user as any).role === 'admin'
+          ? { href: '/admin/dashboard', label: 'Panel admin' }
+          : { href: '/area-privada', label: 'Área privada' }]
+      : []),
   ];
 
   return (

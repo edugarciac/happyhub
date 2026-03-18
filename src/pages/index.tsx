@@ -110,11 +110,11 @@ export default function Home() {
   ];
 
   const photos = [
-    { src: '/happyhub_home.png', alt: 'Sala principal HappyHub', caption: 'Nuestra amplia sala principal, perfecta para cualquier celebración' },
-    { src: '/happyhub_home.png', alt: 'Zona de juegos', caption: 'Zona de juegos infantiles totalmente equipada' },
-    { src: '/happyhub_home.png', alt: 'Área de catering', caption: 'Área de catering con cocina totalmente equipada' },
-    { src: '/happyhub_home.png', alt: 'Decoración de cumpleaños', caption: 'Ejemplo de decoración para cumpleaños' },
-    { src: '/happyhub_home.png', alt: 'Terraza exterior', caption: 'Terraza exterior para los días soleados' },
+    { src: '/images/gallery/gallery-1.jpg', alt: 'Brindis entre amigos', caption: 'Celebra con los tuyos en un ambiente único' },
+    { src: '/images/gallery/gallery-2.jpg', alt: 'Cumpleaños en HappyHub', caption: 'Fiestas de cumpleaños con todos los detalles' },
+    { src: '/images/gallery/gallery-3.jpg', alt: 'Fiesta nocturna', caption: 'Sesiones nocturnas con luces y sonido profesional' },
+    { src: '/images/gallery/gallery-4.jpg', alt: 'Decoración con globos', caption: 'Decoramos tu evento para hacerlo especial' },
+    { src: '/images/gallery/gallery-5.jpg', alt: 'Globos de colores', caption: 'Cada celebración es única en HappyHub' },
   ];
 
   return (

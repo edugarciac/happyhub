@@ -3,7 +3,9 @@ import NextAuth from 'next-auth';
 import { authOptions } from '../../../lib/auth';
 
 // Force NEXTAUTH_URL at runtime - Amplify Lambda may not pass .env.production to SSR functions
-process.env.NEXTAUTH_URL = process.env.NEXTAUTH_URL || 'https://www.happyhub.es';
+if (!process.env.NEXTAUTH_URL) {
+  process.env.NEXTAUTH_URL = 'https://www.happyhub.es';
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
