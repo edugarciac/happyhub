@@ -28,7 +28,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "=SELECT COUNT(*) as total FROM reservations WHERE event_date = '{{ $json.fecha }}' AND time_slot = '{{ $json.timeSlot }}' AND status IN ('pending', 'approved', 'confirmed')",
+        "query": "=SELECT COALESCE(COUNT(*)::int, 0) as total FROM reservations WHERE event_date = '{{ $json.fecha }}' AND time_slot = '{{ $json.timeSlot }}' AND status IN ('pending', 'approved', 'confirmed')",
         "options": {}
       },
       "id": "check_availability_db",
@@ -45,12 +45,21 @@
     },
     {
       "parameters": {
+        "functionCode": "// Robust availability check - handle any Postgres output format\nconst pgResult = items[0].json;\nlet total = 0;\n\n// Handle different possible formats from Postgres node\nif (pgResult.total !== undefined) {\n  total = parseInt(pgResult.total) || 0;\n} else if (Array.isArray(pgResult) && pgResult[0]?.total !== undefined) {\n  total = parseInt(pgResult[0].total) || 0;\n} else if (pgResult.rows && pgResult.rows[0]?.total !== undefined) {\n  total = parseInt(pgResult.rows[0].total) || 0;\n}\n\n// Get original data from NormalizarDatos\nconst data = $('NormalizarDatos').item.json;\n\nreturn [{\n  json: {\n    ...data,\n    isAvailable: total === 0,\n    existingCount: total\n  }\n}];"
+      },
+      "id": "check_and_merge",
+      "name": "VerificarYMerge",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
         "conditions": {
-          "number": [
+          "boolean": [
             {
-              "value1": "={{ $json.total }}",
-              "operation": "equal",
-              "value2": 0
+              "value1": "={{ $json.isAvailable }}",
+              "value2": true
             }
           ]
         }
@@ -59,7 +68,7 @@
       "name": "FechaDisponible",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [850, 300]
+      "position": [1050, 300]
     },
     {
       "parameters": {
@@ -73,19 +82,19 @@
       "name": "RespuestaNoDisponible",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [1050, 450]
+      "position": [1250, 450]
     },
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "=INSERT INTO reservations (name, email, phone, event_type, event_date, time_slot, guests, extras, base_price, total_price, deposit_amount, payment_method, customer_message, status, created_at) VALUES ('{{ $('NormalizarDatos').item.json.nombre }}', '{{ $('NormalizarDatos').item.json.email }}', '{{ $('NormalizarDatos').item.json.telefono }}', '{{ $('NormalizarDatos').item.json.tipoEvento }}', '{{ $('NormalizarDatos').item.json.fecha }}', '{{ $('NormalizarDatos').item.json.timeSlot }}', {{ $('NormalizarDatos').item.json.pax }}, '{{ $('NormalizarDatos').item.json.extras }}'::jsonb, {{ $('NormalizarDatos').item.json.precioBase }}, {{ $('NormalizarDatos').item.json.precioTotal }}, {{ $('NormalizarDatos').item.json.depositoAmount }}, '{{ $('NormalizarDatos').item.json.metodoPago }}', '{{ $('NormalizarDatos').item.json.mensaje }}', 'pending', NOW()) RETURNING id",
+        "query": "=INSERT INTO reservations (name, email, phone, event_type, event_date, time_slot, guests, extras, base_price, total_price, deposit_amount, payment_method, customer_message, status, created_at) VALUES ('{{ $json.nombre }}', '{{ $json.email }}', '{{ $json.telefono }}', '{{ $json.tipoEvento }}', '{{ $json.fecha }}', '{{ $json.timeSlot }}', {{ $json.pax }}, '{{ $json.extras }}'::jsonb, {{ $json.precioBase }}, {{ $json.precioTotal }}, {{ $json.depositoAmount }}, '{{ $json.metodoPago }}', '{{ $json.mensaje }}', 'pending', NOW()) RETURNING id",
         "options": {}
       },
       "id": "save_to_neon",
       "name": "GuardarEnNeonDB",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.4,
-      "position": [1050, 150],
+      "position": [1250, 150],
       "credentials": {
         "postgres": {
           "id": "neon_happyhub",
@@ -95,13 +104,23 @@
     },
     {
       "parameters": {
+        "functionCode": "// Merge DB result (id) with original reservation data\nconst dbResult = items[0].json;\nconst data = $('VerificarYMerge').item.json;\n\n// Handle different possible id formats from Postgres\nlet dbId = dbResult.id;\nif (!dbId && Array.isArray(dbResult) && dbResult[0]) dbId = dbResult[0].id;\nif (!dbId && dbResult.rows && dbResult.rows[0]) dbId = dbResult.rows[0].id;\n\nreturn [{ json: { ...data, dbId: dbId || 0 } }];"
+      },
+      "id": "merge_db_result",
+      "name": "MergeConDatos",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1450, 150]
+    },
+    {
+      "parameters": {
         "operation": "create",
         "calendarId": "primary",
-        "start": "={{ $('NormalizarDatos').item.json.fechaHoraInicio }}",
-        "end": "={{ $('NormalizarDatos').item.json.fechaHoraFin }}",
-        "summary": "=HappyHub - {{ $('NormalizarDatos').item.json.nombre }} - {{ $('NormalizarDatos').item.json.tipoEvento }}",
+        "start": "={{ $json.fechaHoraInicio }}",
+        "end": "={{ $json.fechaHoraFin }}",
+        "summary": "=HappyHub - {{ $json.nombre }} - {{ $json.tipoEvento }}",
         "additionalFields": {
-          "description": "=Tipo de evento: {{ $('NormalizarDatos').item.json.tipoEvento }}\nNombre: {{ $('NormalizarDatos').item.json.nombre }}\nParticipantes: {{ $('NormalizarDatos').item.json.pax }} personas\nTelefono: {{ $('NormalizarDatos').item.json.telefono }}\nEmail: {{ $('NormalizarDatos').item.json.email }}\nMetodo de pago: {{ $('NormalizarDatos').item.json.metodoPago }}\nPrecio base: {{ $('NormalizarDatos').item.json.precioBase }} EUR\nPrecio total: {{ $('NormalizarDatos').item.json.precioTotal }} EUR\nSenal (30%): {{ $('NormalizarDatos').item.json.depositoAmount }} EUR\nExtras: {{ $('NormalizarDatos').item.json.extras }}\nMensaje: {{ $('NormalizarDatos').item.json.mensaje }}",
+          "description": "=Tipo de evento: {{ $json.tipoEvento }}\nNombre: {{ $json.nombre }}\nParticipantes: {{ $json.pax }} personas\nTelefono: {{ $json.telefono }}\nEmail: {{ $json.email }}\nMetodo de pago: {{ $json.metodoPago }}\nPrecio base: {{ $json.precioBase }} EUR\nPrecio total: {{ $json.precioTotal }} EUR\nSenal (30%): {{ $json.depositoAmount }} EUR\nExtras: {{ $json.extras }}\nMensaje: {{ $json.mensaje }}",
           "location": "HappyHub - C/ Rovellat, 27, 08950 Esplugues de Llobregat",
           "sendUpdates": "all"
         }
@@ -110,7 +129,7 @@
       "name": "CrearEventoCalendar",
       "type": "n8n-nodes-base.googleCalendar",
       "typeVersion": 1,
-      "position": [1250, 150],
+      "position": [1650, 150],
       "credentials": {
         "googleCalendarOAuth2Api": {
           "id": "google_calendar_happyhub",
@@ -120,13 +139,13 @@
     },
     {
       "parameters": {
-        "functionCode": "const dbResult = $('GuardarEnNeonDB').item.json;\nconst data = $('NormalizarDatos').item.json;\nconst calendarEvent = $('CrearEventoCalendar').item.json;\n\nconst reservationId = `RES-${data.fecha.replace(/-/g, '')}-${String(dbResult.id).padStart(3, '0')}`;\n\nreturn [{\n  json: {\n    reservationId,\n    nombre: data.nombre,\n    email: data.email,\n    telefono: data.telefono,\n    fecha: data.fechaFormateada,\n    hora: data.horaFormateada,\n    pax: data.pax,\n    tipoEvento: data.tipoEvento,\n    extras: data.extras,\n    metodoPago: data.metodoPago,\n    total: data.precioTotal,\n    deposito: data.depositoAmount,\n    calendarEventId: calendarEvent.id || '',\n    dbId: dbResult.id\n  }\n}];"
+        "functionCode": "const data = $('MergeConDatos').item.json;\nconst calendarEvent = items[0].json;\n\nconst reservationId = `RES-${data.fecha.replace(/-/g, '')}-${String(data.dbId).padStart(3, '0')}`;\n\nreturn [{\n  json: {\n    reservationId,\n    nombre: data.nombre,\n    email: data.email,\n    telefono: data.telefono,\n    fecha: data.fechaFormateada,\n    hora: data.horaFormateada,\n    pax: data.pax,\n    tipoEvento: data.tipoEvento,\n    extras: data.extras,\n    metodoPago: data.metodoPago,\n    total: data.precioTotal,\n    deposito: data.depositoAmount,\n    calendarEventId: calendarEvent.id || '',\n    dbId: data.dbId\n  }\n}];"
       },
       "id": "prepare_response",
       "name": "PrepararRespuesta",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [1450, 150]
+      "position": [1850, 150]
     },
     {
       "parameters": {
@@ -159,7 +178,7 @@
       "name": "WhatsAppCliente",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1650, 100],
+      "position": [2050, 100],
       "continueOnFail": true
     },
     {
@@ -189,7 +208,7 @@
       "name": "WhatsAppAdmin",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1650, 250],
+      "position": [2050, 250],
       "continueOnFail": true
     },
     {
@@ -205,7 +224,7 @@
       "name": "EmailCliente",
       "type": "n8n-nodes-base.sendEmail",
       "typeVersion": 1,
-      "position": [1650, 400],
+      "position": [2050, 400],
       "credentials": {
         "smtp": {
           "id": "smtp_happyhub",
@@ -226,7 +245,7 @@
       "name": "RespuestaExito",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [1850, 150]
+      "position": [2250, 150]
     }
   ],
   "connections": {
@@ -256,6 +275,17 @@
       "main": [
         [
           {
+            "node": "VerificarYMerge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "VerificarYMerge": {
+      "main": [
+        [
+          {
             "node": "FechaDisponible",
             "type": "main",
             "index": 0
@@ -282,6 +312,17 @@
       ]
     },
     "GuardarEnNeonDB": {
+      "main": [
+        [
+          {
+            "node": "MergeConDatos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MergeConDatos": {
       "main": [
         [
           {
@@ -338,11 +379,11 @@
   },
   "pinData": {},
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1.1"
   },
   "staticData": null,
   "tags": [],
   "triggerCount": 0,
-  "updatedAt": "2026-03-13T00:00:00.000Z",
-  "versionId": "3"
+  "updatedAt": "2026-03-19T00:00:00.000Z",
+  "versionId": "5"
 }

@@ -3,7 +3,7 @@ const nextConfig = {
   reactStrictMode: false, // Disabled to prevent double rendering issues
   images: {
     domains: ['localhost'],
-    unoptimized: true, // Required for Amplify static export
+    unoptimized: false, // Vercel has native image optimization
   },
   serverRuntimeConfig: {
     // Server-side runtime variables
