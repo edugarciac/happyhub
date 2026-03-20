@@ -2,6 +2,7 @@ import { NextAuthOptions, AuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { verifyPassword, getUserByEmail, createUser } from '../utils/db/users';
+import { ensureUsersTable } from './db';
 
 const providers: AuthOptions['providers'] = [
   CredentialsProvider({
@@ -15,6 +16,7 @@ const providers: AuthOptions['providers'] = [
           throw new Error('Email y contraseña son requeridos');
         }
 
+        await ensureUsersTable();
         const user = await verifyPassword(credentials.email, credentials.password);
 
         if (!user) {
@@ -56,6 +58,9 @@ export const authOptions: NextAuthOptions = {
   debug: process.env.NODE_ENV === 'development',
   callbacks: {
     async signIn({ user, account, profile }) {
+      // Ensure users table exists with all columns (including email_verified)
+      await ensureUsersTable();
+
       // Handle Google OAuth sign-in
       if (account?.provider === 'google' && user.email) {
         try {
@@ -82,13 +87,19 @@ export const authOptions: NextAuthOptions = {
     },
     async jwt({ token, user, account }) {
       if (user) {
-        token.id = user.id;
-        token.role = (user as any).role || 'client';
+        if (account?.provider === 'google' && user.email) {
+          // For Google OAuth, look up the DB user to get the real DB id
+          const dbUser = await getUserByEmail(user.email);
+          token.id = dbUser ? dbUser.id.toString() : user.id;
+          token.role = dbUser?.role || 'client';
+          token.emailVerified = true;
+        } else {
+          // Credentials login — user.id is already the DB id
+          token.id = user.id;
+          token.role = (user as any).role || 'client';
+          token.emailVerified = (user as any).emailVerified ?? false;
+        }
         token.authMethod = account?.provider === 'google' ? 'google' : 'password';
-        // Google OAuth users are auto-verified; credentials users carry their DB state
-        token.emailVerified = account?.provider === 'google'
-          ? true
-          : (user as any).emailVerified ?? false;
       }
       return token;
     },
