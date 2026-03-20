@@ -27,22 +27,20 @@
     },
     {
       "parameters": {
-        "fromEmail": "=happyhub.rovellat@gmail.com",
-        "toEmail": "={{ $json.to }}",
+        "sendTo": "={{ $json.to }}",
         "subject": "={{ $json.subject }}",
-        "text": "",
-        "html": "={{ $json.html }}",
-        "options": {}
+        "emailType": "html",
+        "message": "={{ $json.html }}"
       },
       "id": "send_email",
       "name": "EnviarEmail",
-      "type": "n8n-nodes-base.sendEmail",
-      "typeVersion": 1,
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
       "position": [650, 300],
       "credentials": {
-        "smtp": {
-          "id": "smtp_happyhub",
-          "name": "SMTP Happyhub Gmail"
+        "gmailOAuth2": {
+          "id": "gmail_happyhub",
+          "name": "Gmail HappyHub"
         }
       },
       "onError": "continueErrorOutput"

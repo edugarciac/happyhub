@@ -1,5 +1,5 @@
 {
-  "name": "HappyHub - Reservas con Neon + WhatsApp",
+  "name": "Happyhub - Reservas con Neon + Email",
   "nodes": [
     {
       "parameters": {
@@ -73,7 +73,7 @@
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={\n  \"success\": false,\n  \"error\": \"Esta fecha y franja horaria ya esta reservada.\",\n  \"message\": \"Lo siento, la fecha y hora indicada ya esta reservada.\"\n}",
+        "responseBody": "={\n  \"success\": false,\n  \"error\": \"Esta fecha y franja horaria ya esta reservada.\",\n  \"step\": \"availability\",\n  \"code\": 409\n}",
         "options": {
           "responseCode": 409
         }
@@ -100,7 +100,22 @@
           "id": "neon_happyhub",
           "name": "Neon HappyHub"
         }
-      }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": false,\n  \"error\": \"Error al guardar la reserva en la base de datos. Por favor, intentalo de nuevo.\",\n  \"step\": \"database\",\n  \"code\": 500\n}",
+        "options": {
+          "responseCode": 500
+        }
+      },
+      "id": "response_error_db",
+      "name": "RespuestaErrorDB",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1450, 350]
     },
     {
       "parameters": {
@@ -115,13 +130,13 @@
     {
       "parameters": {
         "operation": "create",
-        "calendarId": "primary",
+        "calendar": "primary",
         "start": "={{ $json.fechaHoraInicio }}",
         "end": "={{ $json.fechaHoraFin }}",
-        "summary": "=Evento: {{ $json.tipoEvento }}",
+        "summary": "={{ 'Evento: ' + $json.tipoEvento }}",
         "additionalFields": {
           "description": "=Tipo de evento: {{ $json.tipoEvento }}\nNombre: {{ $json.nombre }}\nParticipantes: {{ $json.pax }} personas\nTelefono: {{ $json.telefono }}\nEmail: {{ $json.email }}\nMetodo de pago: {{ $json.metodoPago }}\nPrecio base: {{ $json.precioBase }} EUR\nPrecio total: {{ $json.precioTotal }} EUR\nSenal (30%): {{ $json.depositoAmount }} EUR\nExtras: {{ $json.extras }}\nMensaje: {{ $json.mensaje }}",
-          "location": "HappyHub - C/ Rovellat, 27, 08950 Esplugues de Llobregat",
+          "location": "Happyhub - C/ Rovellat, 27, 08950 Esplugues de Llobregat",
           "sendUpdates": "all"
         }
       },
@@ -135,7 +150,22 @@
           "id": "google_calendar_happyhub",
           "name": "Google Calendar HappyHub"
         }
-      }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": false,\n  \"error\": \"Error al crear el evento en el calendario. La reserva se ha guardado pero el calendario no se ha actualizado. Por favor, contactanos.\",\n  \"step\": \"calendar\",\n  \"code\": 500\n}",
+        "options": {
+          "responseCode": 500
+        }
+      },
+      "id": "response_error_calendar",
+      "name": "RespuestaErrorCalendar",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1850, 350]
     },
     {
       "parameters": {
@@ -149,94 +179,58 @@
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "=https://graph.facebook.com/v18.0/{{ $env.WHATSAPP_PHONE_NUMBER_ID }}/messages",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Authorization",
-              "value": "=Bearer {{ $env.WHATSAPP_ACCESS_TOKEN }}"
-            },
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": []
-        },
-        "jsonParameters": true,
-        "options": {},
-        "bodyParametersJson": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $json.telefono }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"Hola {{ $json.nombre }}!\\n\\nTu reserva en HappyHub ha sido recibida correctamente.\\n\\nFecha: {{ $json.fecha }}\\nHora: {{ $json.hora }}\\nInvitados: {{ $json.pax }}\\nTotal: {{ $json.total }} EUR\\nSenal (30%): {{ $json.deposito }} EUR\\nN. Reserva: {{ $json.reservationId }}\\n\\nNos pondremos en contacto contigo en las proximas 24 horas para confirmar todos los detalles y enviarte el enlace de pago.\\n\\nNecesitas ayuda? Responde a este mensaje.\\n\\nGracias por confiar en HappyHub\"\n  }\n}"
-      },
-      "id": "send_whatsapp_customer",
-      "name": "WhatsAppCliente",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [2050, 100],
-      "continueOnFail": true
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "=https://graph.facebook.com/v18.0/{{ $env.WHATSAPP_PHONE_NUMBER_ID }}/messages",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Authorization",
-              "value": "=Bearer {{ $env.WHATSAPP_ACCESS_TOKEN }}"
-            },
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "jsonParameters": true,
-        "bodyParametersJson": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{ $env.ADMIN_WHATSAPP_NUMBER }}\",\n  \"type\": \"text\",\n  \"text\": {\n    \"body\": \"Nueva Reserva Recibida\\n\\nCliente: {{ $json.nombre }}\\nEmail: {{ $json.email }}\\nTelefono: {{ $json.telefono }}\\nFecha: {{ $json.fecha }} {{ $json.hora }}\\nInvitados: {{ $json.pax }}\\nTipo: {{ $json.tipoEvento }}\\nMetodo pago: {{ $json.metodoPago }}\\nTotal: {{ $json.total }} EUR\\nSenal: {{ $json.deposito }} EUR\\nID: {{ $json.reservationId }}\\n\\nGuardado en BD (ID: {{ $json.dbId }})\\nCalendario actualizado\"\n  }\n}"
-      },
-      "id": "send_whatsapp_admin",
-      "name": "WhatsAppAdmin",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [2050, 250],
-      "continueOnFail": true
-    },
-    {
-      "parameters": {
-        "fromEmail": "=happyhub.rovellat@gmail.com",
-        "toEmail": "={{ $json.email }}",
-        "subject": "=Confirmacion de reserva {{ $json.reservationId }} - HappyHub",
-        "text": "",
-        "html": "=<div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;\">\n  <div style=\"background: linear-gradient(135deg, #FF6B35, #F7931E); padding: 30px; text-align: center; border-radius: 12px 12px 0 0;\">\n    <h1 style=\"color: white; margin: 0; font-size: 28px;\">HappyHub</h1>\n    <p style=\"color: rgba(255,255,255,0.9); margin: 8px 0 0;\">Tu espacio para celebrar</p>\n  </div>\n  <div style=\"padding: 30px; background: #fff; border: 1px solid #eee;\">\n    <h2 style=\"color: #FF6B35; margin-top: 0;\">Hola {{ $json.nombre }}!</h2>\n    <p>Tu reserva ha sido recibida correctamente. A continuacion tienes el resumen:</p>\n    <table style=\"width: 100%; border-collapse: collapse; margin: 20px 0;\">\n      <tr style=\"border-bottom: 1px solid #eee;\"><td style=\"padding: 10px 0; color: #888;\">N. Reserva</td><td style=\"padding: 10px 0; font-weight: bold;\">{{ $json.reservationId }}</td></tr>\n      <tr style=\"border-bottom: 1px solid #eee;\"><td style=\"padding: 10px 0; color: #888;\">Fecha</td><td style=\"padding: 10px 0;\">{{ $json.fecha }}</td></tr>\n      <tr style=\"border-bottom: 1px solid #eee;\"><td style=\"padding: 10px 0; color: #888;\">Hora</td><td style=\"padding: 10px 0;\">{{ $json.hora }}</td></tr>\n      <tr style=\"border-bottom: 1px solid #eee;\"><td style=\"padding: 10px 0; color: #888;\">Invitados</td><td style=\"padding: 10px 0;\">{{ $json.pax }} personas</td></tr>\n      <tr style=\"border-bottom: 1px solid #eee;\"><td style=\"padding: 10px 0; color: #888;\">Tipo de evento</td><td style=\"padding: 10px 0;\">{{ $json.tipoEvento }}</td></tr>\n      <tr style=\"border-bottom: 1px solid #eee;\"><td style=\"padding: 10px 0; color: #888;\">Extras</td><td style=\"padding: 10px 0;\">{{ $json.extras }}</td></tr>\n      <tr style=\"border-bottom: 1px solid #eee;\"><td style=\"padding: 10px 0; color: #888;\">Metodo de pago</td><td style=\"padding: 10px 0;\">{{ $json.metodoPago }}</td></tr>\n      <tr style=\"border-bottom: 1px solid #eee;\"><td style=\"padding: 10px 0; color: #888;\">Precio total</td><td style=\"padding: 10px 0; font-weight: bold; font-size: 18px;\">{{ $json.total }} EUR</td></tr>\n      <tr><td style=\"padding: 10px 0; color: #888;\">Senal (30%)</td><td style=\"padding: 10px 0; font-weight: bold; color: #FF6B35;\">{{ $json.deposito }} EUR</td></tr>\n    </table>\n    <div style=\"background: #FFF3E0; border-left: 4px solid #FF6B35; padding: 15px; margin: 20px 0; border-radius: 0 8px 8px 0;\">\n      <p style=\"margin: 0; font-size: 14px;\"><strong>Proximos pasos:</strong> Nos pondremos en contacto contigo en las proximas 24 horas para confirmar todos los detalles y enviarte el enlace de pago de la senal.</p>\n    </div>\n    <p style=\"font-size: 14px; color: #666;\">Si tienes alguna pregunta, no dudes en contactarnos:</p>\n    <p style=\"font-size: 14px;\">📞 <a href=\"tel:+34624645517\" style=\"color: #FF6B35;\">624 645 517</a><br>📧 <a href=\"mailto:happyhub.rovellat@gmail.com\" style=\"color: #FF6B35;\">happyhub.rovellat@gmail.com</a></p>\n  </div>\n  <div style=\"padding: 20px; text-align: center; background: #f9f9f9; border-radius: 0 0 12px 12px; border: 1px solid #eee; border-top: 0;\">\n    <p style=\"margin: 0; font-size: 12px; color: #999;\">HappyHub - C/ Rovellat, 27, 08950 Esplugues de Llobregat</p>\n  </div>\n</div>",
-        "options": {}
+        "sendTo": "={{ $json.email }}",
+        "subject": "=Confirmacion de reserva {{ $json.reservationId }} - Happyhub",
+        "emailType": "html",
+        "message": "=<div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;\">\n  <div style=\"background: linear-gradient(135deg, #FF6B35, #F7931E); padding: 30px; text-align: center; border-radius: 12px 12px 0 0;\">\n    <h1 style=\"color: white; margin: 0; font-size: 28px;\">Happyhub</h1>\n    <p style=\"color: rgba(255,255,255,0.9); margin: 8px 0 0;\">Tu espacio para celebrar</p>\n  </div>\n  <div style=\"padding: 30px; background: #fff; border: 1px solid #eee;\">\n    <h2 style=\"color: #FF6B35; margin-top: 0;\">Hola {{ $json.nombre }}!</h2>\n    <p>Tu reserva ha sido recibida correctamente. A continuacion tienes el resumen:</p>\n    <table style=\"width: 100%; border-collapse: collapse; margin: 20px 0;\">\n      <tr style=\"border-bottom: 1px solid #eee;\"><td style=\"padding: 10px 0; color: #888;\">N. Reserva</td><td style=\"padding: 10px 0; font-weight: bold;\">{{ $json.reservationId }}</td></tr>\n      <tr style=\"border-bottom: 1px solid #eee;\"><td style=\"padding: 10px 0; color: #888;\">Fecha</td><td style=\"padding: 10px 0;\">{{ $json.fecha }}</td></tr>\n      <tr style=\"border-bottom: 1px solid #eee;\"><td style=\"padding: 10px 0; color: #888;\">Hora</td><td style=\"padding: 10px 0;\">{{ $json.hora }}</td></tr>\n      <tr style=\"border-bottom: 1px solid #eee;\"><td style=\"padding: 10px 0; color: #888;\">Invitados</td><td style=\"padding: 10px 0;\">{{ $json.pax }} personas</td></tr>\n      <tr style=\"border-bottom: 1px solid #eee;\"><td style=\"padding: 10px 0; color: #888;\">Tipo de evento</td><td style=\"padding: 10px 0;\">{{ $json.tipoEvento }}</td></tr>\n      <tr style=\"border-bottom: 1px solid #eee;\"><td style=\"padding: 10px 0; color: #888;\">Extras</td><td style=\"padding: 10px 0;\">{{ $json.extras }}</td></tr>\n      <tr style=\"border-bottom: 1px solid #eee;\"><td style=\"padding: 10px 0; color: #888;\">Metodo de pago</td><td style=\"padding: 10px 0;\">{{ $json.metodoPago }}</td></tr>\n      <tr style=\"border-bottom: 1px solid #eee;\"><td style=\"padding: 10px 0; color: #888;\">Precio total</td><td style=\"padding: 10px 0; font-weight: bold; font-size: 18px;\">{{ $json.total }} EUR</td></tr>\n      <tr><td style=\"padding: 10px 0; color: #888;\">Senal (30%)</td><td style=\"padding: 10px 0; font-weight: bold; color: #FF6B35;\">{{ $json.deposito }} EUR</td></tr>\n    </table>\n    <div style=\"background: #FFF3E0; border-left: 4px solid #FF6B35; padding: 15px; margin: 20px 0; border-radius: 0 8px 8px 0;\">\n      <p style=\"margin: 0; font-size: 14px;\"><strong>Proximos pasos:</strong> Nos pondremos en contacto contigo en las proximas 24 horas para confirmar todos los detalles y enviarte el enlace de pago de la senal.</p>\n    </div>\n    <p style=\"font-size: 14px; color: #666;\">Si tienes alguna pregunta, no dudes en contactarnos:</p>\n    <p style=\"font-size: 14px;\">Tel: <a href=\"tel:+34624645517\" style=\"color: #FF6B35;\">624 645 517</a><br>Email: <a href=\"mailto:happyhub.rovellat@gmail.com\" style=\"color: #FF6B35;\">happyhub.rovellat@gmail.com</a></p>\n  </div>\n  <div style=\"padding: 20px; text-align: center; background: #f9f9f9; border-radius: 0 0 12px 12px; border: 1px solid #eee; border-top: 0;\">\n    <p style=\"margin: 0; font-size: 12px; color: #999;\">Happyhub - C/ Rovellat, 27, 08950 Esplugues de Llobregat</p>\n  </div>\n</div>"
       },
       "id": "send_email_customer",
-      "name": "EmailCliente",
-      "type": "n8n-nodes-base.sendEmail",
-      "typeVersion": 1,
-      "position": [2050, 400],
+      "name": "GmailCliente",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [2050, 100],
       "credentials": {
-        "smtp": {
-          "id": "smtp_happyhub",
-          "name": "SMTP HappyHub Gmail"
+        "gmailOAuth2": {
+          "id": "gmail_happyhub",
+          "name": "Gmail HappyHub"
         }
       },
       "continueOnFail": true
     },
     {
       "parameters": {
+        "sendTo": "happyhub.rovellat@gmail.com",
+        "subject": "=Nueva Reserva #{{ $json.reservationId }} - Requiere revision",
+        "emailType": "html",
+        "message": "=<div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;\">\n  <div style=\"background: linear-gradient(135deg, #FF6B35, #F7931E); padding: 30px; text-align: center; border-radius: 12px 12px 0 0;\">\n    <h1 style=\"color: white; margin: 0; font-size: 24px;\">Nueva Reserva Recibida</h1>\n    <p style=\"color: rgba(255,255,255,0.9); margin: 8px 0 0;\">ID: #{{ $json.reservationId }}</p>\n  </div>\n  <div style=\"padding: 30px; background: #fff; border: 1px solid #eee;\">\n    <h2 style=\"color: #FF6B35; margin-top: 0;\">Detalles del Evento</h2>\n    <table style=\"width: 100%; border-collapse: collapse; margin: 20px 0;\">\n      <tr style=\"border-bottom: 1px solid #eee;\"><td style=\"padding: 10px 0; font-weight: bold;\">Fecha:</td><td style=\"padding: 10px 0;\">{{ $json.fecha }}</td></tr>\n      <tr style=\"border-bottom: 1px solid #eee;\"><td style=\"padding: 10px 0; font-weight: bold;\">Hora:</td><td style=\"padding: 10px 0;\">{{ $json.hora }}</td></tr>\n      <tr style=\"border-bottom: 1px solid #eee;\"><td style=\"padding: 10px 0; font-weight: bold;\">Tipo:</td><td style=\"padding: 10px 0;\">{{ $json.tipoEvento }}</td></tr>\n      <tr style=\"border-bottom: 1px solid #eee;\"><td style=\"padding: 10px 0; font-weight: bold;\">Invitados:</td><td style=\"padding: 10px 0;\">{{ $json.pax }} personas</td></tr>\n      <tr style=\"border-bottom: 1px solid #eee;\"><td style=\"padding: 10px 0; font-weight: bold;\">Total:</td><td style=\"padding: 10px 0; color: #FF6B35; font-size: 18px; font-weight: bold;\">{{ $json.total }} EUR</td></tr>\n      <tr style=\"border-bottom: 1px solid #eee;\"><td style=\"padding: 10px 0; font-weight: bold;\">Senal:</td><td style=\"padding: 10px 0;\">{{ $json.deposito }} EUR</td></tr>\n    </table>\n    <h2 style=\"color: #FF6B35;\">Datos del Cliente</h2>\n    <table style=\"width: 100%; border-collapse: collapse; margin: 20px 0;\">\n      <tr style=\"border-bottom: 1px solid #eee;\"><td style=\"padding: 10px 0; font-weight: bold;\">Nombre:</td><td style=\"padding: 10px 0;\">{{ $json.nombre }}</td></tr>\n      <tr style=\"border-bottom: 1px solid #eee;\"><td style=\"padding: 10px 0; font-weight: bold;\">Email:</td><td style=\"padding: 10px 0;\"><a href=\"mailto:{{ $json.email }}\">{{ $json.email }}</a></td></tr>\n      <tr style=\"border-bottom: 1px solid #eee;\"><td style=\"padding: 10px 0; font-weight: bold;\">Telefono:</td><td style=\"padding: 10px 0;\"><a href=\"tel:{{ $json.telefono }}\">{{ $json.telefono }}</a></td></tr>\n      <tr style=\"border-bottom: 1px solid #eee;\"><td style=\"padding: 10px 0; font-weight: bold;\">Pago:</td><td style=\"padding: 10px 0;\">{{ $json.metodoPago }}</td></tr>\n    </table>\n    <div style=\"background: #FFF3E0; border-left: 4px solid #FF6B35; padding: 15px; margin: 20px 0; border-radius: 0 8px 8px 0;\">\n      <p style=\"margin: 0; font-size: 14px;\">Guardado en BD (ID: {{ $json.dbId }}) - Calendario actualizado</p>\n    </div>\n  </div>\n  <div style=\"padding: 20px; text-align: center; background: #f9f9f9; border-radius: 0 0 12px 12px; border: 1px solid #eee; border-top: 0;\">\n    <p style=\"margin: 0; font-size: 12px; color: #999;\">Happyhub - Sistema de Reservas</p>\n  </div>\n</div>"
+      },
+      "id": "send_email_admin",
+      "name": "GmailAdmin",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [2050, 300],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "gmail_happyhub",
+          "name": "Gmail HappyHub"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "functionCode": "// Check if emails were sent successfully\nconst data = $('PrepararRespuesta').item.json;\nconst response = {\n  success: true,\n  reservationId: data.reservationId,\n  message: 'Reserva creada exitosamente'\n};\n\n// Check GmailCliente for errors\ntry {\n  const emailResult = $('GmailCliente').item.json;\n  if (emailResult.error) {\n    response.emailWarning = 'No se pudo enviar el email de confirmacion. Te contactaremos pronto.';\n  }\n} catch (e) {\n  response.emailWarning = 'No se pudo enviar el email de confirmacion. Te contactaremos pronto.';\n}\n\nreturn [{ json: response }];"
+      },
+      "id": "prepare_final_response",
+      "name": "PrepararRespuestaFinal",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [2250, 100]
+    },
+    {
+      "parameters": {
         "respondWith": "json",
-        "responseBody": "={\n  \"success\": true,\n  \"reservationId\": \"{{ $json.reservationId }}\",\n  \"message\": \"Reserva creada exitosamente\"\n}",
+        "responseBody": "={{ JSON.stringify($json) }}",
         "options": {
           "responseCode": 200
         }
@@ -245,7 +239,7 @@
       "name": "RespuestaExito",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [2250, 150]
+      "position": [2450, 100]
     }
   ],
   "connections": {
@@ -319,6 +313,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "RespuestaErrorDB",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -341,6 +342,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "RespuestaErrorCalendar",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -348,24 +356,30 @@
       "main": [
         [
           {
-            "node": "WhatsAppCliente",
+            "node": "GmailCliente",
             "type": "main",
             "index": 0
           },
           {
-            "node": "WhatsAppAdmin",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "EmailCliente",
+            "node": "GmailAdmin",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "WhatsAppCliente": {
+    "GmailCliente": {
+      "main": [
+        [
+          {
+            "node": "PrepararRespuestaFinal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PrepararRespuestaFinal": {
       "main": [
         [
           {
@@ -384,6 +398,6 @@
   "staticData": null,
   "tags": [],
   "triggerCount": 0,
-  "updatedAt": "2026-03-19T00:00:00.000Z",
-  "versionId": "5"
+  "updatedAt": "2026-03-20T00:00:00.000Z",
+  "versionId": "7"
 }
