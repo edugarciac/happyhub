@@ -118,7 +118,7 @@
         "calendarId": "primary",
         "start": "={{ $json.fechaHoraInicio }}",
         "end": "={{ $json.fechaHoraFin }}",
-        "summary": "=HappyHub - {{ $json.nombre }} - {{ $json.tipoEvento }}",
+        "summary": "=Evento: {{ $json.tipoEvento }}",
         "additionalFields": {
           "description": "=Tipo de evento: {{ $json.tipoEvento }}\nNombre: {{ $json.nombre }}\nParticipantes: {{ $json.pax }} personas\nTelefono: {{ $json.telefono }}\nEmail: {{ $json.email }}\nMetodo de pago: {{ $json.metodoPago }}\nPrecio base: {{ $json.precioBase }} EUR\nPrecio total: {{ $json.precioTotal }} EUR\nSenal (30%): {{ $json.depositoAmount }} EUR\nExtras: {{ $json.extras }}\nMensaje: {{ $json.mensaje }}",
           "location": "HappyHub - C/ Rovellat, 27, 08950 Esplugues de Llobregat",
