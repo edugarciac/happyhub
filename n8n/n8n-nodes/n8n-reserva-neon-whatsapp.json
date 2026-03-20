@@ -13,7 +13,10 @@
       "name": "Webhook Reserva",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1.1,
-      "position": [250, 300]
+      "position": [
+        250,
+        300
+      ]
     },
     {
       "parameters": {
@@ -23,7 +26,10 @@
       "name": "NormalizarDatos",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [450, 300]
+      "position": [
+        450,
+        300
+      ]
     },
     {
       "parameters": {
@@ -35,7 +41,10 @@
       "name": "VerificarDisponibilidad",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.4,
-      "position": [650, 300],
+      "position": [
+        650,
+        300
+      ],
       "credentials": {
         "postgres": {
           "id": "neon_happyhub",
@@ -51,7 +60,10 @@
       "name": "VerificarYMerge",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [850, 300]
+      "position": [
+        850,
+        300
+      ]
     },
     {
       "parameters": {
@@ -68,7 +80,10 @@
       "name": "FechaDisponible",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [1050, 300]
+      "position": [
+        1050,
+        300
+      ]
     },
     {
       "parameters": {
@@ -82,7 +97,10 @@
       "name": "RespuestaNoDisponible",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [1250, 450]
+      "position": [
+        1250,
+        450
+      ]
     },
     {
       "parameters": {
@@ -94,7 +112,10 @@
       "name": "GuardarEnNeonDB",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.4,
-      "position": [1250, 150],
+      "position": [
+        1250,
+        150
+      ],
       "credentials": {
         "postgres": {
           "id": "neon_happyhub",
@@ -115,7 +136,10 @@
       "name": "RespuestaErrorDB",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [1450, 350]
+      "position": [
+        1450,
+        350
+      ]
     },
     {
       "parameters": {
@@ -125,7 +149,10 @@
       "name": "MergeConDatos",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [1450, 150]
+      "position": [
+        1450,
+        150
+      ]
     },
     {
       "parameters": {
@@ -133,18 +160,21 @@
         "calendar": "primary",
         "start": "={{ $json.fechaHoraInicio }}",
         "end": "={{ $json.fechaHoraFin }}",
-        "summary": "={{ 'Evento: ' + $json.tipoEvento }}",
         "additionalFields": {
           "description": "=Tipo de evento: {{ $json.tipoEvento }}\nNombre: {{ $json.nombre }}\nParticipantes: {{ $json.pax }} personas\nTelefono: {{ $json.telefono }}\nEmail: {{ $json.email }}\nMetodo de pago: {{ $json.metodoPago }}\nPrecio base: {{ $json.precioBase }} EUR\nPrecio total: {{ $json.precioTotal }} EUR\nSenal (30%): {{ $json.depositoAmount }} EUR\nExtras: {{ $json.extras }}\nMensaje: {{ $json.mensaje }}",
           "location": "Happyhub - C/ Rovellat, 27, 08950 Esplugues de Llobregat",
-          "sendUpdates": "all"
+          "sendUpdates": "all",
+          "summary": "={{ 'Evento: ' + $json.tipoEvento }}"
         }
       },
       "id": "create_calendar_event",
       "name": "CrearEventoCalendar",
       "type": "n8n-nodes-base.googleCalendar",
       "typeVersion": 1,
-      "position": [1650, 150],
+      "position": [
+        1650,
+        150
+      ],
       "credentials": {
         "googleCalendarOAuth2Api": {
           "id": "google_calendar_happyhub",
@@ -165,7 +195,10 @@
       "name": "RespuestaErrorCalendar",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [1850, 350]
+      "position": [
+        1850,
+        350
+      ]
     },
     {
       "parameters": {
@@ -175,7 +208,10 @@
       "name": "PrepararRespuesta",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [1850, 150]
+      "position": [
+        1850,
+        150
+      ]
     },
     {
       "parameters": {
@@ -188,7 +224,10 @@
       "name": "GmailCliente",
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,
-      "position": [2050, 100],
+      "position": [
+        2050,
+        100
+      ],
       "credentials": {
         "gmailOAuth2": {
           "id": "gmail_happyhub",
@@ -208,7 +247,10 @@
       "name": "GmailAdmin",
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,
-      "position": [2050, 300],
+      "position": [
+        2050,
+        300
+      ],
       "credentials": {
         "gmailOAuth2": {
           "id": "gmail_happyhub",
@@ -225,7 +267,10 @@
       "name": "PrepararRespuestaFinal",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
-      "position": [2250, 100]
+      "position": [
+        2250,
+        100
+      ]
     },
     {
       "parameters": {
@@ -239,7 +284,10 @@
       "name": "RespuestaExito",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [2450, 100]
+      "position": [
+        2450,
+        100
+      ]
     }
   ],
   "connections": {
