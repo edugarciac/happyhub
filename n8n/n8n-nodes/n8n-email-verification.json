@@ -1,0 +1,131 @@
+{
+  "name": "Happyhub - Email Verificacion",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "send-verification-email",
+        "options": {
+          "responseMode": "responseNode"
+        },
+        "httpMethod": "POST"
+      },
+      "id": "webhook_email",
+      "name": "Webhook Email",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "const body = items[0].json.body || items[0].json;\n\nconst to = body.to || '';\nconst subject = body.subject || 'Verifica tu email - Happyhub';\nconst html = body.html || '';\nconst name = body.name || '';\nconst verificationUrl = body.verificationUrl || '';\n\nif (!to || !html) {\n  throw new Error('Missing required fields: to, html');\n}\n\nreturn [{\n  json: {\n    to,\n    subject,\n    html,\n    name,\n    verificationUrl\n  }\n}];"
+      },
+      "id": "validate_data",
+      "name": "ValidarDatos",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "=happyhub.rovellat@gmail.com",
+        "toEmail": "={{ $json.to }}",
+        "subject": "={{ $json.subject }}",
+        "text": "",
+        "html": "={{ $json.html }}",
+        "options": {}
+      },
+      "id": "send_email",
+      "name": "EnviarEmail",
+      "type": "n8n-nodes-base.sendEmail",
+      "typeVersion": 1,
+      "position": [650, 300],
+      "credentials": {
+        "smtp": {
+          "id": "smtp_happyhub",
+          "name": "SMTP Happyhub Gmail"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"message\": \"Email de verificacion enviado a {{ $json.to }}\"\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "response_success",
+      "name": "RespuestaExito",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": false,\n  \"error\": \"Error al enviar el email de verificacion\"\n}",
+        "options": {
+          "responseCode": 500
+        }
+      },
+      "id": "response_error",
+      "name": "RespuestaError",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [850, 450]
+    }
+  ],
+  "connections": {
+    "Webhook Email": {
+      "main": [
+        [
+          {
+            "node": "ValidarDatos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ValidarDatos": {
+      "main": [
+        [
+          {
+            "node": "EnviarEmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "EnviarEmail": {
+      "main": [
+        [
+          {
+            "node": "RespuestaExito",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "RespuestaError",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1.1",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-03-19T00:00:00.000Z",
+  "versionId": "1"
+}
