@@ -58,28 +58,33 @@ export const authOptions: NextAuthOptions = {
   debug: process.env.NODE_ENV === 'development',
   callbacks: {
     async signIn({ user, account, profile }) {
-      // Ensure users table exists with all columns (including email_verified)
-      await ensureUsersTable();
+      console.log('[AUTH] signIn callback:', { provider: account?.provider, email: user.email });
+
+      try {
+        await ensureUsersTable();
+      } catch (err) {
+        console.error('[AUTH] ensureUsersTable failed:', err);
+      }
 
       // Handle Google OAuth sign-in
       if (account?.provider === 'google' && user.email) {
         try {
-          // Check if user already exists
           const existingUser = await getUserByEmail(user.email);
+          console.log('[AUTH] Google user lookup:', { email: user.email, found: !!existingUser });
 
           if (!existingUser) {
-            // Create new user from Google profile (email auto-verified by Google)
-            await createUser({
+            const newUser = await createUser({
               email: user.email,
-              password: Math.random().toString(36), // Random password for OAuth users
+              password: Math.random().toString(36),
               name: user.name || 'Usuario',
-              phone: '', // Optional, can be filled later
+              phone: '',
               role: 'client',
               email_verified: true,
             });
+            console.log('[AUTH] Created Google user:', { id: newUser.id, email: newUser.email });
           }
         } catch (error) {
-          console.error('Error in Google sign-in:', error);
+          console.error('[AUTH] Error in Google sign-in:', error);
           return false;
         }
       }

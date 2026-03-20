@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -21,6 +21,20 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+
+  // Show NextAuth error from query params (e.g. after failed Google redirect)
+  useEffect(() => {
+    const errorParam = router.query.error as string | undefined;
+    if (errorParam) {
+      const errorMessages: Record<string, string> = {
+        OAuthSignin: 'Error al conectar con Google. Revisa la configuración OAuth.',
+        OAuthCallback: 'Error en callback de Google. Revisa el Authorized Redirect URI.',
+        OAuthCreateAccount: 'Error al crear cuenta con Google.',
+        Callback: 'Error en el callback de autenticación.',
+      };
+      setError(errorMessages[errorParam] || `Error de autenticación: ${errorParam}`);
+    }
+  }, [router.query.error]);
 
   const {
     register,
