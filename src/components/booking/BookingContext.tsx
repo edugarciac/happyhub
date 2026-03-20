@@ -45,6 +45,7 @@ export interface BookingState {
   basePrice: number | 'consult';
   // Reservation ID (after creation)
   reservationId: string | null;
+  emailWarning: string | null;
 }
 
 type BookingAction =
@@ -57,6 +58,7 @@ type BookingAction =
   | { type: 'SET_BASE_PRICE'; price: number | 'consult' }
   | { type: 'SET_STRIPE_SESSION'; sessionId: string }
   | { type: 'SET_RESERVATION_ID'; id: string }
+  | { type: 'SET_EMAIL_WARNING'; warning: string }
   | { type: 'RESET' };
 
 const initialState: BookingState = {
@@ -75,6 +77,7 @@ const initialState: BookingState = {
   stripeSessionId: null,
   basePrice: 0,
   reservationId: null,
+  emailWarning: null,
 };
 
 function bookingReducer(state: BookingState, action: BookingAction): BookingState {
@@ -102,6 +105,8 @@ function bookingReducer(state: BookingState, action: BookingAction): BookingStat
       return { ...state, stripeSessionId: action.sessionId };
     case 'SET_RESERVATION_ID':
       return { ...state, reservationId: action.id };
+    case 'SET_EMAIL_WARNING':
+      return { ...state, emailWarning: action.warning };
     case 'RESET':
       return initialState;
     default:

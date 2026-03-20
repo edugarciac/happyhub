@@ -145,16 +145,16 @@ export default function Step3CustomerData() {
       }
 
       if (!response.ok) {
-        setSubmitError('Ha ocurrido un error al procesar tu reserva. Intentalo de nuevo.');
-        setSubmitErrorDetail(`HTTP ${response.status}: ${result.detail || result.error || ''}`);
+        setSubmitError(result.error || 'Ha ocurrido un error al procesar tu reserva. Intentalo de nuevo.');
+        setSubmitErrorDetail(`HTTP ${response.status}${result.step ? ` [${result.step}]` : ''}: ${result.detail || result.error || ''}`);
         setIsConflictError(false);
         setIsSubmitting(false);
         return;
       }
 
       if (!result.success) {
-        setSubmitError('Error al procesar la reserva. Intentalo de nuevo.');
-        setSubmitErrorDetail(result.error || '');
+        setSubmitError(result.error || 'Error al procesar la reserva. Intentalo de nuevo.');
+        setSubmitErrorDetail(result.step ? `Paso: ${result.step}` : '');
         setIsConflictError(false);
         setIsSubmitting(false);
         return;
@@ -165,6 +165,13 @@ export default function Step3CustomerData() {
         type: 'SET_RESERVATION_ID',
         id: result.reservationId,
       });
+
+      if (result.emailWarning) {
+        dispatch({
+          type: 'SET_EMAIL_WARNING',
+          warning: result.emailWarning,
+        });
+      }
 
       nextStep();
     } catch (error: any) {

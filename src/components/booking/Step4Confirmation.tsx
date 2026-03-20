@@ -1,5 +1,5 @@
 import { useBooking, EXTRAS } from './BookingContext';
-import { Check, Calendar, Clock, Users, MessageSquare, Mail, Phone, Home } from 'lucide-react';
+import { Check, Calendar, Clock, Users, MessageSquare, Mail, Phone, Home, AlertTriangle } from 'lucide-react';
 import { formatDate } from '@/utils/formatters';
 import Link from 'next/link';
 
@@ -47,6 +47,19 @@ export default function Step4Confirmation() {
           </p>
         )}
       </div>
+
+      {/* Email Warning */}
+      {state.emailWarning && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
+          <div className="flex gap-3">
+            <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-amber-900">Aviso sobre el email</p>
+              <p className="text-sm text-amber-800 mt-1">{state.emailWarning}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Info Card */}
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-8">
