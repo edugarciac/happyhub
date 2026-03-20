@@ -91,7 +91,18 @@ export default async function handler(
 
     console.log('Respuesta de n8n:', n8nResponse.data);
 
-    const reservationId = n8nResponse.data?.reservationId || `RES-${Date.now()}`;
+    const n8nData = n8nResponse.data;
+
+    // Check if n8n returned an error (200 with success: false)
+    if (n8nData?.success === false) {
+      return res.status(422).json({
+        success: false,
+        error: n8nData.error || 'Error al procesar la reserva en el servidor.',
+        detail: n8nData.message || '',
+      });
+    }
+
+    const reservationId = n8nData?.reservationId || `RES-${Date.now()}`;
 
     return res.status(200).json({
       success: true,

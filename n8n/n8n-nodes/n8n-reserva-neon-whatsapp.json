@@ -87,7 +87,7 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "=INSERT INTO reservations (name, email, phone, event_type, event_date, time_slot, guests, extras, base_price, total_price, deposit_amount, payment_method, customer_message, status, created_at) VALUES ('{{ $json.nombre }}', '{{ $json.email }}', '{{ $json.telefono }}', '{{ $json.tipoEvento }}', '{{ $json.fecha }}', '{{ $json.timeSlot }}', {{ $json.pax }}, '{{ $json.extras }}'::jsonb, {{ $json.precioBase }}, {{ $json.precioTotal }}, {{ $json.depositoAmount }}, '{{ $json.metodoPago }}', '{{ $json.mensaje }}', 'pending', NOW()) RETURNING id",
+        "query": "=INSERT INTO reservations (event_type, event_date, time_slot, guests, total_price, deposit_amount, notes, status, created_at) VALUES ('{{ $json.tipoEvento }}', '{{ $json.fecha }}', '{{ $json.timeSlot }}', {{ $json.pax }}, {{ $json.precioTotal }}, {{ $json.depositoAmount }}, '{{ $json.mensaje }}', 'pending', NOW()) RETURNING id",
         "options": {}
       },
       "id": "save_to_neon",
