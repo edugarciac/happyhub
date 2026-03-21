@@ -1,5 +1,6 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
+import { useSession, signOut } from 'next-auth/react';
 import DashboardNav from './DashboardNav';
 import { Menu, X, LogOut } from 'lucide-react';
 
@@ -9,13 +10,14 @@ interface AdminLayoutProps {
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    // Check if user is admin
-    const token = localStorage.getItem('token');
-    if (!token) {
+    if (status === 'loading') return;
+
+    if (!session || (session.user as any)?.role !== 'admin') {
       router.push('/login');
       return;
     }
@@ -31,12 +33,15 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  }, [session, status]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    router.push('/login');
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: '/' });
   };
+
+  if (status === 'loading' || !session) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex">

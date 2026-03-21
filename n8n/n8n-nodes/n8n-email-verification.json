@@ -27,20 +27,21 @@
     },
     {
       "parameters": {
-        "sendTo": "={{ $json.to }}",
+        "fromEmail": "noreply@happyhub.es",
+        "toEmail": "={{ $json.to }}",
         "subject": "={{ $json.subject }}",
-        "emailType": "html",
-        "message": "={{ $json.html }}"
+        "emailFormat": "html",
+        "html": "={{ $json.html }}"
       },
       "id": "send_email",
       "name": "EnviarEmail",
-      "type": "n8n-nodes-base.gmail",
+      "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
       "position": [650, 300],
       "credentials": {
-        "gmailOAuth2": {
-          "id": "gmail_happyhub",
-          "name": "Gmail HappyHub"
+        "smtp": {
+          "id": "smtp_happyhub",
+          "name": "SMTP Happyhub"
         }
       },
       "onError": "continueErrorOutput"

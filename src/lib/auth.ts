@@ -23,6 +23,10 @@ const providers: AuthOptions['providers'] = [
           throw new Error('Email o contraseña incorrectos');
         }
 
+        if (!user.email_verified) {
+          throw new Error('Debes verificar tu email antes de iniciar sesión. Revisa tu bandeja de entrada.');
+        }
+
         return {
           id: user.id.toString(),
           email: user.email,
