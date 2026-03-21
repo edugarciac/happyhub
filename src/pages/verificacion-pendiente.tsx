@@ -47,7 +47,7 @@ export default function VerificacionPendientePage() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-ocean-light/20 to-primary/10 py-12 px-4">
         <div className="max-w-md w-full">
           <div className="bg-white rounded-lg shadow-lg p-8 text-center">
-            <h1 className="text-4xl font-bold text-primary mb-2">HappyHub</h1>
+            <h1 className="text-4xl font-bold text-primary mb-2">Happyhub</h1>
             <p className="text-gray-500 mb-8">Revisa tu email</p>
 
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">

@@ -61,7 +61,7 @@ export default function Header() {
             </div>
             <span className="text-2xl font-bold">
               <span className="text-[#FF6B35]">Happy</span>
-              <span className="text-[#00BCD4]">Hub</span>
+              <span className="text-[#00BCD4]">hub</span>
             </span>
           </Link>
 
@@ -78,13 +78,13 @@ export default function Header() {
               </Link>
             ))}
             {session?.user ? (
-              <div className="flex items-center ml-2 space-x-2">
-                <span className="text-sm font-medium text-gray-700 max-w-[160px] truncate" title={session.user.email || ''}>
+              <div className="flex items-center ml-2 space-x-2 bg-ocean-50 border border-ocean-200 rounded-xl px-3 py-1.5">
+                <span className="text-sm font-medium text-ocean-700 max-w-[160px] truncate" title={session.user.email || ''}>
                   {session.user.email}
                 </span>
                 <button
                   onClick={handleLogout}
-                  className="text-gray-500 hover:text-red-500 transition-colors p-2 rounded-xl hover:bg-red-50"
+                  className="text-gray-500 hover:text-red-500 transition-colors p-1.5 rounded-lg hover:bg-red-50"
                   title="Cerrar sesión"
                 >
                   <LogOut className="w-4 h-4" />
@@ -131,8 +131,8 @@ export default function Header() {
               </Link>
             ))}
             {session?.user ? (
-              <div className="flex items-center justify-between px-4 py-3">
-                <span className="text-sm font-medium text-gray-700 truncate">
+              <div className="flex items-center justify-between px-4 py-3 bg-ocean-50 border border-ocean-200 rounded-xl">
+                <span className="text-sm font-medium text-ocean-700 truncate">
                   {session.user.email}
                 </span>
                 <button

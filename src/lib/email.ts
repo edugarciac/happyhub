@@ -16,7 +16,7 @@ function buildVerificationEmailHtml(name: string, verificationUrl: string): stri
           <!-- Header -->
           <tr>
             <td style="background:linear-gradient(135deg,#6366f1,#8b5cf6);padding:32px;text-align:center;">
-              <h1 style="color:#ffffff;margin:0;font-size:28px;">HappyHub</h1>
+              <h1 style="color:#ffffff;margin:0;font-size:28px;">Happyhub</h1>
             </td>
           </tr>
           <!-- Content -->

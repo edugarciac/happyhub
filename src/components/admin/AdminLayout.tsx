@@ -57,7 +57,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold">
                 <span className="text-[#FF6B35]">Happy</span>
-                <span className="text-[#00BCD4]">Hub</span>
+                <span className="text-[#00BCD4]">hub</span>
               </h2>
               {isMobile && (
                 <button
@@ -109,7 +109,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           </button>
           <h1 className="text-lg font-bold">
             <span className="text-[#FF6B35]">Happy</span>
-            <span className="text-[#00BCD4]">Hub</span>
+            <span className="text-[#00BCD4]">hub</span>
           </h1>
           <div className="w-10" /> {/* Spacer */}
         </header>
