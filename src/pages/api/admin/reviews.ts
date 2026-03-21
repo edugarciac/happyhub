@@ -2,28 +2,12 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '../../../lib/db';
 import { requireAdmin } from '../../../utils/adminAuth';
 
-interface ReviewsResponse {
-  success: boolean;
-  reviews?: any[];
-  total?: number;
-  error?: string;
-}
-
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<ReviewsResponse>
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    // Require admin auth
     requireAdmin(req);
 
-    if (req.method === 'GET') {
-      return handleGetReviews(req, res);
-    }
-
-    if (req.method === 'DELETE') {
-      return handleDeleteReview(req, res);
-    }
+    if (req.method === 'GET') return handleGetReviews(req, res);
+    if (req.method === 'DELETE') return handleDeleteReview(req, res);
 
     return res.status(405).json({ success: false, error: 'Method not allowed' });
   } catch (error: any) {
@@ -34,44 +18,33 @@ export default async function handler(
   }
 }
 
-async function handleGetReviews(
-  req: NextApiRequest,
-  res: NextApiResponse<ReviewsResponse>
-) {
+async function handleGetReviews(req: NextApiRequest, res: NextApiResponse) {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 20;
-    const search = req.query.search as string || '';
-    const filterPublished = req.query.published as string;
-
+    const search = (req.query.search as string) || '';
+    const filterStatus = req.query.status as string;
     const offset = (page - 1) * limit;
 
     let whereClause = 'WHERE 1=1';
     const params: any[] = [];
     let paramCount = 0;
 
-    // Search filter
     if (search) {
       paramCount++;
-      whereClause += ` AND (customer_name ILIKE $${paramCount} OR review_text ILIKE $${paramCount})`;
+      whereClause += ` AND (r.customer_name ILIKE $${paramCount} OR r.review_text ILIKE $${paramCount} OR r.title ILIKE $${paramCount})`;
       params.push(`%${search}%`);
     }
 
-    // Published filter
-    if (filterPublished === 'true' || filterPublished === 'false') {
+    if (filterStatus && filterStatus !== 'all') {
       paramCount++;
-      whereClause += ` AND is_published = $${paramCount}`;
-      params.push(filterPublished === 'true');
+      whereClause += ` AND r.status = $${paramCount}`;
+      params.push(filterStatus);
     }
 
-    // Get total count
-    const countResult = await query(
-      `SELECT COUNT(*) as total FROM reviews ${whereClause}`,
-      params
-    );
+    const countResult = await query(`SELECT COUNT(*) as total FROM reviews r ${whereClause}`, params);
     const total = parseInt(countResult.rows[0].total);
 
-    // Get reviews with pagination
     params.push(limit, offset);
     const result = await query(
       `SELECT r.*, res.event_date, res.event_type
@@ -83,42 +56,22 @@ async function handleGetReviews(
       params
     );
 
-    return res.status(200).json({
-      success: true,
-      reviews: result.rows,
-      total,
-    });
+    return res.status(200).json({ success: true, reviews: result.rows, total });
   } catch (error) {
     console.error('Error fetching reviews:', error);
-    return res.status(500).json({
-      success: false,
-      error: 'Error al obtener reseñas',
-    });
+    return res.status(500).json({ success: false, error: 'Error al obtener reseñas' });
   }
 }
 
-async function handleDeleteReview(
-  req: NextApiRequest,
-  res: NextApiResponse<ReviewsResponse>
-) {
+async function handleDeleteReview(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { id } = req.query;
-
-    if (!id) {
-      return res.status(400).json({
-        success: false,
-        error: 'ID de reseña requerido',
-      });
-    }
+    if (!id) return res.status(400).json({ success: false, error: 'ID de reseña requerido' });
 
     await query('DELETE FROM reviews WHERE id = $1', [parseInt(id as string)]);
-
     return res.status(200).json({ success: true });
   } catch (error) {
     console.error('Error deleting review:', error);
-    return res.status(500).json({
-      success: false,
-      error: 'Error al eliminar reseña',
-    });
+    return res.status(500).json({ success: false, error: 'Error al eliminar reseña' });
   }
 }

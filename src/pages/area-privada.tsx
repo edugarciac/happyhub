@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import Head from 'next/head';
 import Link from 'next/link';
-import { User, Lock, Calendar, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
+import { User, Lock, Calendar, ChevronDown, ChevronUp, RefreshCw, Star } from 'lucide-react';
 
 // -- Types --
 
@@ -102,6 +102,15 @@ export default function AreaPrivadaPage() {
   const [passwordMsg, setPasswordMsg] = useState({ type: '', text: '' });
   const [expandedReservation, setExpandedReservation] = useState<string | null>(null);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
+
+  // Review form state
+  const [reviewTitle, setReviewTitle] = useState('');
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewHover, setReviewHover] = useState(0);
+  const [reviewText, setReviewText] = useState('');
+  const [reviewPhotos, setReviewPhotos] = useState<FileList | null>(null);
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [reviewMsg, setReviewMsg] = useState({ type: '', text: '' });
 
   const profileForm = useForm<ProfileForm>({
     resolver: zodResolver(profileSchema),
@@ -204,6 +213,62 @@ export default function AreaPrivadaPage() {
       }
     } catch {
       setPasswordMsg({ type: 'error', text: 'Error de conexión' });
+    }
+  };
+
+  // Submit review
+  const onSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reviewTitle || reviewTitle.length < 3) {
+      setReviewMsg({ type: 'error', text: 'El título debe tener al menos 3 caracteres' });
+      return;
+    }
+    if (reviewRating === 0) {
+      setReviewMsg({ type: 'error', text: 'Selecciona una valoración' });
+      return;
+    }
+    setReviewSubmitting(true);
+    setReviewMsg({ type: '', text: '' });
+    try {
+      let photoUrls: string[] = [];
+      if (reviewPhotos && reviewPhotos.length > 0) {
+        const formData = new FormData();
+        for (let i = 0; i < reviewPhotos.length; i++) {
+          formData.append('files', reviewPhotos[i]);
+        }
+        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
+        if (uploadRes.ok) {
+          const uploadData = await uploadRes.json();
+          photoUrls = uploadData.urls || [];
+        }
+      }
+      const res = await fetch('/api/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: reviewTitle,
+          rating: reviewRating,
+          review_text: reviewText,
+          photo_urls: photoUrls,
+        }),
+      });
+      const result = await res.json();
+      if (res.ok) {
+        setReviewMsg({ type: 'success', text: 'Reseña enviada correctamente. Será revisada antes de publicarse.' });
+        setReviewTitle('');
+        setReviewRating(0);
+        setReviewHover(0);
+        setReviewText('');
+        setReviewPhotos(null);
+        const fileInput = document.getElementById('review-photos') as HTMLInputElement;
+        if (fileInput) fileInput.value = '';
+      } else {
+        setReviewMsg({ type: 'error', text: result.error || 'Error al enviar la reseña' });
+      }
+    } catch {
+      setReviewMsg({ type: 'error', text: 'Error de conexión' });
+    } finally {
+      setReviewSubmitting(false);
     }
   };
 
@@ -379,6 +444,118 @@ export default function AreaPrivadaPage() {
             ) : (
               <p className="text-gray-500">No se pudo cargar el perfil</p>
             )}
+          </section>
+
+          {/* Publicar reseña */}
+          <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
+            <div className="flex items-center gap-3 mb-6">
+              <Star className="w-5 h-5 text-primary-600" />
+              <h2 className="text-xl font-semibold text-gray-900">Publicar reseña</h2>
+            </div>
+
+            <form onSubmit={onSubmitReview} className="space-y-5">
+              {/* Title */}
+              <div>
+                <label htmlFor="review-title" className="block text-sm font-medium text-gray-700 mb-1">
+                  Título <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="review-title"
+                  type="text"
+                  value={reviewTitle}
+                  onChange={(e) => setReviewTitle(e.target.value)}
+                  minLength={3}
+                  required
+                  className="block w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
+                  placeholder="Ej: Una experiencia increíble"
+                />
+              </div>
+
+              {/* Star rating */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Valoración <span className="text-red-500">*</span>
+                </label>
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setReviewRating(star)}
+                      onMouseEnter={() => setReviewHover(star)}
+                      onMouseLeave={() => setReviewHover(0)}
+                      className="focus:outline-none transition-transform hover:scale-110"
+                      aria-label={`${star} estrella${star > 1 ? 's' : ''}`}
+                    >
+                      <Star
+                        className="w-8 h-8 transition-colors"
+                        style={{
+                          fill: (reviewHover || reviewRating) >= star ? '#f59e0b' : 'none',
+                          color: (reviewHover || reviewRating) >= star ? '#f59e0b' : '#d1d5db',
+                        }}
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Review text */}
+              <div>
+                <label htmlFor="review-text" className="block text-sm font-medium text-gray-700 mb-1">
+                  Comentario <span className="text-gray-400 font-normal">(opcional)</span>
+                </label>
+                <textarea
+                  id="review-text"
+                  value={reviewText}
+                  onChange={(e) => setReviewText(e.target.value)}
+                  maxLength={500}
+                  rows={4}
+                  className="block w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition resize-none"
+                  placeholder="Cuéntanos cómo fue tu experiencia en Happyhub..."
+                />
+                <p className="text-xs text-gray-400 mt-1 text-right">{reviewText.length}/500</p>
+              </div>
+
+              {/* Photo upload */}
+              <div>
+                <label htmlFor="review-photos" className="block text-sm font-medium text-gray-700 mb-1">
+                  Fotos <span className="text-gray-400 font-normal">(opcional, máx. 3 · 5 MB cada una)</span>
+                </label>
+                <input
+                  id="review-photos"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={(e) => {
+                    const files = e.target.files;
+                    if (files && files.length > 3) {
+                      setReviewMsg({ type: 'error', text: 'Máximo 3 fotos permitidas' });
+                      e.target.value = '';
+                      return;
+                    }
+                    setReviewMsg({ type: '', text: '' });
+                    setReviewPhotos(files);
+                  }}
+                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 transition"
+                />
+              </div>
+
+              {reviewMsg.text && (
+                <div className={`px-4 py-2 rounded-lg text-sm ${
+                  reviewMsg.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+                }`}>
+                  {reviewMsg.text}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={reviewSubmitting}
+                className="px-6 py-2.5 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition disabled:opacity-50"
+              >
+                {reviewSubmitting ? 'Enviando...' : 'Enviar reseña'}
+              </button>
+            </form>
           </section>
 
           {/* Mis reservas */}

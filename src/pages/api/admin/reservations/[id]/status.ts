@@ -18,9 +18,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ success: false, error: 'ID de reserva invalido' });
   }
 
-  const { status } = req.body as { status: ReservationStatus };
+  const { status, cancellationReason } = req.body as { status: ReservationStatus; cancellationReason?: string };
   if (!status) {
     return res.status(400).json({ success: false, error: 'Se requiere el campo status' });
+  }
+
+  if (status === 'cancelled' && !cancellationReason) {
+    return res.status(400).json({ success: false, error: 'Se requiere un motivo de cancelación' });
   }
 
   try {
@@ -40,10 +44,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    const updated = await queryOne(
-      `UPDATE reservations SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *`,
-      [status, parseInt(id)]
-    );
+    const updated = status === 'cancelled'
+      ? await queryOne(
+          `UPDATE reservations SET status = $1, cancellation_reason = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3 RETURNING *`,
+          [status, cancellationReason, parseInt(id)]
+        )
+      : await queryOne(
+          `UPDATE reservations SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *`,
+          [status, parseInt(id)]
+        );
 
     return res.status(200).json({ success: true, reservation: updated });
   } catch (error) {

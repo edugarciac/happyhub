@@ -5,7 +5,7 @@ export const STATUS_LABELS: Record<ReservationStatus, string> = {
   approved: 'Aprobada',
   rejected: 'Rechazada',
   cancelled: 'Cancelada',
-  completed: 'Completada',
+  completed: 'Evento Realizado',
 };
 
 export const STATUS_COLORS: Record<ReservationStatus, { bg: string; text: string }> = {
@@ -35,7 +35,7 @@ export const TRANSITION_LABELS: Record<ReservationStatus, string> = {
   approved: 'Aprobar',
   rejected: 'Rechazar',
   cancelled: 'Cancelar',
-  completed: 'Completar',
+  completed: 'Marcar Realizado',
   pending: 'Reabrir',
 };
 

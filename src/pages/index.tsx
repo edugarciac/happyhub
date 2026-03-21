@@ -1,21 +1,45 @@
 import Head from 'next/head';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Hero from '@/components/Hero';
 import PhotoGallery from '@/components/PhotoGallery';
 import PricingTable from '@/components/PricingTable';
 import {
   Calendar, Users, Sparkles, Shield, Clock, Heart,
   ArrowRight, Cake, Palette, Camera, Music,
-  Utensils, Gift, CheckCircle2, TrendingUp, Instagram
+  Utensils, Gift, CheckCircle2, TrendingUp, Instagram, Star
 } from 'lucide-react';
 
+interface Review {
+  id: number;
+  title: string;
+  rating: number;
+  review_text?: string;
+  customer_name: string;
+  created_at: string;
+}
+
 export default function Home() {
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [reviewsTotal, setReviewsTotal] = useState(0);
+
   useEffect(() => {
     const s = document.createElement('script');
     s.type = 'module';
     s.src = 'https://w.behold.so/widget.js';
     document.head.append(s);
     return () => { document.head.removeChild(s); };
+  }, []);
+
+  useEffect(() => {
+    fetch('/api/reviews?limit=6')
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => {
+        if (data) {
+          setReviews(data.reviews || []);
+          setReviewsTotal(data.total || 0);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const features = [
@@ -289,6 +313,75 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Reviews Section */}
+      {reviews.length > 0 && (
+        <section className="py-20 bg-white">
+          <div className="container-custom">
+            <div className="text-center mb-16">
+              <span className="section-tag">
+                <Star className="w-4 h-4 mr-2" />
+                Reseñas
+              </span>
+              <h2 className="section-title">Lo que dicen nuestros clientes</h2>
+              <p className="section-subtitle max-w-3xl mx-auto">
+                Opiniones reales de personas que celebraron con nosotros
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {reviews.map((review) => (
+                <div key={review.id} className="card flex flex-col">
+                  {/* Stars */}
+                  <div className="flex gap-0.5 mb-3">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star
+                        key={star}
+                        className="w-5 h-5"
+                        style={{
+                          fill: review.rating >= star ? '#f59e0b' : 'none',
+                          color: review.rating >= star ? '#f59e0b' : '#d1d5db',
+                        }}
+                      />
+                    ))}
+                  </div>
+                  {/* Title */}
+                  <h3 className="font-bold text-gray-900 mb-2">{review.title}</h3>
+                  {/* Review text */}
+                  {review.review_text && (
+                    <p className="text-gray-600 text-sm leading-relaxed line-clamp-3 flex-1 mb-4">
+                      {review.review_text}
+                    </p>
+                  )}
+                  {/* Footer */}
+                  <div className="mt-auto pt-3 border-t border-gray-100 flex items-center justify-between text-sm text-gray-500">
+                    <span className="font-medium text-gray-700">{review.customer_name}</span>
+                    <span>
+                      {new Date(review.created_at).toLocaleDateString('es-ES', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                      })}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {reviewsTotal > 6 && (
+              <div className="text-center mt-10">
+                <a
+                  href="/resenas"
+                  className="inline-flex items-center gap-2 px-6 py-3 border border-primary-600 text-primary-600 rounded-xl font-medium hover:bg-primary-50 transition"
+                >
+                  Ver todas las reseñas
+                  <ArrowRight className="w-4 h-4" />
+                </a>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* Final CTA Section */}
       <section className="py-24 bg-gradient-to-br from-primary-600 via-ocean-600 to-accent-600 relative overflow-hidden">

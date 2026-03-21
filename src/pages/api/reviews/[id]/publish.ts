@@ -1,102 +1,60 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import jwt from 'jsonwebtoken';
-import { query, queryOne } from '../../../../lib/db';
+import { queryOne } from '../../../../lib/db';
+import { verifyAdminToken } from '../../../../utils/adminAuth';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+type ReviewStatus = 'pending_review' | 'published' | 'archived' | 'cancelled';
 
-interface PublishResponse {
-  success: boolean;
-  review?: any;
-  error?: string;
-}
+const ALLOWED_TRANSITIONS: Record<ReviewStatus, ReviewStatus[]> = {
+  pending_review: ['published', 'cancelled'],
+  published: ['archived', 'cancelled'],
+  archived: ['published'],
+  cancelled: ['pending_review'],
+};
 
-interface DecodedToken {
-  userId: number;
-  email: string;
-  role: string;
-}
-
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<PublishResponse>
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'PATCH') {
     return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
 
+  const admin = verifyAdminToken(req);
+  if (!admin) {
+    return res.status(401).json({ success: false, error: 'No autorizado' });
+  }
+
+  const { id } = req.query;
+  if (!id || Array.isArray(id)) {
+    return res.status(400).json({ success: false, error: 'ID de reseña inválido' });
+  }
+
+  const { status } = req.body as { status: ReviewStatus };
+  if (!status) {
+    return res.status(400).json({ success: false, error: 'Se requiere el campo status' });
+  }
+
   try {
-    // 5.4: Check JWT authentication and admin role
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({
-        success: false,
-        error: 'No autorizado',
-      });
-    }
-
-    const token = authHeader.substring(7);
-    let decoded: DecodedToken;
-
-    try {
-      decoded = jwt.verify(token, JWT_SECRET) as DecodedToken;
-    } catch (error) {
-      return res.status(401).json({
-        success: false,
-        error: 'Token inválido o expirado',
-      });
-    }
-
-    // 5.5: Only allow if role is 'admin'
-    if (decoded.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        error: 'Solo los administradores pueden moderar reseñas',
-      });
-    }
-
-    const { id } = req.query;
-
-    if (!id || Array.isArray(id)) {
-      return res.status(400).json({
-        success: false,
-        error: 'ID de reseña inválido',
-      });
-    }
-
-    // Update is_published to true
-    const result = await queryOne<{
-      id: number;
-      reservation_id: number;
-      rating: number;
-      review_text: string | null;
-      customer_name: string;
-      is_published: boolean;
-      created_at: Date;
-      updated_at: Date;
-    }>(
-      `UPDATE reviews
-       SET is_published = true, updated_at = CURRENT_TIMESTAMP
-       WHERE id = $1
-       RETURNING id, reservation_id, rating, review_text, customer_name, is_published, created_at, updated_at`,
+    const review = await queryOne<{ id: number; status: ReviewStatus }>(
+      'SELECT id, status FROM reviews WHERE id = $1',
       [parseInt(id)]
     );
 
-    if (!result) {
-      return res.status(404).json({
-        success: false,
-        error: 'Reseña no encontrada',
-      });
+    if (!review) {
+      return res.status(404).json({ success: false, error: 'Reseña no encontrada' });
     }
 
-    return res.status(200).json({
-      success: true,
-      review: result,
-    });
+    const allowed = ALLOWED_TRANSITIONS[review.status] || [];
+    if (!allowed.includes(status)) {
+      return res.status(400).json({ success: false, error: 'Transición de estado no permitida' });
+    }
+
+    const updated = await queryOne(
+      `UPDATE reviews SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2
+       RETURNING id, rating, review_text, customer_name, title, status, created_at, updated_at`,
+      [status, parseInt(id)]
+    );
+
+    return res.status(200).json({ success: true, review: updated });
   } catch (error) {
-    console.error('Error publishing review:', error);
-    return res.status(500).json({
-      success: false,
-      error: 'Error al publicar la reseña',
-    });
+    console.error('Error updating review status:', error);
+    return res.status(500).json({ success: false, error: 'Error al cambiar estado' });
   }
 }

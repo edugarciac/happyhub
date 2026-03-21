@@ -16,6 +16,7 @@ import {
   Printer,
   Pencil,
   Trash2,
+  Plus,
 } from 'lucide-react';
 import {
   ReservationStatus,
@@ -101,6 +102,10 @@ export default function AdminReservations() {
   const [editError, setEditError] = useState('');
   const [editSaving, setEditSaving] = useState(false);
 
+  // Status change modal
+  const [statusModal, setStatusModal] = useState<{ reservation: Reservation; newStatus: ReservationStatus } | null>(null);
+  const [cancellationReason, setCancellationReason] = useState('');
+
   // Delete dialog
   const [deleteReservation, setDeleteReservation] = useState<Reservation | null>(null);
 
@@ -144,12 +149,12 @@ export default function AdminReservations() {
   };
 
   // Status change
-  const handleStatusChange = async (reservation: Reservation, newStatus: ReservationStatus) => {
+  const handleStatusChange = async (reservation: Reservation, newStatus: ReservationStatus, reason?: string) => {
     try {
       const res = await fetch(`/api/admin/reservations/${reservation.id}/status`, {
         method: 'PATCH',
         headers: authHeaders(),
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({ status: newStatus, cancellationReason: reason }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -157,6 +162,8 @@ export default function AdminReservations() {
         return;
       }
       showToast(`Estado cambiado a ${STATUS_LABELS[newStatus]}`, 'success');
+      setStatusModal(null);
+      setCancellationReason('');
       fetchReservations();
     } catch {
       showToast('Error de conexion', 'error');
@@ -253,7 +260,7 @@ export default function AdminReservations() {
   return (
     <>
       <Head>
-        <title>Reservas - Admin HappyHub</title>
+        <title>Reservas - Admin Happyhub</title>
       </Head>
 
       <div className="min-h-screen bg-gray-100">
@@ -277,6 +284,10 @@ export default function AdminReservations() {
                   <p className="text-gray-500 text-sm">{total} reservas encontradas</p>
                 </div>
               </div>
+              <Link href="/admin/reservations/create" className="btn-primary flex items-center gap-2">
+                <Plus className="w-4 h-4" />
+                Nueva Reserva
+              </Link>
             </div>
           </div>
         </header>
@@ -311,7 +322,7 @@ export default function AdminReservations() {
                   <option value="approved">Aprobada</option>
                   <option value="rejected">Rechazada</option>
                   <option value="cancelled">Cancelada</option>
-                  <option value="completed">Completada</option>
+                  <option value="completed">Evento Realizado</option>
                 </select>
               </div>
 
@@ -422,8 +433,15 @@ export default function AdminReservations() {
                               {transitions.map((t) => (
                                 <button
                                   key={t}
-                                  onClick={() => handleStatusChange(r, t)}
-                                  className="px-2 py-1 text-xs rounded border border-gray-300 hover:bg-gray-100 transition-colors"
+                                  onClick={() => setStatusModal({ reservation: r, newStatus: t })}
+                                  className={`px-2 py-1 text-xs rounded border transition-colors ${
+                                    t === 'approved' ? 'border-green-400 text-green-700 hover:bg-green-50' :
+                                    t === 'rejected' ? 'border-red-400 text-red-700 hover:bg-red-50' :
+                                    t === 'cancelled' ? 'border-red-400 text-red-700 hover:bg-red-50' :
+                                    t === 'completed' ? 'border-blue-400 text-blue-700 hover:bg-blue-50' :
+                                    t === 'pending' ? 'border-yellow-400 text-yellow-700 hover:bg-yellow-50' :
+                                    'border-gray-300 hover:bg-gray-100'
+                                  }`}
                                 >
                                   {TRANSITION_LABELS[t]}
                                 </button>
@@ -522,6 +540,56 @@ export default function AdminReservations() {
           </div>
         </main>
       </div>
+
+      {/* Status Change Modal */}
+      {statusModal && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex min-h-screen items-center justify-center p-4">
+            <div className="fixed inset-0 bg-black/50" onClick={() => { setStatusModal(null); setCancellationReason(''); }} />
+            <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                {TRANSITION_LABELS[statusModal.newStatus]} reserva #{statusModal.reservation.id}
+              </h3>
+              <p className="text-gray-600 text-sm mb-4">
+                {statusModal.newStatus === 'approved' && '¿Confirmas que quieres aprobar esta reserva?'}
+                {statusModal.newStatus === 'cancelled' && 'Indica el motivo de cancelación:'}
+                {statusModal.newStatus === 'completed' && '¿Confirmas que el evento se ha realizado?'}
+                {statusModal.newStatus === 'pending' && '¿Confirmas que quieres volver a poner esta reserva como pendiente?'}
+                {statusModal.newStatus === 'rejected' && '¿Confirmas que quieres rechazar esta reserva?'}
+              </p>
+              {statusModal.newStatus === 'cancelled' && (
+                <textarea
+                  value={cancellationReason}
+                  onChange={(e) => setCancellationReason(e.target.value)}
+                  placeholder="Motivo de cancelación (obligatorio)"
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg mb-4 focus:ring-2 focus:ring-primary-500"
+                />
+              )}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => { setStatusModal(null); setCancellationReason(''); }}
+                  className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={() => {
+                    if (statusModal.newStatus === 'cancelled' && !cancellationReason.trim()) {
+                      showToast('El motivo de cancelación es obligatorio', 'error');
+                      return;
+                    }
+                    handleStatusChange(statusModal.reservation, statusModal.newStatus, cancellationReason || undefined);
+                  }}
+                  className="flex-1 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors"
+                >
+                  Confirmar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Edit Modal */}
       <FormModal
