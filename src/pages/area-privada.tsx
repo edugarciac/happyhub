@@ -108,7 +108,6 @@ export default function AreaPrivadaPage() {
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewHover, setReviewHover] = useState(0);
   const [reviewText, setReviewText] = useState('');
-  const [reviewPhotos, setReviewPhotos] = useState<FileList | null>(null);
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [reviewMsg, setReviewMsg] = useState({ type: '', text: '' });
 
@@ -230,18 +229,6 @@ export default function AreaPrivadaPage() {
     setReviewSubmitting(true);
     setReviewMsg({ type: '', text: '' });
     try {
-      let photoUrls: string[] = [];
-      if (reviewPhotos && reviewPhotos.length > 0) {
-        const formData = new FormData();
-        for (let i = 0; i < reviewPhotos.length; i++) {
-          formData.append('files', reviewPhotos[i]);
-        }
-        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
-        if (uploadRes.ok) {
-          const uploadData = await uploadRes.json();
-          photoUrls = uploadData.urls || [];
-        }
-      }
       const res = await fetch('/api/reviews', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -249,7 +236,6 @@ export default function AreaPrivadaPage() {
           title: reviewTitle,
           rating: reviewRating,
           review_text: reviewText,
-          photo_urls: photoUrls,
         }),
       });
       const result = await res.json();
@@ -259,9 +245,6 @@ export default function AreaPrivadaPage() {
         setReviewRating(0);
         setReviewHover(0);
         setReviewText('');
-        setReviewPhotos(null);
-        const fileInput = document.getElementById('review-photos') as HTMLInputElement;
-        if (fileInput) fileInput.value = '';
       } else {
         setReviewMsg({ type: 'error', text: result.error || 'Error al enviar la reseña' });
       }
@@ -514,30 +497,6 @@ export default function AreaPrivadaPage() {
                   placeholder="Cuéntanos cómo fue tu experiencia en Happyhub..."
                 />
                 <p className="text-xs text-gray-400 mt-1 text-right">{reviewText.length}/500</p>
-              </div>
-
-              {/* Photo upload */}
-              <div>
-                <label htmlFor="review-photos" className="block text-sm font-medium text-gray-700 mb-1">
-                  Fotos <span className="text-gray-400 font-normal">(opcional, máx. 3 · 5 MB cada una)</span>
-                </label>
-                <input
-                  id="review-photos"
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={(e) => {
-                    const files = e.target.files;
-                    if (files && files.length > 3) {
-                      setReviewMsg({ type: 'error', text: 'Máximo 3 fotos permitidas' });
-                      e.target.value = '';
-                      return;
-                    }
-                    setReviewMsg({ type: '', text: '' });
-                    setReviewPhotos(files);
-                  }}
-                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 transition"
-                />
               </div>
 
               {reviewMsg.text && (

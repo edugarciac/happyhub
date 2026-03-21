@@ -1,11 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import Head from 'next/head';
 import AdminLayout from '../../components/admin/AdminLayout';
-import ConfirmDialog from '../../components/admin/ConfirmDialog';
-import StarRating from '../../components/StarRating';
-// API calls use fetch with session cookies (no Bearer token needed)
 import toast, { Toaster } from 'react-hot-toast';
-import { Trash2, ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { Trash2, ChevronLeft, ChevronRight, Search, Star, X } from 'lucide-react';
 
 type ReviewStatus = 'pending_review' | 'published' | 'archived' | 'cancelled';
 
@@ -33,6 +30,16 @@ const STATUS_BADGE: Record<ReviewStatus, string> = {
   cancelled: 'bg-red-100 text-red-800',
 };
 
+function Stars({ rating }: { rating: number }) {
+  return (
+    <div className="flex gap-0.5">
+      {[1, 2, 3, 4, 5].map((s) => (
+        <Star key={s} className="w-4 h-4" style={{ fill: s <= rating ? '#f59e0b' : 'none', color: s <= rating ? '#f59e0b' : '#d1d5db' }} />
+      ))}
+    </div>
+  );
+}
+
 export default function AdminReviews() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,71 +48,54 @@ export default function AdminReviews() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [deleteConfirm, setDeleteConfirm] = useState<Review | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const limit = 20;
 
   const fetchReviews = useCallback(async () => {
     try {
       setLoading(true);
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: limit.toString(),
-        search,
-        ...(filterStatus !== 'all' && { status: filterStatus }),
-      });
+      const params = new URLSearchParams({ page: page.toString(), limit: limit.toString(), search });
+      if (filterStatus !== 'all') params.append('status', filterStatus);
       const response = await fetch(`/api/admin/reviews?${params}`);
       const data = await response.json();
-      if (data.success) {
-        setReviews(data.reviews);
-        setTotal(data.total);
-      }
-    } catch {
-      toast.error('Error al cargar reseñas');
-    } finally {
-      setLoading(false);
-    }
+      if (data.success) { setReviews(data.reviews); setTotal(data.total); }
+    } catch { toast.error('Error al cargar reseñas'); }
+    finally { setLoading(false); }
   }, [page, search, filterStatus]);
 
-  useEffect(() => {
-    fetchReviews();
-  }, [fetchReviews]);
+  useEffect(() => { fetchReviews(); }, [fetchReviews]);
 
   const handleStatusChange = async (review: Review, newStatus: ReviewStatus) => {
     try {
       const response = await fetch(`/api/reviews/${review.id}/publish`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus }),
       });
       if (!response.ok) throw new Error();
       toast.success(`Reseña ${STATUS_LABELS[newStatus].toLowerCase()}`);
       fetchReviews();
-    } catch {
-      toast.error('Error al actualizar reseña');
-    }
+    } catch { toast.error('Error al actualizar reseña'); }
   };
 
   const confirmDelete = async () => {
     if (!deleteConfirm) return;
+    setDeleting(true);
     try {
       const response = await fetch(`/api/admin/reviews?id=${deleteConfirm.id}`, { method: 'DELETE' });
       if (!response.ok) throw new Error();
       toast.success('Reseña eliminada');
       setDeleteConfirm(null);
       fetchReviews();
-    } catch {
-      toast.error('Error al eliminar reseña');
-    }
+    } catch { toast.error('Error al eliminar reseña'); }
+    finally { setDeleting(false); }
   };
 
   const totalPages = Math.ceil(total / limit);
 
   return (
     <>
-      <Head>
-        <title>Gestión de Reseñas - Admin</title>
-      </Head>
-
+      <Head><title>Gestión de Reseñas - Admin</title></Head>
       <Toaster position="top-right" />
 
       <AdminLayout>
@@ -120,19 +110,12 @@ export default function AdminReviews() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="text"
-                  value={search}
-                  onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+                <input type="text" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }}
                   placeholder="Buscar por cliente o comentario..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
               </div>
-              <select
-                value={filterStatus}
-                onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              >
+              <select value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
                 <option value="all">Todas</option>
                 <option value="pending_review">En revisión</option>
                 <option value="published">Publicada</option>
@@ -168,23 +151,14 @@ export default function AdminReviews() {
                     {reviews.map((review) => (
                       <tr key={review.id} className="hover:bg-gray-50">
                         <td className="px-4 py-3">
-                          <div className="text-sm font-medium text-gray-900 max-w-[150px] truncate" title={review.title || ''}>
-                            {review.title || '-'}
-                          </div>
+                          <div className="text-sm font-medium text-gray-900 max-w-[150px] truncate" title={review.title || ''}>{review.title || '-'}</div>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
                           <div className="text-sm text-gray-900">{review.customer_name}</div>
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <StarRating rating={review.rating} readonly size="sm" />
-                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap"><Stars rating={review.rating} /></td>
                         <td className="px-4 py-3">
-                          <div
-                            className="text-sm text-gray-600 max-w-xs truncate"
-                            title={review.review_text || ''}
-                          >
-                            {review.review_text || '-'}
-                          </div>
+                          <div className="text-sm text-gray-600 max-w-xs truncate" title={review.review_text || ''}>{review.review_text || '-'}</div>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
                           <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${STATUS_BADGE[review.status]}`}>
@@ -192,65 +166,29 @@ export default function AdminReviews() {
                           </span>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-gray-600">
-                            {new Date(review.created_at).toLocaleDateString('es-ES')}
-                          </div>
+                          <div className="text-sm text-gray-600">{new Date(review.created_at).toLocaleDateString('es-ES')}</div>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
                           <div className="flex items-center gap-1">
                             {review.status === 'pending_review' && (
                               <>
-                                <button
-                                  onClick={() => handleStatusChange(review, 'published')}
-                                  className="px-2 py-1 text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
-                                >
-                                  Publicar
-                                </button>
-                                <button
-                                  onClick={() => handleStatusChange(review, 'cancelled')}
-                                  className="px-2 py-1 text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
-                                >
-                                  Cancelar
-                                </button>
+                                <button onClick={() => handleStatusChange(review, 'published')} className="px-2 py-1 text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition-colors">Publicar</button>
+                                <button onClick={() => handleStatusChange(review, 'cancelled')} className="px-2 py-1 text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition-colors">Cancelar</button>
                               </>
                             )}
                             {review.status === 'published' && (
                               <>
-                                <button
-                                  onClick={() => handleStatusChange(review, 'archived')}
-                                  className="px-2 py-1 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-                                >
-                                  Archivar
-                                </button>
-                                <button
-                                  onClick={() => handleStatusChange(review, 'cancelled')}
-                                  className="px-2 py-1 text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
-                                >
-                                  Cancelar
-                                </button>
+                                <button onClick={() => handleStatusChange(review, 'archived')} className="px-2 py-1 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">Archivar</button>
+                                <button onClick={() => handleStatusChange(review, 'cancelled')} className="px-2 py-1 text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition-colors">Cancelar</button>
                               </>
                             )}
                             {review.status === 'archived' && (
-                              <button
-                                onClick={() => handleStatusChange(review, 'published')}
-                                className="px-2 py-1 text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
-                              >
-                                Publicar
-                              </button>
+                              <button onClick={() => handleStatusChange(review, 'published')} className="px-2 py-1 text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition-colors">Publicar</button>
                             )}
                             {review.status === 'cancelled' && (
-                              <button
-                                onClick={() => handleStatusChange(review, 'pending_review')}
-                                className="px-2 py-1 text-xs font-medium text-yellow-700 bg-yellow-50 hover:bg-yellow-100 rounded-lg transition-colors"
-                              >
-                                Reabrir
-                              </button>
+                              <button onClick={() => handleStatusChange(review, 'pending_review')} className="px-2 py-1 text-xs font-medium text-yellow-700 bg-yellow-50 hover:bg-yellow-100 rounded-lg transition-colors">Reabrir</button>
                             )}
-                            <button
-                              onClick={() => setDeleteConfirm(review)}
-                              className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
-                              title="Eliminar"
-                            >
+                            <button onClick={() => setDeleteConfirm(review)} className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors" title="Eliminar">
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
@@ -265,25 +203,15 @@ export default function AdminReviews() {
             {/* Pagination */}
             {!loading && total > limit && (
               <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-                <div className="text-sm text-gray-500">
-                  Mostrando {(page - 1) * limit + 1} - {Math.min(page * limit, total)} de {total}
-                </div>
+                <div className="text-sm text-gray-500">Mostrando {(page - 1) * limit + 1} - {Math.min(page * limit, total)} de {total}</div>
                 <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    disabled={page === 1}
-                    className="p-2 rounded-lg border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                  >
+                  <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}
+                    className="p-2 rounded-lg border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50">
                     <ChevronLeft className="w-4 h-4" />
                   </button>
-                  <span className="text-sm text-gray-600">
-                    {page} / {totalPages}
-                  </span>
-                  <button
-                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                    disabled={page >= totalPages}
-                    className="p-2 rounded-lg border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                  >
+                  <span className="text-sm text-gray-600">{page} / {totalPages}</span>
+                  <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page >= totalPages}
+                    className="p-2 rounded-lg border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50">
                     <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
@@ -291,17 +219,28 @@ export default function AdminReviews() {
             )}
           </div>
         </div>
-      </AdminLayout>
 
-      <ConfirmDialog
-        isOpen={!!deleteConfirm}
-        onClose={() => setDeleteConfirm(null)}
-        onConfirm={confirmDelete}
-        title="Eliminar Reseña"
-        message={`¿Estás seguro de eliminar la reseña de ${deleteConfirm?.customer_name}?\n\nEsta acción no se puede deshacer.`}
-        confirmText="Eliminar"
-        variant="danger"
-      />
+        {/* Delete Confirmation Modal */}
+        {deleteConfirm && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setDeleteConfirm(null)}>
+            <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-gray-900">Eliminar Reseña</h3>
+                <button onClick={() => setDeleteConfirm(null)} className="p-1 hover:bg-gray-100 rounded-lg"><X className="w-5 h-5" /></button>
+              </div>
+              <p className="text-gray-600 text-sm mb-1">¿Estás seguro de eliminar la reseña de {deleteConfirm.customer_name}?</p>
+              <p className="text-red-600 text-xs mb-6">Esta acción no se puede deshacer.</p>
+              <div className="flex gap-3">
+                <button onClick={() => setDeleteConfirm(null)} className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg transition-colors">Cancelar</button>
+                <button onClick={confirmDelete} disabled={deleting}
+                  className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50">
+                  {deleting ? 'Eliminando...' : 'Eliminar'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </AdminLayout>
     </>
   );
 }

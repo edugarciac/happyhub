@@ -106,7 +106,7 @@ export default function AdminDashboard() {
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard de Administración</h1>
-            <p className="text-gray-600">Gestiona todos los aspectos de HappyHub desde aquí</p>
+            <p className="text-gray-600">Gestiona todos los aspectos de Happyhub desde aquí</p>
           </div>
 
           {/* Management Cards */}

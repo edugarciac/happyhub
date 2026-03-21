@@ -21,10 +21,16 @@ function AppContent({ Component, pageProps }: { Component: AppProps['Component']
   }, [router.events]);
 
   const isAuthPage = ['/login', '/register', '/verify-email', '/verificacion-pendiente', '/reset-password'].includes(router.pathname);
+  const isAdminPage = router.pathname.startsWith('/admin');
 
   const showBanner = session?.user &&
     !(session.user as any).emailVerified &&
-    !isAuthPage;
+    !isAuthPage &&
+    !isAdminPage;
+
+  if (isAdminPage) {
+    return <Component {...pageProps} />;
+  }
 
   return (
     <>

@@ -27,7 +27,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 async function handleGet(id: number, res: NextApiResponse) {
   try {
-    const reservation = await queryOne('SELECT * FROM reservations WHERE id = $1', [id]);
+    const reservation = await queryOne(
+      `SELECT r.*, u.name, u.email, u.phone
+       FROM reservations r
+       LEFT JOIN users u ON r.user_id = u.id
+       WHERE r.id = $1`,
+      [id]
+    );
     if (!reservation) {
       return res.status(404).json({ success: false, error: 'Reserva no encontrada' });
     }
@@ -72,8 +78,7 @@ async function handlePatch(id: number, req: NextApiRequest, res: NextApiResponse
     if (guests !== undefined) { sets.push(`guests = $${idx++}`); params.push(guests); }
     if (totalPrice !== undefined) { sets.push(`total_price = $${idx++}`); params.push(totalPrice); }
     if (depositAmount !== undefined) { sets.push(`deposit_amount = $${idx++}`); params.push(depositAmount); }
-    if (securityDeposit !== undefined) { sets.push(`security_deposit = $${idx++}`); params.push(securityDeposit); }
-    if (notes !== undefined) { sets.push(`customer_message = $${idx++}`); params.push(notes); }
+    if (notes !== undefined) { sets.push(`notes = $${idx++}`); params.push(notes); }
 
     if (sets.length === 0) {
       return res.status(400).json({ success: false, error: 'No se proporcionaron campos para actualizar' });
