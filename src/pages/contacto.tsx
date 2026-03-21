@@ -1,6 +1,9 @@
 import Head from 'next/head';
-import { Mail, Phone, MapPin, Clock, MessageCircle, Send } from 'lucide-react';
+import dynamic from 'next/dynamic';
+import { Mail, Phone, MapPin, Clock, MessageCircle, Send, Car } from 'lucide-react';
 import { event as gaEvent } from '@/lib/analytics';
+
+const ParkingMap = dynamic(() => import('@/components/ParkingMap'), { ssr: false });
 
 export default function Contacto() {
   const whatsappNumber = '34624645517';
@@ -208,6 +211,49 @@ export default function Contacto() {
         </div>
       </section>
 
+      <section className="py-16 bg-white">
+        <div className="container-custom">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Como llegar y aparcar</h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Disponemos de un parking publico gratuito a solo 350 metros del local, en Carrer de Josep Anselm Clave, 114I.
+            </p>
+          </div>
+
+          <div className="mb-8">
+            <ParkingMap />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+            <div className="flex items-start space-x-4 bg-primary-50 rounded-lg p-5">
+              <div className="bg-primary-100 p-3 rounded-lg shrink-0">
+                <MapPin className="w-6 h-6 text-primary-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-1">Happyhub</h3>
+                <p className="text-gray-600 text-sm">
+                  C/ Rovellat, 27<br />
+                  08950 Esplugues de Llobregat
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start space-x-4 bg-blue-50 rounded-lg p-5">
+              <div className="bg-blue-100 p-3 rounded-lg shrink-0">
+                <Car className="w-6 h-6 text-blue-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-1">Parking gratuito</h3>
+                <p className="text-gray-600 text-sm">
+                  C/ Josep Anselm Clave, 114I<br />
+                  A 350m — 4 minutos andando
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="py-16 bg-gray-50">
         <div className="container-custom">
           <h2 className="section-title text-center mb-12">Preguntas frecuentes</h2>
@@ -253,7 +299,7 @@ export default function Contacto() {
                 ¿Hay aparcamiento disponible?
               </summary>
               <p className="mt-3 text-gray-600">
-                Sí, disponemos de aparcamiento gratuito para 30 vehículos. También hay buenas conexiones de transporte público.
+                Si, hay un parking publico gratuito en Carrer de Josep Anselm Clave, 114I, a solo 350 metros del local (unos 4 minutos andando). Puedes ver la ubicacion exacta y el recorrido en el mapa de esta misma pagina.
               </p>
             </details>
           </div>
