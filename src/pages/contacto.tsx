@@ -219,7 +219,7 @@ export default function Contacto() {
 
           <div className="mb-8 rounded-xl overflow-hidden shadow-lg">
             <iframe
-              src="https://www.google.com/maps/dir/Carrer+de+Josep+Anselm+Clave,+114I,+08950+Esplugues+de+Llobregat/Carrer+de+Rovellat,+27,+08950+Esplugues+de+Llobregat/@41.3766,2.0855,17z/data=!3m1!4b1!4m14!4m13!1m5!1m1!1s0x12a49d3e2f5b3c1d:0x1!2m2!1d2.0847!2d41.3782!1m5!1m1!1s0x12a49d3e3f5b3c1d:0x2!2m2!1d2.0879!2d41.3760!3e2"
+              src="https://maps.google.com/maps?saddr=Carrer+de+Josep+Anselm+Clav%C3%A9,+114I,+08950+Esplugues+de+Llobregat&daddr=Carrer+de+Rovellat,+27,+08950+Esplugues+de+Llobregat&dirflg=w&hl=es&output=embed"
               width="100%"
               height="400"
               style={{ border: 0 }}
