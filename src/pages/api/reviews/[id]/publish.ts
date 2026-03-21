@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { queryOne } from '../../../../lib/db';
-import { verifyAdminToken } from '../../../../utils/adminAuth';
+import { verifyAdminSession } from '../../../../utils/adminAuth';
 
 type ReviewStatus = 'pending_review' | 'published' | 'archived' | 'cancelled';
 
@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
 
-  const admin = verifyAdminToken(req);
+  const admin = await verifyAdminSession(req, res);
   if (!admin) {
     return res.status(401).json({ success: false, error: 'No autorizado' });
   }

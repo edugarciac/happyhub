@@ -1,10 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '../../../lib/db';
-import { requireAdmin } from '../../../utils/adminAuth';
+import { requireAdminSession } from '../../../utils/adminAuth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    requireAdmin(req);
+    await requireAdminSession(req, res);
 
     if (req.method !== 'GET') {
       return res.status(405).json({ success: false, error: 'Method not allowed' });

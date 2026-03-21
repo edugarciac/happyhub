@@ -1,95 +1,39 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import jwt from 'jsonwebtoken';
 import axios from 'axios';
 import { queryOne } from '../../../../../lib/db';
+import { verifyAdminSession } from '../../../../../utils/adminAuth';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
-
-interface ApproveResponse {
-  success: boolean;
-  reservation?: any;
-  error?: string;
-}
-
-interface DecodedToken {
-  userId: number;
-  email: string;
-  role: string;
-}
-
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<ApproveResponse>
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
 
   try {
-    // 2.2: Check JWT authentication and verify role='admin'
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({
-        success: false,
-        error: 'No autorizado',
-      });
-    }
-
-    const token = authHeader.substring(7);
-    let decoded: DecodedToken;
-
-    try {
-      decoded = jwt.verify(token, JWT_SECRET) as DecodedToken;
-    } catch (error) {
-      return res.status(401).json({
-        success: false,
-        error: 'Token inválido o expirado',
-      });
-    }
-
-    if (decoded.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        error: 'Solo administradores pueden aprobar reservas',
-      });
+    const admin = await verifyAdminSession(req, res);
+    if (!admin) {
+      return res.status(401).json({ success: false, error: 'No autorizado' });
     }
 
     const { id } = req.query;
-
     if (!id || Array.isArray(id)) {
-      return res.status(400).json({
-        success: false,
-        error: 'ID de reserva inválido',
-      });
+      return res.status(400).json({ success: false, error: 'ID de reserva inválido' });
     }
 
     const reservationId = parseInt(id);
 
-    // 2.3: Validate reservation exists and status='pending'
-    const reservation = await queryOne<{
-      id: number;
-      status: string;
-      user_id: number;
-    }>(
-      'SELECT id, status, user_id FROM reservations WHERE id = $1',
+    const reservation = await queryOne<{ id: number; status: string }>(
+      'SELECT id, status FROM reservations WHERE id = $1',
       [reservationId]
     );
 
     if (!reservation) {
-      return res.status(404).json({
-        success: false,
-        error: 'Reserva no encontrada',
-      });
+      return res.status(404).json({ success: false, error: 'Reserva no encontrada' });
     }
 
     if (reservation.status !== 'pending') {
-      return res.status(400).json({
-        success: false,
-        error: `Esta reserva ya fue procesada (status: ${reservation.status})`,
-      });
+      return res.status(400).json({ success: false, error: `Esta reserva ya fue procesada (status: ${reservation.status})` });
     }
 
-    // 2.4: Update reservation to approved
     const updated = await queryOne(
       `UPDATE reservations
        SET status = 'approved',
@@ -98,10 +42,10 @@ export default async function handler(
            updated_at = CURRENT_TIMESTAMP
        WHERE id = $2
        RETURNING *`,
-      [decoded.email, reservationId]
+      [admin.email, reservationId]
     );
 
-    // Trigger n8n notification workflow
+    // Trigger n8n notification (non-blocking)
     try {
       const n8nUrl = process.env.N8N_WEBHOOK_URL;
       if (n8nUrl) {
@@ -113,26 +57,15 @@ export default async function handler(
           customer_name: updated.user_name,
           event_date: updated.event_date,
           time_slot: updated.time_slot,
-        }, {
-          timeout: 5000,
-        }).catch(err => {
-          console.error('n8n notification failed (non-blocking):', err.message);
-        });
+        }, { timeout: 5000 }).catch(err => console.error('n8n notification failed:', err.message));
       }
     } catch (err) {
-      console.error('n8n webhook call failed (non-blocking):', err);
+      console.error('n8n webhook failed:', err);
     }
 
-    // 2.5: Return success with updated data
-    return res.status(200).json({
-      success: true,
-      reservation: updated,
-    });
+    return res.status(200).json({ success: true, reservation: updated });
   } catch (error) {
     console.error('Error approving reservation:', error);
-    return res.status(500).json({
-      success: false,
-      error: 'Error al aprobar la reserva',
-    });
+    return res.status(500).json({ success: false, error: 'Error al aprobar la reserva' });
   }
 }

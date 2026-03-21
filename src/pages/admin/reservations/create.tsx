@@ -5,11 +5,8 @@ import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import AdminLayout from '@/components/admin/AdminLayout';
 
-function getToken(): string {
-  return localStorage.getItem('token') || '';
-}
-function authHeaders(): HeadersInit {
-  return { Authorization: `Bearer ${getToken()}`, 'Content-Type': 'application/json' };
+function jsonHeaders(): HeadersInit {
+  return { 'Content-Type': 'application/json' };
 }
 
 const TIME_SLOT_OPTIONS = [
@@ -88,7 +85,7 @@ export default function CreateReservation() {
     try {
       const res = await fetch('/api/admin/reservations', {
         method: 'POST',
-        headers: authHeaders(),
+        headers: jsonHeaders(),
         body: JSON.stringify({
           name: form.name.trim(),
           email: form.email.trim(),

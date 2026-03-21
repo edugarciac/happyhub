@@ -29,8 +29,6 @@ export default function Header() {
     { href: '/', label: 'Inicio' },
     { href: '/como-funciona', label: '¿Cómo lo hacemos?' },
     { href: '/servicios', label: 'Servicios' },
-    { href: '/partners', label: 'Partners' },
-    { href: '/reservas', label: 'Reserva tu fecha' },
     { href: '/contacto', label: 'Contacto' },
     ...(session?.user
       ? [(session.user as any).role === 'admin'

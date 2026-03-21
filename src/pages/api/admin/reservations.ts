@@ -1,13 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
-import { verifyAdminToken } from '@/utils/adminAuth';
+import { verifyAdminSession } from '@/utils/adminAuth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const admin = verifyAdminToken(req);
+  const admin = await verifyAdminSession(req, res);
   if (!admin) {
     return res.status(401).json({ success: false, error: 'No autorizado' });
   }

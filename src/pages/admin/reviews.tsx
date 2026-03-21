@@ -3,7 +3,7 @@ import Head from 'next/head';
 import AdminLayout from '../../components/admin/AdminLayout';
 import ConfirmDialog from '../../components/admin/ConfirmDialog';
 import StarRating from '../../components/StarRating';
-import { apiClient } from '../../lib/apiClient';
+// API calls use fetch with session cookies (no Bearer token needed)
 import toast, { Toaster } from 'react-hot-toast';
 import { Trash2, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 
@@ -53,10 +53,11 @@ export default function AdminReviews() {
         search,
         ...(filterStatus !== 'all' && { status: filterStatus }),
       });
-      const res = await apiClient.get(`/api/admin/reviews?${params}`);
-      if (res.data.success) {
-        setReviews(res.data.reviews);
-        setTotal(res.data.total);
+      const response = await fetch(`/api/admin/reviews?${params}`);
+      const data = await response.json();
+      if (data.success) {
+        setReviews(data.reviews);
+        setTotal(data.total);
       }
     } catch {
       toast.error('Error al cargar reseñas');
@@ -71,7 +72,12 @@ export default function AdminReviews() {
 
   const handleStatusChange = async (review: Review, newStatus: ReviewStatus) => {
     try {
-      await apiClient.patch(`/api/reviews/${review.id}/publish`, { status: newStatus });
+      const response = await fetch(`/api/reviews/${review.id}/publish`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (!response.ok) throw new Error();
       toast.success(`Reseña ${STATUS_LABELS[newStatus].toLowerCase()}`);
       fetchReviews();
     } catch {
@@ -82,7 +88,8 @@ export default function AdminReviews() {
   const confirmDelete = async () => {
     if (!deleteConfirm) return;
     try {
-      await apiClient.delete(`/api/admin/reviews?id=${deleteConfirm.id}`);
+      const response = await fetch(`/api/admin/reviews?id=${deleteConfirm.id}`, { method: 'DELETE' });
+      if (!response.ok) throw new Error();
       toast.success('Reseña eliminada');
       setDeleteConfirm(null);
       fetchReviews();

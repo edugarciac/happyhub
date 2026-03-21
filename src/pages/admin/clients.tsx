@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Head from 'next/head';
 import AdminLayout from '../../components/admin/AdminLayout';
-import { apiClient } from '../../lib/apiClient';
+// API calls use fetch with session cookies
 import toast, { Toaster } from 'react-hot-toast';
 import { Search, ChevronLeft, ChevronRight, Users } from 'lucide-react';
 
@@ -42,10 +42,11 @@ export default function AdminClients() {
         limit: limit.toString(),
         search,
       });
-      const res = await apiClient.get(`/api/admin/clients?${params}`);
-      if (res.data.success) {
-        setClients(res.data.clients);
-        setTotal(res.data.total);
+      const response = await fetch(`/api/admin/clients?${params}`);
+      const data = await response.json();
+      if (data.success) {
+        setClients(data.clients);
+        setTotal(data.total);
       }
     } catch {
       toast.error('Error al cargar clientes');

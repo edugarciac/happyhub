@@ -65,12 +65,8 @@ const EVENT_TYPE_LABELS: Record<string, string> = {
   'otros': 'Otros',
 };
 
-function getToken(): string {
-  return localStorage.getItem('token') || '';
-}
-
-function authHeaders(): HeadersInit {
-  return { Authorization: `Bearer ${getToken()}`, 'Content-Type': 'application/json' };
+function jsonHeaders(): HeadersInit {
+  return { 'Content-Type': 'application/json' };
 }
 
 export default function AdminReservations() {
@@ -121,7 +117,7 @@ export default function AdminReservations() {
       if (dateFrom) params.append('dateFrom', dateFrom);
       if (dateTo) params.append('dateTo', dateTo);
 
-      const response = await fetch(`/api/admin/reservations?${params}`, { headers: authHeaders() });
+      const response = await fetch(`/api/admin/reservations?${params}`, { headers: jsonHeaders() });
       if (!response.ok) {
         if (response.status === 401) {
           window.location.href = '/admin/login';
@@ -153,7 +149,7 @@ export default function AdminReservations() {
     try {
       const res = await fetch(`/api/admin/reservations/${reservation.id}/status`, {
         method: 'PATCH',
-        headers: authHeaders(),
+        headers: jsonHeaders(),
         body: JSON.stringify({ status: newStatus, cancellationReason: reason }),
       });
       const data = await res.json();
@@ -205,7 +201,7 @@ export default function AdminReservations() {
     try {
       const res = await fetch(`/api/admin/reservations/${editReservation.id}`, {
         method: 'PATCH',
-        headers: authHeaders(),
+        headers: jsonHeaders(),
         body: JSON.stringify(editForm),
       });
       const data = await res.json();
@@ -230,7 +226,7 @@ export default function AdminReservations() {
     try {
       const res = await fetch(`/api/admin/reservations/${deleteReservation.id}`, {
         method: 'DELETE',
-        headers: authHeaders(),
+        headers: jsonHeaders(),
       });
       if (!res.ok) {
         const data = await res.json();
