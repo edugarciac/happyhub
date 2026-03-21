@@ -1,9 +1,6 @@
 import Head from 'next/head';
-import dynamic from 'next/dynamic';
 import { Mail, Phone, MapPin, Clock, MessageCircle, Send, Car } from 'lucide-react';
 import { event as gaEvent } from '@/lib/analytics';
-
-const ParkingMap = dynamic(() => import('@/components/ParkingMap'), { ssr: false });
 
 export default function Contacto() {
   const whatsappNumber = '34624645517';
@@ -220,8 +217,17 @@ export default function Contacto() {
             </p>
           </div>
 
-          <div className="mb-8">
-            <ParkingMap />
+          <div className="mb-8 rounded-xl overflow-hidden shadow-lg">
+            <iframe
+              src="https://www.google.com/maps/dir/Carrer+de+Josep+Anselm+Clave,+114I,+08950+Esplugues+de+Llobregat/Carrer+de+Rovellat,+27,+08950+Esplugues+de+Llobregat/@41.3766,2.0855,17z/data=!3m1!4b1!4m14!4m13!1m5!1m1!1s0x12a49d3e2f5b3c1d:0x1!2m2!1d2.0847!2d41.3782!1m5!1m1!1s0x12a49d3e3f5b3c1d:0x2!2m2!1d2.0879!2d41.3760!3e2"
+              width="100%"
+              height="400"
+              style={{ border: 0 }}
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              title="Ruta desde el parking gratuito hasta Happyhub"
+            />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
