@@ -24,6 +24,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const userId = parseInt((session.user as any).id as string, 10);
 
+  if (isNaN(userId)) {
+    console.error('[PROFILE] Invalid userId from session:', (session.user as any).id);
+    return res.status(400).json({ error: 'Sesión inválida. Cierra sesión e inicia de nuevo.' });
+  }
+
   if (req.method === 'GET') {
     const user = await getUserById(userId);
     if (!user) {
@@ -65,7 +70,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
         }
 
-        await updateUserPassword(userId, data.newPassword);
+        const passwordUpdated = await updateUserPassword(userId, data.newPassword);
+        if (!passwordUpdated) {
+          return res.status(500).json({ error: 'Error al actualizar la contraseña. Inténtalo de nuevo.' });
+        }
+
+        // If only password was changed (no name/phone), return early
+        if (!data.name && !data.phone) {
+          return res.status(200).json({ success: true, message: 'Contraseña actualizada correctamente' });
+        }
       }
 
       // Handle profile update (name/phone)
