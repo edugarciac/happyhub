@@ -199,7 +199,6 @@ export default function AreaPrivadaPage() {
       if (res.ok) {
         setPasswordMsg({ type: 'success', text: 'Contraseña actualizada correctamente' });
         passwordForm.reset();
-        setShowPasswordForm(false);
       } else {
         setPasswordMsg({ type: 'error', text: result.error || 'Error al cambiar la contraseña' });
       }
