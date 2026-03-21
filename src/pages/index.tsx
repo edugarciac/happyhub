@@ -1,8 +1,11 @@
 import Head from 'next/head';
+import Image from 'next/image';
 import { useEffect, useState } from 'react';
+import { GetStaticProps } from 'next';
 import Hero from '@/components/Hero';
 import PhotoGallery from '@/components/PhotoGallery';
 import PricingTable from '@/components/PricingTable';
+import { fetchInstagramPosts, InstagramPost } from '@/lib/instagram';
 import {
   Calendar, Users, Sparkles, Shield, Clock, Heart,
   ArrowRight, Cake, Palette, Camera, Music,
@@ -18,17 +21,21 @@ interface Review {
   created_at: string;
 }
 
-export default function Home() {
+interface HomeProps {
+  instagramPosts: InstagramPost[];
+}
+
+export const getStaticProps: GetStaticProps<HomeProps> = async () => {
+  const instagramPosts = await fetchInstagramPosts(9);
+  return {
+    props: { instagramPosts },
+    revalidate: 3600, // Re-fetch every hour
+  };
+};
+
+export default function Home({ instagramPosts }: HomeProps) {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [reviewsTotal, setReviewsTotal] = useState(0);
-
-  useEffect(() => {
-    const s = document.createElement('script');
-    s.type = 'module';
-    s.src = 'https://w.behold.so/widget.js';
-    document.head.append(s);
-    return () => { document.head.removeChild(s); };
-  }, []);
 
   useEffect(() => {
     fetch('/api/reviews?limit=6')
@@ -283,21 +290,49 @@ export default function Home() {
 
       {/* Instagram Feed Section */}
       <section id="instagram" className="py-24 bg-gradient-to-br from-primary-50 via-white to-ocean-50">
-          <div className="container-custom">
+        <div className="container-custom">
           <div className="text-center mb-16">
             <span className="section-tag">
               <Instagram className="w-4 h-4 mr-2" />
               Instagram
             </span>
             <h2 className="section-title">
-              Síguenos en Instagram
+              Siguenos en Instagram
             </h2>
             <p className="section-subtitle max-w-3xl mx-auto">
-              Descubre momentos reales de celebraciones en HappyHub
+              Descubre momentos reales de celebraciones en Happyhub
             </p>
           </div>
 
-          <div data-behold-id="ijoWKINcQ9XXrzmDCvpI" />
+          {instagramPosts.length > 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {instagramPosts.map((post) => (
+                <a
+                  key={post.id}
+                  href={post.permalink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="relative aspect-square rounded-xl overflow-hidden group"
+                >
+                  <Image
+                    src={post.thumbnail_url || post.media_url}
+                    alt={post.caption?.slice(0, 100) || 'Happyhub en Instagram'}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    sizes="(max-width: 768px) 50vw, 33vw"
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                    <Instagram className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                </a>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center text-gray-500 py-8">
+              <Instagram className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+              <p>Proximamente: nuestro feed de Instagram</p>
+            </div>
+          )}
 
           <div className="text-center mt-12">
             <a
