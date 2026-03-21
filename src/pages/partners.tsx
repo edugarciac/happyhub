@@ -73,7 +73,7 @@ export default function Partners() {
         />
       </Head>
 
-      <section className="bg-gradient-to-br from-primary-50 to-secondary-50 py-16">
+      <section className="bg-gradient-to-br from-primary-50 to-secondary-50 pt-28 pb-16">
         <div className="container-custom text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
             Nuestros Partners

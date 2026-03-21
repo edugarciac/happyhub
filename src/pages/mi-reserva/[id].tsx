@@ -60,7 +60,7 @@ export default function MiReserva() {
         <title>Mi Reserva #{id} - HappyHub</title>
       </Head>
 
-      <section className="bg-gradient-to-br from-primary-50 to-secondary-50 py-16">
+      <section className="bg-gradient-to-br from-primary-50 to-secondary-50 pt-28 pb-16">
         <div className="container-custom">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>

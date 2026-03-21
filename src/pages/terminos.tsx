@@ -9,7 +9,7 @@ export default function Terminos() {
         <meta name="description" content="Términos y condiciones de uso del servicio de alquiler de espacios para eventos de HappyHub." />
       </Head>
 
-      <section className="bg-gradient-to-br from-primary-50 to-secondary-50 py-16">
+      <section className="bg-gradient-to-br from-primary-50 to-secondary-50 pt-28 pb-16">
         <div className="container-custom text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
             Términos y Condiciones
