@@ -119,10 +119,13 @@ export default function AdminReservations() {
       });
       const data = await res.json();
       if (!res.ok) { showToast(data.error || 'Error al cambiar estado', 'error'); return; }
-      showToast(`Estado cambiado a ${STATUS_LABELS[newStatus]}`, 'success');
+      if (data.warning) {
+        showToast(data.warning, 'error');
+      } else {
+        showToast(`Estado cambiado a ${STATUS_LABELS[newStatus]}`, 'success');
+      }
       setStatusModal(null);
       setCancellationReason('');
-      setRejectionReason('');
       fetchReservations();
     } catch { showToast('Error de conexión', 'error'); }
   };
