@@ -3,7 +3,7 @@ export type ReservationStatus = 'pending' | 'approved' | 'rejected' | 'cancelled
 export const STATUS_LABELS: Record<ReservationStatus, string> = {
   pending: 'Pendiente',
   approved: 'Aprobada',
-  rejected: 'Cancelada',
+  rejected: 'Rechazada',
   cancelled: 'Cancelada',
   completed: 'Evento Realizado',
 };
@@ -11,7 +11,7 @@ export const STATUS_LABELS: Record<ReservationStatus, string> = {
 export const STATUS_COLORS: Record<ReservationStatus, { bg: string; text: string }> = {
   pending: { bg: 'bg-yellow-100', text: 'text-yellow-800' },
   approved: { bg: 'bg-green-100', text: 'text-green-800' },
-  rejected: { bg: 'bg-gray-100', text: 'text-gray-800' },
+  rejected: { bg: 'bg-red-100', text: 'text-red-800' },
   cancelled: { bg: 'bg-gray-100', text: 'text-gray-800' },
   completed: { bg: 'bg-blue-100', text: 'text-blue-800' },
 };
@@ -19,10 +19,9 @@ export const STATUS_COLORS: Record<ReservationStatus, { bg: string; text: string
 /**
  * Allowed status transitions.
  * Each key maps to the set of statuses it can transition to.
- * Note: 'rejected' is kept for backwards compatibility but no longer offered as a transition.
  */
 export const ALLOWED_TRANSITIONS: Record<ReservationStatus, ReservationStatus[]> = {
-  pending: ['approved', 'cancelled'],
+  pending: ['approved', 'rejected', 'cancelled'],
   approved: ['cancelled', 'completed'],
   rejected: ['pending'],
   cancelled: ['pending'],
@@ -34,7 +33,7 @@ export const ALLOWED_TRANSITIONS: Record<ReservationStatus, ReservationStatus[]>
  */
 export const TRANSITION_LABELS: Record<ReservationStatus, string> = {
   approved: 'Aprobar',
-  rejected: 'Cancelar',
+  rejected: 'Rechazar',
   cancelled: 'Cancelar',
   completed: 'Marcar Realizado',
   pending: 'Reabrir',
