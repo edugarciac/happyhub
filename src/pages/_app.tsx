@@ -7,6 +7,7 @@ import '@/styles/globals.css';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import VerificationBanner from '@/components/VerificationBanner';
+import CookieConsent, { useCookieConsent } from '@/components/CookieConsent';
 import { GA_MEASUREMENT_ID, pageview } from '@/lib/analytics';
 
 function AppContent({ Component, pageProps }: { Component: AppProps['Component']; pageProps: any }) {
@@ -44,30 +45,40 @@ function AppContent({ Component, pageProps }: { Component: AppProps['Component']
   );
 }
 
+function AnalyticsLoader() {
+  const consent = useCookieConsent();
+  const canLoad = GA_MEASUREMENT_ID && consent === 'accepted';
+
+  if (!canLoad) return null;
+
+  return (
+    <>
+      <Script
+        strategy="afterInteractive"
+        src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+      />
+      <Script
+        id="gtag-init"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{
+          __html: `
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${GA_MEASUREMENT_ID}', { page_path: window.location.pathname });
+          `,
+        }}
+      />
+    </>
+  );
+}
+
 export default function App({ Component, pageProps: { session, ...pageProps } }: AppProps) {
   return (
     <SessionProvider session={session}>
-      {GA_MEASUREMENT_ID && (
-        <>
-          <Script
-            strategy="afterInteractive"
-            src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
-          />
-          <Script
-            id="gtag-init"
-            strategy="afterInteractive"
-            dangerouslySetInnerHTML={{
-              __html: `
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){dataLayer.push(arguments);}
-                gtag('js', new Date());
-                gtag('config', '${GA_MEASUREMENT_ID}', { page_path: window.location.pathname });
-              `,
-            }}
-          />
-        </>
-      )}
+      <AnalyticsLoader />
       <AppContent Component={Component} pageProps={pageProps} />
+      <CookieConsent />
     </SessionProvider>
   );
 }
