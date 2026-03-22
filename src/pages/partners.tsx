@@ -1,76 +1,37 @@
 import Head from 'next/head';
+import Image from 'next/image';
 import Link from 'next/link';
-import { UtensilsCrossed, Camera, Palette, Music, PartyPopper, Truck, Users, ExternalLink } from 'lucide-react';
-
-const categoryIcons: Record<string, React.ReactNode> = {
-  catering: <UtensilsCrossed className="w-8 h-8" />,
-  fotografia: <Camera className="w-8 h-8" />,
-  decoracion: <Palette className="w-8 h-8" />,
-  musica: <Music className="w-8 h-8" />,
-  animacion: <PartyPopper className="w-8 h-8" />,
-  transporte: <Truck className="w-8 h-8" />,
-};
+import { GetServerSideProps } from 'next';
+import { query } from '@/lib/db';
+import { Users, ExternalLink, Phone, Building2 } from 'lucide-react';
 
 interface Partner {
-  id: string;
+  id: number;
   name: string;
-  category: string;
-  categoryLabel: string;
-  description: string;
-  logo?: string;
-  website?: string;
-  featured?: boolean;
+  service_type: string;
+  description: string | null;
+  logo_url: string | null;
+  website: string | null;
+  phone: string | null;
 }
 
-const partners: Partner[] = [
-  {
-    id: 'catering-delicias',
-    name: 'Delicias Catering',
-    category: 'catering',
-    categoryLabel: 'Catering',
-    description: 'Cocina creativa para eventos. Menus personalizados con ingredientes de proximidad y opciones para todas las dietas.',
-    featured: true,
-  },
-  {
-    id: 'foto-momentos',
-    name: 'Momentos Fotografia',
-    category: 'fotografia',
-    categoryLabel: 'Fotografia',
-    description: 'Reportajes fotograficos naturales y espontaneos. Captamos la esencia de cada celebracion.',
-  },
-  {
-    id: 'deco-fiesta',
-    name: 'DecoFiesta',
-    category: 'decoracion',
-    categoryLabel: 'Decoracion',
-    description: 'Ambientacion tematica y personalizada. Desde globos hasta montajes completos para cualquier tipo de evento.',
-  },
-  {
-    id: 'animacion-risas',
-    name: 'Risas y Juegos',
-    category: 'animacion',
-    categoryLabel: 'Animacion',
-    description: 'Animadores profesionales para todas las edades. Juegos, talleres, espectaculos y mucha diversion.',
-    featured: true,
-  },
-  {
-    id: 'musica-viva',
-    name: 'Musica Viva',
-    category: 'musica',
-    categoryLabel: 'Musica',
-    description: 'DJs y grupos en vivo para tu evento. Pop, jazz, electronica o lo que necesites para ambientar tu fiesta.',
-  },
-];
+interface Props {
+  partners: Partner[];
+}
 
-export default function Partners() {
+export const getServerSideProps: GetServerSideProps<Props> = async () => {
+  const result = await query(
+    'SELECT id, name, service_type, description, logo_url, website, phone FROM partners WHERE active = true ORDER BY name ASC'
+  );
+  return { props: { partners: result.rows } };
+};
+
+export default function PartnersPage({ partners }: Props) {
   return (
     <>
       <Head>
-        <title>Partners - HappyHub</title>
-        <meta
-          name="description"
-          content="Conoce las empresas que forman parte del hub de HappyHub. Profesionales de catering, fotografia, decoracion, animacion y mas para hacer tu evento perfecto."
-        />
+        <title>Partners - Happyhub</title>
+        <meta name="description" content="Conoce las empresas que forman parte del hub de Happyhub. Profesionales seleccionados para hacer tu evento perfecto." />
       </Head>
 
       <section className="bg-gradient-to-br from-primary-50 to-secondary-50 pt-28 pb-16">
@@ -79,7 +40,7 @@ export default function Partners() {
             Nuestros Partners
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            HappyHub es un hub de empresas que colaboran para hacer tus eventos inolvidables.
+            Happyhub es un hub de empresas que colaboran para hacer tus eventos inolvidables.
             Cada partner ha sido seleccionado por su profesionalidad, calidad y compromiso.
           </p>
         </div>
@@ -87,48 +48,65 @@ export default function Partners() {
 
       <section className="py-16 bg-white">
         <div className="container-custom">
-          <h2 className="section-title text-center mb-12">Empresas colaboradoras</h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {partners.map((partner) => (
-              <div
-                key={partner.id}
-                className={`card relative ${partner.featured ? 'ring-2 ring-primary-200' : ''}`}
-              >
-                {partner.featured && (
-                  <span className="absolute top-4 right-4 bg-primary-100 text-primary-700 text-xs font-medium px-2.5 py-1 rounded-full">
-                    Destacado
-                  </span>
-                )}
-
-                <div className="flex items-center space-x-4 mb-4">
-                  <div className="w-14 h-14 rounded-xl bg-primary-50 text-primary-600 flex items-center justify-center flex-shrink-0">
-                    {categoryIcons[partner.category] || <Users className="w-8 h-8" />}
+          {partners.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              <Building2 className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+              <p>Proximamente: nuestros partners</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {partners.map((partner) => (
+                <div key={partner.id} className="card">
+                  <div className="flex items-center space-x-4 mb-4">
+                    {partner.logo_url ? (
+                      <Image
+                        src={partner.logo_url}
+                        alt={partner.name}
+                        width={56}
+                        height={56}
+                        className="rounded-xl object-cover w-14 h-14"
+                      />
+                    ) : (
+                      <div className="w-14 h-14 rounded-xl bg-primary-50 text-primary-600 flex items-center justify-center flex-shrink-0">
+                        <Building2 className="w-8 h-8" />
+                      </div>
+                    )}
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-900">{partner.name}</h3>
+                      <span className="text-sm text-primary-600 font-medium">{partner.service_type}</span>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900">{partner.name}</h3>
-                    <span className="text-sm text-primary-600 font-medium">
-                      {partner.categoryLabel}
-                    </span>
+
+                  {partner.description && (
+                    <p className="text-gray-600 mb-4">{partner.description}</p>
+                  )}
+
+                  <div className="flex items-center gap-4 mt-auto">
+                    {partner.website && (
+                      <a
+                        href={partner.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
+                      >
+                        Visitar web
+                        <ExternalLink className="w-3.5 h-3.5 ml-1" />
+                      </a>
+                    )}
+                    {partner.phone && (
+                      <a
+                        href={`tel:${partner.phone}`}
+                        className="inline-flex items-center text-sm text-gray-600 hover:text-gray-800 transition-colors"
+                      >
+                        <Phone className="w-3.5 h-3.5 mr-1" />
+                        {partner.phone}
+                      </a>
+                    )}
                   </div>
                 </div>
-
-                <p className="text-gray-600 mb-4">{partner.description}</p>
-
-                {partner.website && (
-                  <a
-                    href={partner.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
-                  >
-                    Visitar web
-                    <ExternalLink className="w-3.5 h-3.5 ml-1" />
-                  </a>
-                )}
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -138,7 +116,7 @@ export default function Partners() {
             <Users className="w-12 h-12 text-primary-600 mx-auto mb-4" />
             <h2 className="section-title mb-4">Unete al hub</h2>
             <p className="text-xl text-gray-600 mb-4">
-              Eres una empresa de servicios para eventos y quieres formar parte de HappyHub?
+              Eres una empresa de servicios para eventos y quieres formar parte de Happyhub?
               Estamos buscando profesionales comprometidos con la calidad.
             </p>
             <p className="text-gray-500 mb-8">

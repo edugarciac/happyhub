@@ -180,8 +180,8 @@ export async function initializeSchema(): Promise<void> {
         UNIQUE(event_date, time_slot)
       );
 
-      -- Providers table
-      CREATE TABLE providers (
+      -- Partners table
+      CREATE TABLE partners (
         id SERIAL PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         service_type VARCHAR(100),
@@ -200,7 +200,7 @@ export async function initializeSchema(): Promise<void> {
       CREATE TABLE services (
         id SERIAL PRIMARY KEY,
         reservation_id INTEGER REFERENCES reservations(id) ON DELETE CASCADE,
-        provider_id INTEGER REFERENCES providers(id) ON DELETE SET NULL,
+        partner_id INTEGER REFERENCES partners(id) ON DELETE SET NULL,
         service_name VARCHAR(255),
         service_type VARCHAR(100),
         price DECIMAL(10,2),
@@ -224,7 +224,7 @@ export async function initializeSchema(): Promise<void> {
       CREATE INDEX idx_users_email ON users(email);
       CREATE INDEX idx_reservations_date ON reservations(event_date);
       CREATE INDEX idx_reservations_email ON reservations(email);
-      CREATE INDEX idx_providers_service_type ON providers(service_type);
+      CREATE INDEX idx_partners_service_type ON partners(service_type);
       CREATE INDEX idx_services_reservation ON services(reservation_id);
       CREATE INDEX idx_email_verification_tokens_token ON email_verification_tokens(token);
     `);
@@ -252,7 +252,7 @@ export async function initializeSchema(): Promise<void> {
       ('Otro', 'Otro tipo de evento', '🎉');
 
       -- Providers
-      INSERT INTO providers (name, service_type, email, phone, description, price_range) VALUES
+      INSERT INTO partners (name, service_type, email, phone, description, price_range) VALUES
       ('Catering Gourmet', 'catering', 'info@cateringgourmet.es', '+34666333301', 'Servicio de catering premium', '500-2000€'),
       ('DJ Fiesta Pro', 'animacion', 'dj@fiestapto.es', '+34666444401', 'DJ profesional', '200-600€'),
       ('Globos Mágicos', 'decoracion', 'info@globosmagicos.es', '+34666555501', 'Decoración con globos', '150-800€');

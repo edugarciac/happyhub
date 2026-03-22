@@ -75,11 +75,11 @@ export default async function handler(
     // Verify data
     const usersCount = await client.query('SELECT COUNT(*) as total FROM users');
     const eventTypesCount = await client.query('SELECT COUNT(*) as total FROM event_types');
-    const providersCount = await client.query('SELECT COUNT(*) as total FROM providers');
+    const partnersCount = await client.query('SELECT COUNT(*) as total FROM partners');
 
     logs.push(`✅ Usuarios insertados: ${usersCount.rows[0].total}`);
     logs.push(`✅ Tipos de evento: ${eventTypesCount.rows[0].total}`);
-    logs.push(`✅ Proveedores: ${providersCount.rows[0].total}`);
+    logs.push(`✅ Partners: ${partnersCount.rows[0].total}`);
 
     client.release();
 
@@ -90,7 +90,7 @@ export default async function handler(
       summary: {
         users: parseInt(usersCount.rows[0].total),
         eventTypes: parseInt(eventTypesCount.rows[0].total),
-        providers: parseInt(providersCount.rows[0].total)
+        partners: parseInt(partnersCount.rows[0].total)
       }
     });
 

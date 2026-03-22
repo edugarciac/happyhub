@@ -81,9 +81,9 @@ export default function AdminDashboard() {
       bgColor: 'bg-purple-100',
     },
     {
-      title: 'Proveedores',
+      title: 'Partners',
       icon: Building2,
-      href: '/admin/providers',
+      href: '/admin/partners',
       color: 'text-indigo-600',
       bgColor: 'bg-indigo-100',
     },

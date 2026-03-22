@@ -8,7 +8,6 @@ import {
   Tag,
   Building2,
   Briefcase,
-  ShieldCheck,
 } from 'lucide-react';
 
 interface DashboardNavProps {
@@ -24,9 +23,8 @@ export default function DashboardNav({ onNavigate }: DashboardNavProps) {
     { href: '/admin/clients', icon: Users, label: 'Clientes' },
     { href: '/admin/reservations', icon: Calendar, label: 'Reservas' },
     { href: '/admin/event-types', icon: Tag, label: 'Tipos de Eventos' },
-    { href: '/admin/providers', icon: Building2, label: 'Proveedores' },
+    { href: '/admin/partners', icon: Building2, label: 'Partners' },
     { href: '/admin/services', icon: Briefcase, label: 'Servicios' },
-    { href: '/admin/iam', icon: ShieldCheck, label: 'IAM' },
   ];
 
   const isActive = (href: string) => {
