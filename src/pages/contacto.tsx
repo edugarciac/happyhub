@@ -213,13 +213,13 @@ export default function Contacto() {
           <div className="text-center mb-10">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Como llegar y aparcar</h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Tenemos un parking publico gratuito a solo 400 metros del local, en Carrer de Josep Anselm Clave, 114I.
+              Tenemos un parking público gratuito a solo 350 metros del local. Se tardan unos 5 minutos andando.
             </p>
           </div>
 
           <div className="mb-8 rounded-xl overflow-hidden shadow-lg">
             <iframe
-              src="https://maps.google.com/maps?saddr=Carrer+de+Josep+Anselm+Clav%C3%A9,+114I,+08950+Esplugues+de+Llobregat&daddr=Carrer+de+Rovellat,+27,+08950+Esplugues+de+Llobregat&dirflg=w&hl=es&output=embed"
+              src="https://maps.google.com/maps?saddr=41.37153,2.09050&daddr=Carrer+de+Rovellat,+27,+08950+Esplugues+de+Llobregat&dirflg=w&hl=es&output=embed"
               width="100%"
               height="400"
               style={{ border: 0 }}
@@ -249,10 +249,9 @@ export default function Contacto() {
                 <Car className="w-6 h-6 text-blue-600" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900 mb-1">Parking gratuito</h3>
+                <h3 className="font-semibold text-gray-900 mb-1">Parking público gratuito</h3>
                 <p className="text-gray-600 text-sm">
-                  C/ Josep Anselm Clave, 114I<br />
-                  A 400m — 4 minutos andando
+                  A 350m — 5 minutos andando
                 </p>
               </div>
             </div>
@@ -305,7 +304,7 @@ export default function Contacto() {
                 ¿Hay aparcamiento disponible?
               </summary>
               <p className="mt-3 text-gray-600">
-                Si, hay un parking publico gratuito en Carrer de Josep Anselm Clave, 114I, a solo 400 metros del local (unos 4 minutos andando). Puedes ver la ubicacion exacta y el recorrido en el mapa de esta misma pagina.
+                Sí, hay un parking público gratuito a solo 350 metros del local (unos 5 minutos andando). Puedes ver la ubicación exacta y el recorrido en el mapa de esta misma página.
               </p>
             </details>
           </div>
