@@ -27,6 +27,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ success: false, error: 'Se requiere un motivo de cancelación' });
   }
 
+  if (status === 'rejected' && !cancellationReason) {
+    return res.status(400).json({ success: false, error: 'Se requiere un motivo de rechazo' });
+  }
+
   try {
     const reservation = await queryOne<{ id: number; status: ReservationStatus }>(
       'SELECT id, status FROM reservations WHERE id = $1',
@@ -44,15 +48,41 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    const updated = status === 'cancelled'
-      ? await queryOne(
-          `UPDATE reservations SET status = $1, cancellation_reason = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3 RETURNING *`,
-          [status, cancellationReason, parseInt(id)]
-        )
-      : await queryOne(
-          `UPDATE reservations SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *`,
-          [status, parseInt(id)]
-        );
+    let updated;
+    if (status === 'cancelled') {
+      updated = await queryOne(
+        `UPDATE reservations SET status = $1, cancellation_reason = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3 RETURNING *`,
+        [status, cancellationReason, parseInt(id)]
+      );
+    } else if (status === 'rejected') {
+      updated = await queryOne(
+        `UPDATE reservations SET status = $1, rejection_reason = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3 RETURNING *`,
+        [status, cancellationReason, parseInt(id)]
+      );
+    } else {
+      updated = await queryOne(
+        `UPDATE reservations SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *`,
+        [status, parseInt(id)]
+      );
+    }
+
+    // Notify n8n for rejected/cancelled (delete calendar event + send email)
+    if ((status === 'rejected' || status === 'cancelled') && process.env.N8N_WEBHOOK_CANCELLATION_URL) {
+      try {
+        await fetch(process.env.N8N_WEBHOOK_CANCELLATION_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            reservationId: parseInt(id),
+            status,
+            reason: cancellationReason,
+            reservation: updated,
+          }),
+        });
+      } catch (err) {
+        console.error('Error notifying n8n cancellation webhook:', err);
+      }
+    }
 
     return res.status(200).json({ success: true, reservation: updated });
   } catch (error) {
