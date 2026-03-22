@@ -217,7 +217,6 @@ export default function AdminReservations() {
                   <option value="all">Todos</option>
                   <option value="pending">Pendiente</option>
                   <option value="approved">Aprobada</option>
-                  <option value="rejected">Rechazada</option>
                   <option value="cancelled">Cancelada</option>
                   <option value="completed">Evento Realizado</option>
                 </select>
@@ -382,26 +381,18 @@ export default function AdminReservations() {
                 {statusModal.newStatus === 'cancelled' && 'Indica el motivo de cancelación:'}
                 {statusModal.newStatus === 'completed' && '¿Confirmas que el evento se ha realizado?'}
                 {statusModal.newStatus === 'pending' && '¿Confirmas que quieres volver a poner esta reserva como pendiente?'}
-                {statusModal.newStatus === 'rejected' && 'Indica el motivo de rechazo:'}
               </p>
               {statusModal.newStatus === 'cancelled' && (
                 <textarea value={cancellationReason} onChange={(e) => setCancellationReason(e.target.value)}
                   placeholder="Motivo de cancelación (obligatorio)" rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg mb-4 focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
               )}
-              {statusModal.newStatus === 'rejected' && (
-                <textarea value={rejectionReason} onChange={(e) => setRejectionReason(e.target.value)}
-                  placeholder="Motivo de rechazo (obligatorio)" rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg mb-4 focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
-              )}
               <div className="flex gap-3">
-                <button onClick={() => { setStatusModal(null); setCancellationReason(''); setRejectionReason(''); }}
+                <button onClick={() => { setStatusModal(null); setCancellationReason(''); }}
                   className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg transition-colors">Cancelar</button>
                 <button onClick={() => {
                   if (statusModal.newStatus === 'cancelled' && !cancellationReason.trim()) { showToast('El motivo es obligatorio', 'error'); return; }
-                  if (statusModal.newStatus === 'rejected' && !rejectionReason.trim()) { showToast('El motivo de rechazo es obligatorio', 'error'); return; }
-                  const reason = statusModal.newStatus === 'rejected' ? rejectionReason : cancellationReason;
-                  handleStatusChange(statusModal.reservation, statusModal.newStatus, reason || undefined);
+                  handleStatusChange(statusModal.reservation, statusModal.newStatus, cancellationReason || undefined);
                 }} className="flex-1 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors">Confirmar</button>
               </div>
             </div>
