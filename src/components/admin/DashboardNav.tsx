@@ -20,7 +20,7 @@ export default function DashboardNav({ onNavigate }: DashboardNavProps) {
   const menuItems = [
     { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { href: '/admin/reviews', icon: Star, label: 'Reseñas' },
-    { href: '/admin/clients', icon: Users, label: 'Clientes' },
+    { href: '/admin/clients', icon: Users, label: 'Usuarios' },
     { href: '/admin/reservations', icon: Calendar, label: 'Reservas' },
     { href: '/admin/event-types', icon: Tag, label: 'Tipos de Eventos' },
     { href: '/admin/partners', icon: Building2, label: 'Partners' },

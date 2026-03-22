@@ -57,7 +57,7 @@ export default function AdminDashboard() {
       bgColor: 'bg-yellow-100',
     },
     {
-      title: 'Clientes',
+      title: 'Usuarios',
       icon: Users,
       href: '/admin/clients',
       count: stats.totalUsers,

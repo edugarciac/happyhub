@@ -39,6 +39,20 @@ async function handleSubmitReview(
       });
     }
 
+    // Check user has at least one completed reservation
+    const completedRes = await queryOne<{ count: string }>(
+      `SELECT COUNT(*) as count FROM reservations r
+       JOIN users u ON r.user_id = u.id
+       WHERE u.email = $1 AND r.status = 'completed'`,
+      [session.user.email]
+    );
+    if (!completedRes || parseInt(completedRes.count) === 0) {
+      return res.status(403).json({
+        success: false,
+        error: 'Solo puedes enviar una resena si tienes al menos una reserva realizada',
+      });
+    }
+
     const { title, rating, review_text, photo_urls } = req.body;
 
     if (!title || typeof title !== 'string' || title.trim().length < 3) {

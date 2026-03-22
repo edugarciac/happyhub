@@ -72,6 +72,8 @@ const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
   approved: { label: 'Aprobada', className: 'bg-green-100 text-green-800' },
   rejected: { label: 'Rechazada', className: 'bg-red-100 text-red-800' },
   paid: { label: 'Pagada', className: 'bg-blue-100 text-blue-800' },
+  completed: { label: 'Realizada', className: 'bg-purple-100 text-purple-800' },
+  cancelled: { label: 'Cancelada', className: 'bg-gray-100 text-gray-600' },
 };
 
 function formatDate(dateStr: string) {
@@ -429,7 +431,8 @@ export default function AreaPrivadaPage() {
             )}
           </section>
 
-          {/* Publicar reseña */}
+          {/* Publicar reseña — solo si tiene reserva realizada */}
+          {reservations.some(r => r.status === 'completed') && (
           <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
             <div className="flex items-center gap-3 mb-6">
               <Star className="w-5 h-5 text-primary-600" />
@@ -516,6 +519,7 @@ export default function AreaPrivadaPage() {
               </button>
             </form>
           </section>
+          )}
 
           {/* Mis reservas */}
           <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
