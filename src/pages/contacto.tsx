@@ -213,7 +213,7 @@ export default function Contacto() {
           <div className="text-center mb-10">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Como llegar y aparcar</h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Disponemos de un parking publico gratuito a solo 350 metros del local, en Carrer de Josep Anselm Clave, 114I.
+              Tenemos un parking publico gratuito a solo 400 metros del local, en Carrer de Josep Anselm Clave, 114I.
             </p>
           </div>
 
@@ -252,7 +252,7 @@ export default function Contacto() {
                 <h3 className="font-semibold text-gray-900 mb-1">Parking gratuito</h3>
                 <p className="text-gray-600 text-sm">
                   C/ Josep Anselm Clave, 114I<br />
-                  A 350m — 4 minutos andando
+                  A 400m — 4 minutos andando
                 </p>
               </div>
             </div>
@@ -305,7 +305,7 @@ export default function Contacto() {
                 ¿Hay aparcamiento disponible?
               </summary>
               <p className="mt-3 text-gray-600">
-                Si, hay un parking publico gratuito en Carrer de Josep Anselm Clave, 114I, a solo 350 metros del local (unos 4 minutos andando). Puedes ver la ubicacion exacta y el recorrido en el mapa de esta misma pagina.
+                Si, hay un parking publico gratuito en Carrer de Josep Anselm Clave, 114I, a solo 400 metros del local (unos 4 minutos andando). Puedes ver la ubicacion exacta y el recorrido en el mapa de esta misma pagina.
               </p>
             </details>
           </div>
