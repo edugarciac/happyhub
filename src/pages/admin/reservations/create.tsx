@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { ArrowLeft } from 'lucide-react';
@@ -13,15 +13,6 @@ const TIME_SLOT_OPTIONS = [
   { value: 'morning', label: 'Mañana (11:00–14:30)' },
   { value: 'afternoon', label: 'Tarde (16:30–20:30)' },
   { value: 'night', label: 'Noche (22:00–02:00)' },
-];
-
-const EVENT_TYPE_OPTIONS = [
-  { value: 'cumpleaños', label: 'Cumpleaños' },
-  { value: 'celebracion-familiar', label: 'Celebración familiar' },
-  { value: 'eventos-amigos', label: 'Eventos con amigos' },
-  { value: 'eventos-colegio-trabajo', label: 'Colegio/Trabajo' },
-  { value: 'taller', label: 'Taller' },
-  { value: 'otros', label: 'Otros' },
 ];
 
 interface FormData {
@@ -40,6 +31,14 @@ interface FormData {
 
 export default function CreateReservation() {
   const router = useRouter();
+  const [eventTypes, setEventTypes] = useState<{ id: number; name: string; icon: string }[]>([]);
+
+  useEffect(() => {
+    fetch('/api/event-types').then(r => r.json()).then(d => {
+      if (d.success) setEventTypes(d.eventTypes);
+    }).catch(() => {});
+  }, []);
+
   const [form, setForm] = useState<FormData>({
     name: '',
     email: '',
@@ -228,8 +227,8 @@ export default function CreateReservation() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   >
                     <option value="">Seleccionar tipo</option>
-                    {EVENT_TYPE_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
+                    {eventTypes.map((t) => (
+                      <option key={t.id} value={t.name}>{t.icon ? `${t.icon} ` : ''}{t.name}</option>
                     ))}
                   </select>
                 </div>

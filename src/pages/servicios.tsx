@@ -1,86 +1,49 @@
+import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Check } from 'lucide-react';
 
-const services = [
-  {
-    id: 'catering',
-    name: 'Catering',
-    price: 'Precio a consultar',
-    description: 'Menú completo adaptado a tus preferencias',
-    features: [
-      'Entrantes variados',
-      'Plato principal a elegir',
-      'Postres caseros',
-      'Bebidas incluidas',
-      'Opciones vegetarianas y veganas',
-      'Adaptación a alergias',
-    ],
-  },
-  {
-    id: 'animacion',
-    name: 'Animación',
-    price: 'Precio a consultar',
-    description: 'Entretenimiento profesional para todas las edades',
-    features: [
-      'Animadores profesionales',
-      'Juegos y actividades',
-      'Música y baile',
-      '2 horas de animación',
-      'Material incluido',
-      'Espectáculo final',
-    ],
-  },
-  {
-    id: 'decoracion',
-    name: 'Decoración',
-    price: 'Precio a consultar',
-    description: 'Ambientación temática personalizada',
-    features: [
-      'Globos y guirnaldas',
-      'Centros de mesa',
-      'Photocall personalizado',
-      'Iluminación especial',
-      'Vajilla decorativa',
-      'Montaje y desmontaje',
-    ],
-  },
-  {
-    id: 'fotografia',
-    name: 'Fotografía',
-    price: 'Precio a consultar',
-    description: 'Reportaje fotográfico profesional',
-    features: [
-      'Fotógrafo profesional',
-      '3 horas de cobertura',
-      '200+ fotos editadas',
-      'Entrega digital en 7 días',
-      'Fotos en alta resolución',
-      'Álbum online compartible',
-    ],
-  },
-  {
-    id: 'tarta',
-    name: 'Tarta Personalizada',
-    price: 'Precio a consultar',
-    description: 'Tarta artesanal hecha a medida',
-    features: [
-      'Diseño personalizado',
-      'Hasta 20 porciones',
-      'Ingredientes premium',
-      'Sabores a elegir',
-      'Sin gluten disponible',
-      'Entrega y montaje',
-    ],
-  },
-];
+interface Service {
+  id: number;
+  title: string;
+  price: number | null;
+  description: string;
+  features: string[];
+  image_url: string | null;
+}
 
 export default function Servicios() {
+  const [services, setServices] = useState<Service[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/services-catalog')
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success) {
+          setServices(
+            data.services.map((s: any) => ({
+              ...s,
+              features: typeof s.features === 'string' ? JSON.parse(s.features) : (s.features || []),
+            }))
+          );
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const formatPrice = (price: number | null) => {
+    if (price === null || price === undefined) return 'Precio a consultar';
+    return `${price.toFixed(2)} \u20AC`;
+  };
+
   return (
     <>
       <Head>
         <title>Servicios - Happyhub</title>
-        <meta name="description" content="Servicios y extras para tu celebración. Catering, animación, decoración, fotografía y más." />
+        <meta name="description" content="Servicios y extras para tu celebracion. Catering, animacion, decoracion, fotografia y mas." />
       </Head>
 
       <section className="bg-gradient-to-br from-primary-50 to-secondary-50 pt-28 pb-16">
@@ -94,38 +57,55 @@ export default function Servicios() {
         </div>
       </section>
 
-      {/* Servicios */}
       <section className="py-16 bg-white">
         <div className="container-custom">
           <h2 className="section-title text-center mb-12">Servicios disponibles</h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {services.map((service) => (
-              <div key={service.id} className="card">
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">{service.name}</h3>
-                <div className="text-primary-600 font-bold text-xl mb-3">{service.price}</div>
-                <p className="text-gray-600 mb-6">{service.description}</p>
+          {loading ? (
+            <div className="flex items-center justify-center h-40">
+              <div className="w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : services.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">No hay servicios disponibles</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {services.map((service) => (
+                <div key={service.id} className="card overflow-hidden">
+                  {service.image_url ? (
+                    <div className="relative h-48 -mx-6 -mt-6 mb-4 bg-gray-100">
+                      <Image src={service.image_url} alt={service.title} fill className="object-cover" />
+                    </div>
+                  ) : (
+                    <div className="h-48 -mx-6 -mt-6 mb-4 bg-gradient-to-br from-primary-50 to-secondary-50 flex items-center justify-center">
+                      <span className="text-5xl text-gray-300">📷</span>
+                    </div>
+                  )}
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">{service.title}</h3>
+                  <div className="text-primary-600 font-bold text-xl mb-3">{formatPrice(service.price)}</div>
+                  <p className="text-gray-600 mb-6">{service.description}</p>
 
-                <ul className="space-y-2">
-                  {service.features.map((feature, index) => (
-                    <li key={index} className="flex items-start text-sm">
-                      <Check className="w-4 h-4 text-primary-600 mr-2 flex-shrink-0 mt-0.5" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
+                  {service.features.length > 0 && (
+                    <ul className="space-y-2">
+                      {service.features.map((feature, index) => (
+                        <li key={index} className="flex items-start text-sm">
+                          <Check className="w-4 h-4 text-primary-600 mr-2 flex-shrink-0 mt-0.5" />
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
-      {/* CTA */}
       <section className="py-16 bg-white">
         <div className="container-custom text-center">
           <h2 className="section-title mb-4">¿Necesitas algo personalizado?</h2>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            Podemos adaptar nuestros servicios a tus necesidades específicas. Contáctanos para un presupuesto a medida.
+            Podemos adaptar nuestros servicios a tus necesidades especificas. Contactanos para un presupuesto a medida.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/reservas" className="btn-primary">

@@ -12,6 +12,8 @@ import {
 } from '@/utils/reservationStatus';
 import { buildWhatsAppUrl } from '@/utils/phone';
 
+interface EventTypeOption { id: number; name: string; icon: string; }
+
 interface Reservation {
   id: number;
   name: string;
@@ -38,15 +40,6 @@ const TIME_SLOT_LABELS: Record<string, string> = {
   night: 'Noche (22:00-02:00)',
 };
 
-const EVENT_TYPE_LABELS: Record<string, string> = {
-  'cumpleaños': 'Cumpleaños',
-  'celebracion-familiar': 'Celebración familiar',
-  'eventos-amigos': 'Eventos con amigos',
-  'eventos-colegio-trabajo': 'Colegio/Trabajo',
-  'taller': 'Taller',
-  'otros': 'Otros',
-};
-
 function jsonHeaders(): HeadersInit {
   return { 'Content-Type': 'application/json' };
 }
@@ -54,6 +47,13 @@ function jsonHeaders(): HeadersInit {
 export default function AdminReservations() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [eventTypes, setEventTypes] = useState<EventTypeOption[]>([]);
+
+  useEffect(() => {
+    fetch('/api/event-types').then(r => r.json()).then(d => {
+      if (d.success) setEventTypes(d.eventTypes);
+    }).catch(() => {});
+  }, []);
   const [total, setTotal] = useState(0);
   const [error, setError] = useState('');
 
@@ -285,7 +285,7 @@ export default function AdminReservations() {
                             <div className="text-sm text-gray-900 flex items-center gap-1">
                               <Users className="w-4 h-4 text-gray-400" />{r.guests} personas
                             </div>
-                            <div className="text-xs text-gray-500">{EVENT_TYPE_LABELS[r.eventType] || r.eventType}</div>
+                            <div className="text-xs text-gray-500">{r.eventType}</div>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
                             <div className="text-sm font-medium text-gray-900">{r.totalPrice} EUR</div>
@@ -423,8 +423,13 @@ export default function AdminReservations() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de evento</label>
-                    <input type="text" value={editForm.eventType} onChange={(e) => setEditForm({ ...editForm, eventType: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+                    <select value={editForm.eventType} onChange={(e) => setEditForm({ ...editForm, eventType: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                      <option value="">Seleccionar tipo</option>
+                      {eventTypes.map((t) => (
+                        <option key={t.id} value={t.name}>{t.icon ? `${t.icon} ` : ''}{t.name}</option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Invitados</label>
