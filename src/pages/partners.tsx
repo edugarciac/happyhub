@@ -58,7 +58,7 @@ export default function PartnersPage({ partners }: Props) {
               {partners.map((partner) => (
                 <div key={partner.id} className="card">
                   <div className="flex items-center space-x-4 mb-4">
-                    {partner.logo_url ? (
+                    {partner.logo_url && (
                       <Image
                         src={partner.logo_url}
                         alt={partner.name}
@@ -66,10 +66,6 @@ export default function PartnersPage({ partners }: Props) {
                         height={56}
                         className="rounded-xl object-cover w-14 h-14"
                       />
-                    ) : (
-                      <div className="w-14 h-14 rounded-xl bg-primary-50 text-primary-600 flex items-center justify-center flex-shrink-0">
-                        <Building2 className="w-8 h-8" />
-                      </div>
                     )}
                     <div>
                       <h3 className="text-xl font-bold text-gray-900">{partner.name}</h3>

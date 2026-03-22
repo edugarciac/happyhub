@@ -208,13 +208,9 @@ export default function AdminServices() {
               <div className="col-span-full text-center py-12 text-gray-500">No hay servicios</div>
             ) : services.map((s) => (
               <div key={s.id} className={`bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden ${!s.active ? 'opacity-50' : ''}`}>
-                {s.image_url ? (
+                {s.image_url && (
                   <div className="relative h-40 bg-gray-100">
                     <Image src={s.image_url} alt={s.title} fill className="object-cover" />
-                  </div>
-                ) : (
-                  <div className="h-40 bg-gradient-to-br from-primary-50 to-secondary-50 flex items-center justify-center">
-                    <span className="text-4xl text-gray-300">📷</span>
                   </div>
                 )}
                 <div className="p-4">
