@@ -39,6 +39,7 @@ export async function uploadToS3(
       Key: key,
       Body: buffer,
       ContentType: contentTypeMap[ext] || 'application/octet-stream',
+      CacheControl: 'public, max-age=31536000, immutable',
     })
   );
 
