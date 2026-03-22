@@ -2,26 +2,26 @@ import { useState, useEffect, useCallback } from 'react';
 import Head from 'next/head';
 import AdminLayout from '@/components/admin/AdminLayout';
 import toast, { Toaster } from 'react-hot-toast';
-import { Plus, Pencil, Trash2, X, GripVertical } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Check } from 'lucide-react';
 
 interface EventType {
   id: number;
   name: string;
   description: string;
   icon: string;
-  image_url: string | null;
+  features: string[];
   active: boolean;
   sort_order: number;
-  created_at: string;
 }
 
 interface FormData {
   name: string;
   description: string;
   icon: string;
+  features: string[];
 }
 
-const emptyForm: FormData = { name: '', description: '', icon: '' };
+const emptyForm: FormData = { name: '', description: '', icon: '', features: [] };
 
 export default function AdminEventTypes() {
   const [types, setTypes] = useState<EventType[]>([]);
@@ -31,6 +31,7 @@ export default function AdminEventTypes() {
   const [editingType, setEditingType] = useState<EventType | null>(null);
   const [deletingType, setDeletingType] = useState<EventType | null>(null);
   const [form, setForm] = useState<FormData>(emptyForm);
+  const [newFeature, setNewFeature] = useState('');
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState('');
 
@@ -39,16 +40,33 @@ export default function AdminEventTypes() {
       setLoading(true);
       const res = await fetch('/api/admin/event-types');
       const data = await res.json();
-      if (data.success) setTypes(data.eventTypes);
+      if (data.success) {
+        setTypes(data.eventTypes.map((t: any) => ({
+          ...t,
+          features: typeof t.features === 'string' ? JSON.parse(t.features) : (t.features || []),
+        })));
+      }
     } catch { toast.error('Error al cargar tipos'); }
     finally { setLoading(false); }
   }, []);
 
   useEffect(() => { fetchTypes(); }, [fetchTypes]);
 
-  const openCreate = () => { setForm(emptyForm); setFormError(''); setShowCreateModal(true); };
-  const openEdit = (t: EventType) => { setForm({ name: t.name, description: t.description || '', icon: t.icon || '' }); setFormError(''); setEditingType(t); };
+  const openCreate = () => { setForm(emptyForm); setNewFeature(''); setFormError(''); setShowCreateModal(true); };
+  const openEdit = (t: EventType) => {
+    setForm({ name: t.name, description: t.description || '', icon: t.icon || '', features: [...t.features] });
+    setNewFeature(''); setFormError(''); setEditingType(t);
+  };
   const closeModals = () => { setShowCreateModal(false); setEditingType(null); setDeletingType(null); setFormError(''); };
+
+  const addFeature = () => {
+    if (!newFeature.trim()) return;
+    setForm({ ...form, features: [...form.features, newFeature.trim()] });
+    setNewFeature('');
+  };
+  const removeFeature = (idx: number) => {
+    setForm({ ...form, features: form.features.filter((_, i) => i !== idx) });
+  };
 
   const handleCreate = async () => {
     if (!form.name.trim()) { setFormError('El nombre es obligatorio'); return; }
@@ -61,7 +79,7 @@ export default function AdminEventTypes() {
       const data = await res.json();
       if (!res.ok) { setFormError(data.error || 'Error'); setSaving(false); return; }
       toast.success('Tipo creado'); closeModals(); fetchTypes();
-    } catch { setFormError('Error de conexión'); }
+    } catch { setFormError('Error de conexion'); }
     finally { setSaving(false); }
   };
 
@@ -76,7 +94,7 @@ export default function AdminEventTypes() {
       const data = await res.json();
       if (!res.ok) { setFormError(data.error || 'Error'); setSaving(false); return; }
       toast.success('Tipo actualizado'); closeModals(); fetchTypes();
-    } catch { setFormError('Error de conexión'); }
+    } catch { setFormError('Error de conexion'); }
     finally { setSaving(false); }
   };
 
@@ -88,7 +106,7 @@ export default function AdminEventTypes() {
       const data = await res.json();
       if (!res.ok) { toast.error(data.error || 'Error'); closeModals(); setSaving(false); return; }
       toast.success('Tipo eliminado'); closeModals(); fetchTypes();
-    } catch { toast.error('Error de conexión'); }
+    } catch { toast.error('Error de conexion'); }
     finally { setSaving(false); }
   };
 
@@ -101,6 +119,44 @@ export default function AdminEventTypes() {
       fetchTypes();
     } catch { toast.error('Error'); }
   };
+
+  const FormFields = () => (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Nombre <span className="text-red-500">*</span></label>
+        <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent" placeholder="Ej: Cumpleanos" />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Icono (emoji)</label>
+        <input type="text" value={form.icon} onChange={(e) => setForm({ ...form, icon: e.target.value })}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent" placeholder="Ej: 🎂" />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Descripcion</label>
+        <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Caracteristicas</label>
+        <div className="space-y-2 mb-2">
+          {form.features.map((f, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <Check className="w-4 h-4 text-primary-600 shrink-0" />
+              <span className="text-sm text-gray-700 flex-1">{f}</span>
+              <button type="button" onClick={() => removeFeature(i)} className="text-red-400 hover:text-red-600"><X className="w-4 h-4" /></button>
+            </div>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <input type="text" value={newFeature} onChange={(e) => setNewFeature(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addFeature(); } }}
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm" placeholder="Nueva caracteristica" />
+          <button type="button" onClick={addFeature} className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors">Anadir</button>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <>
@@ -133,7 +189,8 @@ export default function AdminEventTypes() {
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Icono</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Descripción</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Descripcion</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Caracteristicas</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Activo</th>
                     <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Acciones</th>
                   </tr>
@@ -144,6 +201,7 @@ export default function AdminEventTypes() {
                       <td className="px-4 py-3 text-2xl">{t.icon || '🎉'}</td>
                       <td className="px-4 py-3"><div className="text-sm font-medium text-gray-900">{t.name}</div></td>
                       <td className="px-4 py-3"><div className="text-sm text-gray-600 max-w-xs truncate">{t.description || '-'}</div></td>
+                      <td className="px-4 py-3"><div className="text-xs text-gray-500">{t.features.length} items</div></td>
                       <td className="px-4 py-3">
                         <button onClick={() => toggleActive(t)}
                           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${t.active ? 'bg-primary-600' : 'bg-gray-300'}`}>
@@ -164,30 +222,14 @@ export default function AdminEventTypes() {
 
         {/* Create Modal */}
         {showCreateModal && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={closeModals}>
-            <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto" onClick={closeModals}>
+            <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 my-8" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-gray-900">Nuevo Tipo de Evento</h3>
                 <button onClick={closeModals} className="p-1 hover:bg-gray-100 rounded-lg"><X className="w-5 h-5" /></button>
               </div>
               {formError && <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg mb-4">{formError}</div>}
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Nombre <span className="text-red-500">*</span></label>
-                  <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent" placeholder="Ej: Cumpleaños" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Icono (emoji)</label>
-                  <input type="text" value={form.icon} onChange={(e) => setForm({ ...form, icon: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent" placeholder="Ej: 🎂" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
-                  <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
-                </div>
-              </div>
+              <FormFields />
               <div className="flex gap-3 mt-6">
                 <button onClick={closeModals} className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg transition-colors">Cancelar</button>
                 <button onClick={handleCreate} disabled={saving} className="flex-1 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50">
@@ -200,30 +242,14 @@ export default function AdminEventTypes() {
 
         {/* Edit Modal */}
         {editingType && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={closeModals}>
-            <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto" onClick={closeModals}>
+            <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 my-8" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-gray-900">Editar Tipo de Evento</h3>
                 <button onClick={closeModals} className="p-1 hover:bg-gray-100 rounded-lg"><X className="w-5 h-5" /></button>
               </div>
               {formError && <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg mb-4">{formError}</div>}
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Nombre <span className="text-red-500">*</span></label>
-                  <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Icono (emoji)</label>
-                  <input type="text" value={form.icon} onChange={(e) => setForm({ ...form, icon: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
-                  <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
-                </div>
-              </div>
+              <FormFields />
               <div className="flex gap-3 mt-6">
                 <button onClick={closeModals} className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg transition-colors">Cancelar</button>
                 <button onClick={handleUpdate} disabled={saving} className="flex-1 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50">
@@ -239,8 +265,8 @@ export default function AdminEventTypes() {
           <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={closeModals}>
             <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6" onClick={(e) => e.stopPropagation()}>
               <h3 className="text-lg font-bold text-gray-900 mb-2">Eliminar tipo de evento</h3>
-              <p className="text-gray-600 text-sm mb-1">¿Eliminar "{deletingType.name}"?</p>
-              <p className="text-red-600 text-xs mb-6">Las reservas existentes mantendrán el tipo actual.</p>
+              <p className="text-gray-600 text-sm mb-1">Eliminar &quot;{deletingType.name}&quot;?</p>
+              <p className="text-red-600 text-xs mb-6">Las reservas existentes mantendran el tipo actual.</p>
               <div className="flex gap-3">
                 <button onClick={closeModals} className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg transition-colors">Cancelar</button>
                 <button onClick={handleDelete} disabled={saving} className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50">

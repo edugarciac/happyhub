@@ -6,7 +6,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const result = await query(
-      'SELECT id, name, description, icon, image_url FROM event_types WHERE active = true ORDER BY sort_order ASC, name ASC'
+      'SELECT id, name, description, icon, image_url, features FROM event_types WHERE active = true ORDER BY sort_order ASC, name ASC'
     );
     return res.status(200).json({ success: true, eventTypes: result.rows });
   } catch (error) {

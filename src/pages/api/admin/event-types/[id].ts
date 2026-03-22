@@ -19,7 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 }
 
 async function handleUpdate(id: number, req: NextApiRequest, res: NextApiResponse) {
-  const { name, description, icon, image_url, active, sort_order } = req.body;
+  const { name, description, icon, image_url, active, sort_order, features } = req.body;
   const fields: string[] = [];
   const params: any[] = [];
   let idx = 1;
@@ -30,6 +30,7 @@ async function handleUpdate(id: number, req: NextApiRequest, res: NextApiRespons
   if (image_url !== undefined) { fields.push(`image_url = $${idx++}`); params.push(image_url || null); }
   if (active !== undefined) { fields.push(`active = $${idx++}`); params.push(active); }
   if (sort_order !== undefined) { fields.push(`sort_order = $${idx++}`); params.push(sort_order); }
+  if (features !== undefined) { fields.push(`features = $${idx++}`); params.push(JSON.stringify(features)); }
 
   if (fields.length === 0) return res.status(400).json({ success: false, error: 'No hay campos para actualizar' });
 

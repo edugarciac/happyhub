@@ -8,8 +8,7 @@ import PricingTable from '@/components/PricingTable';
 import { fetchInstagramPosts, InstagramPost } from '@/lib/instagram';
 import {
   Calendar, Users, Sparkles, Shield, Clock, Heart,
-  ArrowRight, Cake, Palette, Camera, Music,
-  Utensils, Gift, CheckCircle2, TrendingUp, Instagram, Star
+  ArrowRight, Gift, CheckCircle2, Instagram, Star
 } from 'lucide-react';
 
 interface Review {
@@ -33,9 +32,18 @@ export const getStaticProps: GetStaticProps<HomeProps> = async () => {
   };
 };
 
+interface EventType {
+  id: number;
+  name: string;
+  description: string;
+  icon: string;
+  features: string[];
+}
+
 export default function Home({ instagramPosts }: HomeProps) {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [reviewsTotal, setReviewsTotal] = useState(0);
+  const [eventTypes, setEventTypes] = useState<EventType[]>([]);
 
   useEffect(() => {
     fetch('/api/reviews?limit=6')
@@ -44,6 +52,18 @@ export default function Home({ instagramPosts }: HomeProps) {
         if (data) {
           setReviews(data.reviews || []);
           setReviewsTotal(data.total || 0);
+        }
+      })
+      .catch(() => {});
+
+    fetch('/api/event-types')
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => {
+        if (data?.success) {
+          setEventTypes(data.eventTypes.map((t: any) => ({
+            ...t,
+            features: typeof t.features === 'string' ? JSON.parse(t.features) : (t.features || []),
+          })));
         }
       })
       .catch(() => {});
@@ -79,64 +99,6 @@ export default function Home({ instagramPosts }: HomeProps) {
       icon: Heart,
       title: 'Atención personalizada',
       description: 'Equipo experto dedicado a hacer de tu evento una experiencia inolvidable.',
-    },
-  ];
-
-  const eventTypes = [
-    {
-      title: 'Cumpleaños',
-      icon: Cake,
-      duration: '2-5 horas',
-      description: 'Celebra tu día especial en un ambiente mágico y festivo',
-      features: ['Decoración temática', 'Animación', 'Menú personalizado'],
-    },
-    {
-      title: 'Celebraciones Familiares',
-      icon: Heart,
-      duration: '2-5 horas',
-      description: 'El lugar perfecto para reuniones familiares especiales y momentos únicos',
-      features: ['Ambiente acogedor', 'Catering adaptable', 'Espacio flexible'],
-    },
-    {
-      title: 'Eventos con Amigos',
-      icon: Users,
-      duration: '2-5 horas',
-      description: 'Reúne a tu grupo de amigos para celebrar cualquier ocasión especial',
-      features: ['Ambiente divertido', 'Zona de juegos', 'DJ y música'],
-    },
-    {
-      title: 'Colegio y Trabajo',
-      icon: TrendingUp,
-      duration: '2-5 horas',
-      description: 'Espacio polivalente ideal para eventos de colegio, universidad o equipo de trabajo',
-      features: ['Equipamiento A/V', 'Catering flexible', 'Configuración adaptable'],
-    },
-  ];
-
-  const services = [
-    {
-      icon: Utensils,
-      title: 'Catering Premium',
-      description: 'Menús personalizados elaborados por chefs profesionales con ingredientes de primera calidad.',
-      features: ['Menús infantiles', 'Opciones vegetarianas', 'Sin gluten/lactosa'],
-    },
-    {
-      icon: Music,
-      title: 'Animación y DJ',
-      description: 'Animadores profesionales y DJs experimentados que harán bailar a todos tus invitados.',
-      features: ['Animación infantil', 'DJ profesional', 'Karaoke'],
-    },
-    {
-      icon: Palette,
-      title: 'Decoración Mágica',
-      description: 'Decoración temática personalizada que transforma el espacio según tus sueños.',
-      features: ['Globos y guirnaldas', 'Centros de mesa', 'Photocall personalizado'],
-    },
-    {
-      icon: Camera,
-      title: 'Fotografía Profesional',
-      description: 'Captura cada momento especial con nuestro servicio de fotografía y vídeo profesional.',
-      features: ['Reportaje completo', 'Edición profesional', 'Álbum digital'],
     },
   ];
 
@@ -205,88 +167,48 @@ export default function Home({ instagramPosts }: HomeProps) {
 
 
       {/* Event Types Section */}
-      <section id="events" className="py-24 bg-gray-50">
-        <div className="container-custom">
-          <div className="text-center mb-16">
-            <span className="section-tag">
-              <Gift className="w-4 h-4 mr-2" />
-              Tipos de eventos
-            </span>
-            <h2 className="section-title">
-              Celebraciones adaptadas a ti
-            </h2>
-            <p className="section-subtitle max-w-3xl mx-auto">
-              Cada evento es único. Ofrecemos soluciones personalizadas para hacer realidad tu celebración perfecta
-            </p>
-          </div>
+      {eventTypes.length > 0 && (
+        <section id="events" className="py-24 bg-gray-50">
+          <div className="container-custom">
+            <div className="text-center mb-16">
+              <span className="section-tag">
+                <Gift className="w-4 h-4 mr-2" />
+                Tipos de eventos
+              </span>
+              <h2 className="section-title">
+                Celebraciones adaptadas a ti
+              </h2>
+              <p className="section-subtitle max-w-3xl mx-auto">
+                Cada evento es único. Ofrecemos soluciones personalizadas para hacer realidad tu celebración perfecta
+              </p>
+            </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {eventTypes.map((event, index) => (
-              <div key={index} className="card text-center group">
-                <div className="bg-gradient-to-br from-primary-100 to-ocean-100 w-20 h-20 rounded-3xl flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform">
-                  <event.icon className="w-10 h-10 text-primary-700" />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">{event.title}</h3>
-                <p className="text-gray-600 mb-4">{event.description}</p>
-                <div className="space-y-2 mb-6">
-                  {event.features.map((feature, idx) => (
-                    <div key={idx} className="flex items-center text-sm text-gray-600">
-                      <CheckCircle2 className="w-4 h-4 text-primary-600 mr-2 flex-shrink-0" />
-                      {feature}
-                    </div>
-                  ))}
-                </div>
-                <div className="border-t border-gray-200 pt-4 mt-4">
-                  <div className="text-sm text-gray-600">Duración: {event.duration}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-        </div>
-      </section>
-
-      {/* Services Section */}
-      <section id="services" className="py-24 bg-white">
-        <div className="container-custom">
-          <div className="text-center mb-16">
-            <span className="section-tag">
-              <Sparkles className="w-4 h-4 mr-2" />
-              Servicios incluidos
-            </span>
-            <h2 className="section-title">
-              Todo lo necesario para tu evento perfecto
-            </h2>
-            <p className="section-subtitle max-w-3xl mx-auto">
-              Servicios premium que transforman tu celebración en una experiencia extraordinaria
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {services.map((service, index) => (
-              <div key={index} className="card group">
-                <div className="flex items-start space-x-6">
-                  <div className="bg-gradient-to-br from-primary-100 to-ocean-100 w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                    <service.icon className="w-8 h-8 text-primary-700" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-2xl font-bold text-gray-900 mb-3">{service.title}</h3>
-                    <p className="text-gray-600 mb-4 leading-relaxed">{service.description}</p>
-                    <div className="space-y-2">
-                      {service.features.map((feature, idx) => (
+            <div className={`grid grid-cols-1 md:grid-cols-2 ${eventTypes.length >= 4 ? 'lg:grid-cols-4' : eventTypes.length === 3 ? 'lg:grid-cols-3' : ''} gap-8`}>
+              {eventTypes.map((event) => (
+                <div key={event.id} className="card text-center group">
+                  {event.icon && (
+                    <div className="text-5xl mb-6">{event.icon}</div>
+                  )}
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3">{event.name}</h3>
+                  {event.description && (
+                    <p className="text-gray-600 mb-4">{event.description}</p>
+                  )}
+                  {event.features.length > 0 && (
+                    <div className="space-y-2 mb-2">
+                      {event.features.map((feature, idx) => (
                         <div key={idx} className="flex items-center text-sm text-gray-600">
                           <CheckCircle2 className="w-4 h-4 text-primary-600 mr-2 flex-shrink-0" />
                           {feature}
                         </div>
                       ))}
                     </div>
-                  </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Instagram Feed Section */}
       <section id="instagram" className="py-24 bg-gradient-to-br from-primary-50 via-white to-ocean-50">
