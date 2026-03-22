@@ -1,0 +1,223 @@
+{
+  "name": "Happyhub - Cancelacion/Rechazo Reserva",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "reservation-cancellation",
+        "options": {
+          "responseMode": "responseNode"
+        },
+        "httpMethod": "POST"
+      },
+      "id": "webhook_cancellation",
+      "name": "Webhook Cancelacion",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "const body = items[0].json.body || items[0].json;\nconst reservation = body.reservation || {};\n\nconst status = body.status || '';\nconst reason = body.reason || 'Sin motivo especificado';\nconst reservationId = body.reservationId || reservation.id;\n\n// Customer info from reservation\nconst email = reservation.email || '';\nconst name = reservation.name || reservation.customer_name || 'Cliente';\nconst phone = reservation.phone || '';\nconst eventDate = reservation.event_date || '';\nconst timeSlot = reservation.time_slot || '';\nconst calendarEventId = reservation.google_calendar_event_id || '';\n\n// Format date\nlet fechaFormateada = eventDate;\ntry {\n  if (eventDate) {\n    const d = new Date(eventDate);\n    fechaFormateada = d.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });\n  }\n} catch(e) {}\n\nconst timeSlotLabels = { morning: 'Manana', afternoon: 'Tarde', night: 'Noche' };\nconst franjaLabel = timeSlotLabels[timeSlot] || timeSlot;\n\nconst isRejected = status === 'rejected';\nconst statusLabel = isRejected ? 'rechazada' : 'cancelada';\nconst subject = isRejected\n  ? `Tu reserva en Happyhub ha sido rechazada`\n  : `Tu reserva en Happyhub ha sido cancelada`;\n\nconst html = `\n<div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;\">\n  <div style=\"text-align: center; margin-bottom: 30px;\">\n    <h1 style=\"color: #1a1a1a; font-size: 24px;\">Happyhub</h1>\n  </div>\n  <p>Hola <strong>${name}</strong>,</p>\n  <p>Te informamos de que tu reserva ha sido <strong>${statusLabel}</strong>.</p>\n  <div style=\"background: #f8f8f8; border-radius: 12px; padding: 20px; margin: 20px 0;\">\n    <p style=\"margin: 5px 0;\"><strong>Reserva:</strong> #${reservationId}</p>\n    <p style=\"margin: 5px 0;\"><strong>Fecha:</strong> ${fechaFormateada}</p>\n    <p style=\"margin: 5px 0;\"><strong>Franja:</strong> ${franjaLabel}</p>\n  </div>\n  <div style=\"background: ${isRejected ? '#fef2f2' : '#fff7ed'}; border-left: 4px solid ${isRejected ? '#dc2626' : '#f97316'}; border-radius: 8px; padding: 16px; margin: 20px 0;\">\n    <p style=\"margin: 0; font-weight: bold; color: ${isRejected ? '#dc2626' : '#f97316'};\">Motivo:</p>\n    <p style=\"margin: 8px 0 0 0;\">${reason}</p>\n  </div>\n  <p>Si tienes alguna duda, contactanos por WhatsApp al <a href=\"https://wa.me/34624645517\">624 645 517</a>.</p>\n  <p style=\"color: #666; font-size: 12px; margin-top: 30px;\">Este es un mensaje automatico de Happyhub.</p>\n</div>\n`;\n\nreturn [{\n  json: {\n    reservationId,\n    status,\n    reason,\n    email,\n    name,\n    subject,\n    html,\n    calendarEventId,\n    hasCalendarEvent: !!calendarEventId\n  }\n}];"
+      },
+      "id": "prepare_data",
+      "name": "PrepararDatos",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.hasCalendarEvent }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "if_has_calendar",
+      "name": "TieneEventoCalendario",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "calendarId": "primary",
+        "eventId": "={{ $json.calendarEventId }}"
+      },
+      "id": "delete_calendar_event",
+      "name": "BorrarEventoCalendario",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1,
+      "position": [850, 250],
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "google_calendar_happyhub",
+          "name": "Google Calendar Happyhub"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Merge data back after calendar deletion (or skip)\nconst prepData = $('PrepararDatos').item.json;\nreturn [{ json: prepData }];"
+      },
+      "id": "merge_after_calendar",
+      "name": "MergeParaEmail",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "Happyhub <happyhub.rovellat@gmail.com>",
+        "toEmail": "={{ $json.email }}",
+        "subject": "={{ $json.subject }}",
+        "emailFormat": "html",
+        "html": "={{ $json.html }}"
+      },
+      "id": "send_email",
+      "name": "EnviarEmail",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [1250, 300],
+      "credentials": {
+        "smtp": {
+          "id": "smtp_happyhub",
+          "name": "SMTP Happyhub"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"message\": \"Notificacion de {{ $json.status }} enviada a {{ $json.email }}\"\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "response_success",
+      "name": "RespuestaExito",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1450, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": false,\n  \"error\": \"Error al enviar notificacion\"\n}",
+        "options": {
+          "responseCode": 500
+        }
+      },
+      "id": "response_error",
+      "name": "RespuestaError",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1450, 450]
+    }
+  ],
+  "connections": {
+    "Webhook Cancelacion": {
+      "main": [
+        [
+          {
+            "node": "PrepararDatos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PrepararDatos": {
+      "main": [
+        [
+          {
+            "node": "TieneEventoCalendario",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TieneEventoCalendario": {
+      "main": [
+        [
+          {
+            "node": "BorrarEventoCalendario",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "MergeParaEmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BorrarEventoCalendario": {
+      "main": [
+        [
+          {
+            "node": "MergeParaEmail",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "MergeParaEmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MergeParaEmail": {
+      "main": [
+        [
+          {
+            "node": "EnviarEmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "EnviarEmail": {
+      "main": [
+        [
+          {
+            "node": "RespuestaExito",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "RespuestaError",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1.1",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-03-22T00:00:00.000Z",
+  "versionId": "1"
+}
