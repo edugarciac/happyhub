@@ -11,6 +11,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.78.0",
     "@aws-sdk/client-s3": "^3.1014.0",
     "@hookform/resolvers": "^3.3.3",
     "@neondatabase/serverless": "^1.0.2",
@@ -19,6 +20,7 @@
     "bcryptjs": "^2.4.3",
     "date-fns": "^3.0.6",
     "dotenv": "^17.3.1",
+    "exceljs": "^4.4.0",
     "googleapis": "^171.4.0",
     "jsonwebtoken": "^9.0.2",
     "jspdf": "^4.2.0",
