@@ -6,7 +6,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import Head from 'next/head';
 import Link from 'next/link';
-import { User, Lock, Calendar, ChevronDown, ChevronUp, RefreshCw, Star } from 'lucide-react';
+import { User, Lock, Calendar, ChevronDown, ChevronUp, RefreshCw, Star, Users, Plus, ArrowRight } from 'lucide-react';
+import type { CollaborativeEvent } from '@/utils/db/collaborative-events';
 
 // -- Types --
 
@@ -100,6 +101,9 @@ export default function AreaPrivadaPage() {
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [loadingReservations, setLoadingReservations] = useState(true);
   const [reservationsError, setReservationsError] = useState('');
+  const [organizedEvents, setOrganizedEvents] = useState<CollaborativeEvent[]>([]);
+  const [participatingEvents, setParticipatingEvents] = useState<CollaborativeEvent[]>([]);
+  const [loadingEvents, setLoadingEvents] = useState(true);
   const [profileMsg, setProfileMsg] = useState({ type: '', text: '' });
   const [passwordMsg, setPasswordMsg] = useState({ type: '', text: '' });
   const [expandedReservation, setExpandedReservation] = useState<string | null>(null);
@@ -146,6 +150,21 @@ export default function AreaPrivadaPage() {
     }
   }, [profileForm]);
 
+  const fetchCollaborativeEvents = useCallback(async () => {
+    try {
+      const res = await fetch('/api/events/collaborative');
+      if (res.ok) {
+        const data = await res.json();
+        setOrganizedEvents(data.organized || []);
+        setParticipatingEvents(data.participating || []);
+      }
+    } catch {
+      // silent
+    } finally {
+      setLoadingEvents(false);
+    }
+  }, []);
+
   // Fetch reservations
   const fetchReservations = useCallback(async () => {
     setLoadingReservations(true);
@@ -169,8 +188,9 @@ export default function AreaPrivadaPage() {
     if (sessionStatus === 'authenticated') {
       fetchProfile();
       fetchReservations();
+      fetchCollaborativeEvents();
     }
-  }, [sessionStatus, fetchProfile, fetchReservations]);
+  }, [sessionStatus, fetchProfile, fetchReservations, fetchCollaborativeEvents]);
 
   // Save profile
   const onSaveProfile = async (data: ProfileForm) => {
@@ -520,6 +540,93 @@ export default function AreaPrivadaPage() {
             </form>
           </section>
           )}
+
+          {/* Mis eventos colaborativos */}
+          <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <Users className="w-5 h-5 text-purple-600" />
+                <h2 className="text-xl font-semibold text-gray-900">Mis eventos</h2>
+              </div>
+              <Link
+                href="/eventos/crear"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-purple-600 hover:text-purple-800 transition"
+              >
+                <Plus className="w-4 h-4" />
+                Crear evento
+              </Link>
+            </div>
+
+            {loadingEvents ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
+              </div>
+            ) : organizedEvents.length === 0 && participatingEvents.length === 0 ? (
+              <div className="text-center py-10">
+                <Users className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+                <p className="text-gray-500 text-sm mb-4">Aún no tienes eventos colaborativos</p>
+                <Link
+                  href="/eventos/crear"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-purple-600 text-white rounded-xl text-sm font-medium hover:bg-purple-700 transition"
+                >
+                  <Plus className="w-4 h-4" />
+                  Crear mi primer evento
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {organizedEvents.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Que organizo</p>
+                    <div className="space-y-2">
+                      {organizedEvents.map((ev) => (
+                        <Link
+                          key={ev.id}
+                          href={`/eventos/${ev.id}`}
+                          className="flex items-center justify-between p-4 border border-gray-200 rounded-xl hover:border-purple-300 hover:bg-purple-50 transition group"
+                        >
+                          <div>
+                            <p className="font-medium text-gray-900 text-sm group-hover:text-purple-700">{ev.title}</p>
+                            {ev.event_date && (
+                              <p className="text-xs text-gray-400 mt-0.5">
+                                {new Date(ev.event_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+                              </p>
+                            )}
+                          </div>
+                          <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-purple-500 flex-shrink-0" />
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {participatingEvents.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">En los que participo</p>
+                    <div className="space-y-2">
+                      {participatingEvents.map((ev) => (
+                        <Link
+                          key={ev.id}
+                          href={`/eventos/${ev.id}`}
+                          className="flex items-center justify-between p-4 border border-gray-200 rounded-xl hover:border-purple-300 hover:bg-purple-50 transition group"
+                        >
+                          <div>
+                            <p className="font-medium text-gray-900 text-sm group-hover:text-purple-700">{ev.title}</p>
+                            {ev.event_date && (
+                              <p className="text-xs text-gray-400 mt-0.5">
+                                {new Date(ev.event_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+                              </p>
+                            )}
+                          </div>
+                          <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-purple-500 flex-shrink-0" />
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </section>
 
           {/* Mis reservas */}
           <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
