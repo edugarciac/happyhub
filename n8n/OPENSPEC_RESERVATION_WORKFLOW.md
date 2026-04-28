@@ -469,7 +469,7 @@ INSERT INTO reservations (
 
 Create a Google Calendar event with ALL reservation details visible in the calendar entry.
 
-- **Calendar**: `happyhub.rovellat@gmail.com` (or "primary" if authorized with that account)
+- **Calendar**: `hola@happyhub.es` (or "primary" if authorized with that account)
 - **Operation**: Create event
 - **Start**: `fechaHoraInicio` from Normalizar Datos
 - **End**: `fechaHoraFin` from Normalizar Datos
@@ -491,7 +491,7 @@ Mensaje del cliente: {{mensaje}}
 - **Location**: `HappyHub - C/ Rovellat, 27, 08950 Esplugues de Llobregat`
 - **Send updates**: all
 
-**Credentials**: Google Calendar OAuth2 (authorized with happyhub.rovellat@gmail.com)
+**Credentials**: Google Calendar OAuth2 (authorized with hola@happyhub.es)
 
 **Critical**: all expression fields must reference `$('Normalizar Datos').item.json.fieldName` since the direct input comes from the Postgres INSERT node (which only returns `id`).
 
@@ -577,7 +577,7 @@ Calendario actualizado
 Send a confirmation email with all booking details to the customer. Runs in parallel with WhatsApp nodes.
 
 - **Type**: n8n-nodes-base.sendEmail (SMTP)
-- **From**: `happyhub.rovellat@gmail.com`
+- **From**: `hola@happyhub.es`
 - **To**: `{{ email }}` (from PrepararRespuesta)
 - **Subject**: `Confirmacion de reserva {{ reservationId }} - HappyHub`
 - **Format**: HTML email
@@ -601,7 +601,7 @@ The email includes a branded header (orange gradient with "HappyHub" title), fol
 
 Below the table, a callout box with next steps: "Nos pondremos en contacto contigo en las proximas 24 horas para confirmar todos los detalles y enviarte el enlace de pago de la senal."
 
-Footer with contact info (phone 624 645 517, email happyhub.rovellat@gmail.com) and address.
+Footer with contact info (phone 624 645 517, email hola@happyhub.es) and address.
 
 **Credentials**: SMTP HappyHub Gmail (Gmail App Password, see B5)
 
@@ -644,8 +644,8 @@ Webhook Reserva
 | Name | Type | Details |
 |------|------|---------|
 | Neon HappyHub | PostgreSQL | Host: ep-morning-sky-abwuz6yr.eu-west-2.aws.neon.tech, DB: neondb, SSL: require |
-| Google Calendar HappyHub | Google Calendar OAuth2 | Authorized with happyhub.rovellat@gmail.com |
-| SMTP HappyHub Gmail | SMTP | Host: smtp.gmail.com, Port: 465, SSL: true, User: happyhub.rovellat@gmail.com, Password: Gmail App Password |
+| Google Calendar HappyHub | Google Calendar OAuth2 | Authorized with hola@happyhub.es |
+| SMTP HappyHub Gmail | SMTP | Host: smtp.gmail.com, Port: 465, SSL: true, User: hola@happyhub.es, Password: Gmail App Password |
 
 ## B6. n8n environment variables required
 

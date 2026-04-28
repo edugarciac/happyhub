@@ -1,5 +1,5 @@
 -- HappyHub Database Schema for AWS Aurora PostgreSQL
--- Account: happyhub.rovellat@gmail.com
+-- Account: hola@happyhub.es
 
 -- Create database
 CREATE DATABASE IF NOT EXISTS happyhub_db;
@@ -97,11 +97,11 @@ CREATE TABLE IF NOT EXISTS settings (
 
 -- Insertar configuraciones iniciales
 INSERT INTO settings (key, value, description) VALUES
-('google_calendar_id', 'happyhub.rovellat@gmail.com', 'Google Calendar ID para sincronización'),
-('approval_email', 'happyhub.rovellat@gmail.com', 'Email para notificaciones de aprobación'),
+('google_calendar_id', 'hola@happyhub.es', 'Google Calendar ID para sincronización'),
+('approval_email', 'hola@happyhub.es', 'Email para notificaciones de aprobación'),
 ('business_name', 'HappyHub', 'Nombre del negocio'),
 ('business_phone', '624645517', 'Teléfono de contacto'),
-('business_email', 'happyhub.rovellat@gmail.com', 'Email de contacto'),
+('business_email', 'hola@happyhub.es', 'Email de contacto'),
 ('business_address', 'C/ Rovellat, 27, 08950 Esplugues de Llobregat, Barcelona', 'Dirección del local')
 ON CONFLICT (key) DO NOTHING;
 

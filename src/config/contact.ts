@@ -2,7 +2,7 @@
 // Este archivo centraliza todos los datos de contacto para facilitar actualizaciones
 
 export const CONTACT_INFO = {
-  email: 'happyhub.rovellat@gmail.com',
+  email: 'hola@happyhub.es',
   phone: '624645517',
   phoneFormatted: '624 645 517',
   phoneInternational: '+34624645517',

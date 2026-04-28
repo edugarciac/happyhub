@@ -3,7 +3,7 @@
 ## 📋 Prerequisitos
 
 - ✅ Cuenta AWS: 128959995116
-- ✅ Email: happyhub.rovellat@gmail.com
+- ✅ Email: hola@happyhub.es
 - ✅ Créditos: $1,000 USD
 - ⏳ Necesitas: Access Key ID y Secret Access Key
 
@@ -121,7 +121,7 @@ Cuando el script te lo pida:
 1. Ve a: https://console.aws.amazon.com/billing/home#/preferences
 2. ✅ Check "Receive Billing Alerts"
 3. ✅ Check "Receive Free Tier Usage Alerts"
-4. Email: happyhub.rovellat@gmail.com
+4. Email: hola@happyhub.es
 5. Guardar
 6. Vuelve al terminal y presiona ENTER
 

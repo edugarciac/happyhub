@@ -8,5 +8,5 @@ The system SHALL create Google Calendar events with the title "Evento: [tipo de 
 - **THEN** the Google Calendar event title SHALL be "Evento: cumpleanos"
 
 #### Scenario: Event title visible in calendar
-- **WHEN** viewing the Google Calendar for happyhub.rovellat@gmail.com
+- **WHEN** viewing the Google Calendar for hola@happyhub.es
 - **THEN** each reservation event SHALL display the title instead of "(sin titulo)"

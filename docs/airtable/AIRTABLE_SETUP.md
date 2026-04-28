@@ -5,7 +5,7 @@
 ### Paso 1: Crear Cuenta Airtable (2 min)
 
 1. Ve a: https://airtable.com/signup
-2. Registrarte con: **happyhub.rovellat@gmail.com**
+2. Registrarte con: **hola@happyhub.es**
 3. Verificar email
 4. Login en: https://airtable.com/
 
@@ -219,7 +219,7 @@ cat > airtable-credentials.json <<EOF
     "base_name": "HappyHub Reservas"
   },
   "account": {
-    "email": "happyhub.rovellat@gmail.com"
+    "email": "hola@happyhub.es"
   },
   "created_at": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 }

@@ -35,8 +35,8 @@ aws s3 ls s3://happyhub-assets-prod --profile happyhub
 ### 3. Budget Configurado
 - ✅ Nombre: `HappyHub-Monthly-Budget`
 - ✅ Límite: $45 USD/mes
-- ✅ Alerta al 80%: Email a happyhub.rovellat@gmail.com
-- ✅ Alerta al 100%: Email a happyhub.rovellat@gmail.com
+- ✅ Alerta al 80%: Email a hola@happyhub.es
+- ✅ Alerta al 100%: Email a hola@happyhub.es
 
 **Verificación:**
 ```bash

@@ -29,7 +29,7 @@ export default function PoliticaPrivacidad() {
               <ul className="list-disc list-inside space-y-2">
                 <li><strong>Titular:</strong> HappyHub</li>
                 <li><strong>Domicilio:</strong> C/ Rovellat, 27, 08950 Esplugues de Llobregat, Barcelona, España</li>
-                <li><strong>Email:</strong> <a href="mailto:happyhub.rovellat@gmail.com" className="text-primary-600 hover:underline">happyhub.rovellat@gmail.com</a></li>
+                <li><strong>Email:</strong> <a href="mailto:hola@happyhub.es" className="text-primary-600 hover:underline">hola@happyhub.es</a></li>
                 <li><strong>Teléfono:</strong> <a href="https://wa.me/34624645517" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">+34 624 645 517</a> (WhatsApp)</li>
               </ul>
             </div>
@@ -114,7 +114,7 @@ export default function PoliticaPrivacidad() {
               </ul>
               <p className="mt-3">
                 Para ejercer estos derechos, envía un correo a{' '}
-                <a href="mailto:happyhub.rovellat@gmail.com" className="text-primary-600 hover:underline">happyhub.rovellat@gmail.com</a>{' '}
+                <a href="mailto:hola@happyhub.es" className="text-primary-600 hover:underline">hola@happyhub.es</a>{' '}
                 indicando tu nombre completo y el derecho que deseas ejercer. Responderemos en un plazo
                 máximo de 30 días.
               </p>
@@ -163,7 +163,7 @@ export default function PoliticaPrivacidad() {
                 Para cualquier consulta relacionada con la protección de datos, puedes contactarnos en:
               </p>
               <ul className="list-disc list-inside space-y-2 mt-2">
-                <li>Email: <a href="mailto:happyhub.rovellat@gmail.com" className="text-primary-600 hover:underline">happyhub.rovellat@gmail.com</a></li>
+                <li>Email: <a href="mailto:hola@happyhub.es" className="text-primary-600 hover:underline">hola@happyhub.es</a></li>
                 <li>WhatsApp: <a href="https://wa.me/34624645517" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">+34 624 645 517</a></li>
                 <li>Dirección: C/ Rovellat, 27, 08950 Esplugues de Llobregat, Barcelona</li>
               </ul>

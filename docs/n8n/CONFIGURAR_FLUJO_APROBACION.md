@@ -91,7 +91,7 @@ Contraseña: ChangeThisPassword123! (cambiar en primer login)
    Position: Conectado a "On Error" del nodo WhatsApp
 
    Configuration:
-   - To: happyhub.rovellat@gmail.com
+   - To: hola@happyhub.es
    - Subject: "⚠️ Nueva Reserva (WhatsApp failed)"
    - Body: Same content as WhatsApp message
    ```

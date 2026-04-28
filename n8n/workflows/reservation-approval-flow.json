@@ -27,7 +27,7 @@
     },
     {
       "parameters": {
-        "fromEmail": "happyhub.rovellat@gmail.com",
+        "fromEmail": "hola@happyhub.es",
         "toEmail": "={{ $json.customer_email }}",
         "subject": "Reserva recibida - En revisión",
         "text": "Hola {{ $json.customer_name }},\n\nHemos recibido tu solicitud de reserva y la estamos revisando.\n\nResumen:\nFecha: {{ $json.event_date }}\nHorario: {{ $json.time_slot }}\nInvitados: {{ $json.guests }}\nPrecio: {{ $json.total_price }}€\n\nTe contactaremos pronto.\n\nGracias,\nEquipo HappyHub",
@@ -99,7 +99,7 @@
     },
     {
       "parameters": {
-        "fromEmail": "happyhub.rovellat@gmail.com",
+        "fromEmail": "hola@happyhub.es",
         "toEmail": "={{ $json.customer_email }}",
         "subject": "✅ Reserva Aprobada - HappyHub",
         "text": "Hola {{ $json.customer_name }},\n\n¡Tu reserva ha sido aprobada!\n\nEn breve recibirás el enlace de pago para completar tu reserva.\n\nNº Reserva: {{ $json.reservation_id }}\n\nVer detalles: https://www.happyhub.es/mi-reserva/{{ $json.reservation_id }}\n\nGracias,\nEquipo HappyHub",
@@ -141,7 +141,7 @@
     },
     {
       "parameters": {
-        "fromEmail": "happyhub.rovellat@gmail.com",
+        "fromEmail": "hola@happyhub.es",
         "toEmail": "={{ $json.customer_email }}",
         "subject": "❌ Reserva No Disponible - HappyHub",
         "text": "Hola {{ $json.customer_name }},\n\nLamentamos informarte que tu solicitud no puede ser procesada.\n\nMotivo: {{ $json.rejection_reason }}\n\nTe invitamos a elegir otra fecha en www.happyhub.es/disponibilidad o contactarnos.\n\nSaludos,\nEquipo HappyHub",

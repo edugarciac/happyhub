@@ -116,11 +116,11 @@ export default function BookingCancel() {
                   WhatsApp: 624 645 517
                 </a>
                 <a
-                  href="mailto:happyhub.rovellat@gmail.com"
+                  href="mailto:hola@happyhub.es"
                   className="flex items-center gap-2 text-primary-600 hover:text-primary-700"
                 >
                   <Mail className="w-5 h-5" />
-                  happyhub.rovellat@gmail.com
+                  hola@happyhub.es
                 </a>
               </div>
             </div>

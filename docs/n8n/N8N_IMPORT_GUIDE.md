@@ -27,7 +27,7 @@ Antes de importar, necesitas configurar las credenciales en n8n:
 2. Busca y selecciona: **Google Calendar OAuth2 API**
 3. Configura:
    - **Credential name:** `Google Calendar happyhub.rovellat`
-   - Sigue el flujo de OAuth2 para autorizar la cuenta: **happyhub.rovellat@gmail.com**
+   - Sigue el flujo de OAuth2 para autorizar la cuenta: **hola@happyhub.es**
    - Permisos necesarios: Leer y escribir eventos del calendario
 4. Click **Save**
 
@@ -39,7 +39,7 @@ Antes de importar, necesitas configurar las credenciales en n8n:
    - **Credential name:** `SMTP HappyHub`
    - **Host:** (depende de tu proveedor, ej: `smtp.gmail.com`)
    - **Port:** `587` (TLS) o `465` (SSL)
-   - **User:** `happyhub.rovellat@gmail.com` (o tu email)
+   - **User:** `hola@happyhub.es` (o tu email)
    - **Password:** (contraseña de aplicación si usas Gmail)
    - **From Email:** `noreply@happyhub.es`
 4. Click **Save**
@@ -154,7 +154,7 @@ const response = await axios.post(process.env.N8N_WEBHOOK_URL, reservationData);
    - ✅ Frontend muestra mensaje "¡Solicitud Enviada!"
    - ✅ En n8n, el workflow 1 se ejecuta correctamente (ver Executions)
    - ✅ En Airtable, aparece nuevo registro con status="pending"
-   - ✅ Recibes email en happyhub.rovellat@gmail.com (notificación admin)
+   - ✅ Recibes email en hola@happyhub.es (notificación admin)
    - ✅ El cliente recibe email de confirmación
 
 ### Prueba 2: Aprobación Manual
@@ -165,13 +165,13 @@ const response = await axios.post(process.env.N8N_WEBHOOK_URL, reservationData);
 4. Espera 1-2 minutos (el workflow 2 se ejecuta cada minuto)
 5. **Verificar:**
    - ✅ En n8n, el workflow 2 se ejecuta correctamente
-   - ✅ En Google Calendar (happyhub.rovellat@gmail.com), aparece el evento creado
+   - ✅ En Google Calendar (hola@happyhub.es), aparece el evento creado
    - ✅ En Airtable, el campo "Google Calendar ID" se actualiza
    - ✅ El cliente recibe email de "¡Reserva Aprobada!"
 
 ### Prueba 3: Slot Ocupado
 
-1. Crea un evento manualmente en Google Calendar (happyhub.rovellat@gmail.com)
+1. Crea un evento manualmente en Google Calendar (hola@happyhub.es)
 2. Intenta reservar la misma fecha y franja desde el formulario web
 3. **Verificar:**
    - ✅ Frontend muestra error: "Lo siento, la fecha ya está reservada"
@@ -204,7 +204,7 @@ Si los nombres son diferentes, edita los nodos del workflow para seleccionar las
 **Solución:**
 1. Ve a las credenciales de Google Calendar en n8n
 2. Click en "Reconnect" o "Reauthorize"
-3. Vuelve a autorizar con la cuenta happyhub.rovellat@gmail.com
+3. Vuelve a autorizar con la cuenta hola@happyhub.es
 
 ### Error: "SMTP: Authentication failed"
 

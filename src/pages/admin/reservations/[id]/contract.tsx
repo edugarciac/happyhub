@@ -128,7 +128,7 @@ export default function ContractPage() {
             <h3>ARRENDADOR</h3>
             <p><strong>HappyHub</strong></p>
             <p>C/ Rovellat, 27, 08950 Esplugues de Llobregat, Barcelona</p>
-            <p>Email: happyhub.rovellat@gmail.com</p>
+            <p>Email: hola@happyhub.es</p>
             <p>Tel: +34 624 645 517</p>
           </div>
           <div className="party">
@@ -212,7 +212,7 @@ export default function ContractPage() {
         <p>La fianza se devuelve integramente en caso de cancelacion.</p>
 
         <h2>6. Proteccion de datos</h2>
-        <p>Los datos personales seran tratados conforme al RGPD y la LOPDGDD. Finalidad: gestion de la reserva. El Cliente puede ejercer sus derechos en happyhub.rovellat@gmail.com.</p>
+        <p>Los datos personales seran tratados conforme al RGPD y la LOPDGDD. Finalidad: gestion de la reserva. El Cliente puede ejercer sus derechos en hola@happyhub.es.</p>
 
         <h2>7. Legislacion aplicable</h2>
         <p>Este contrato se rige por la legislacion espanola. Para cualquier controversia, las partes se someten a los juzgados de Barcelona.</p>

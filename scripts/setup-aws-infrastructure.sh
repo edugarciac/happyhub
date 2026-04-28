@@ -86,7 +86,7 @@ cat > /tmp/notifications.json <<EOF
     "Subscribers": [
       {
         "SubscriptionType": "EMAIL",
-        "Address": "happyhub.rovellat@gmail.com"
+        "Address": "hola@happyhub.es"
       }
     ]
   },
@@ -100,7 +100,7 @@ cat > /tmp/notifications.json <<EOF
     "Subscribers": [
       {
         "SubscriptionType": "EMAIL",
-        "Address": "happyhub.rovellat@gmail.com"
+        "Address": "hola@happyhub.es"
       }
     ]
   }

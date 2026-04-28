@@ -210,7 +210,7 @@ export default function Step4Confirmation() {
 
       {/* Additional Help */}
       <div className="text-center mt-8 text-sm text-gray-500">
-        <p>¿Necesitas ayuda? Escríbenos a <a href="mailto:happyhub.rovellat@gmail.com" className="text-primary-600 hover:underline">happyhub.rovellat@gmail.com</a></p>
+        <p>¿Necesitas ayuda? Escríbenos a <a href="mailto:hola@happyhub.es" className="text-primary-600 hover:underline">hola@happyhub.es</a></p>
         <p className="mt-1">o contáctanos por <a href="https://wa.me/34624645517" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">WhatsApp: 624 645 517</a></p>
       </div>
     </div>

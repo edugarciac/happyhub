@@ -36,7 +36,7 @@ Antes de importar los workflows, necesitas configurar 3 credenciales en n8n.
    Credential name: Google Calendar happyhub.rovellat
    ```
 5. Click en **Sign in with Google**
-6. Autoriza con la cuenta: **happyhub.rovellat@gmail.com**
+6. Autoriza con la cuenta: **hola@happyhub.es**
 7. Acepta los permisos solicitados
 8. Click **Save**
 
@@ -46,7 +46,7 @@ Antes de importar los workflows, necesitas configurar 3 credenciales en n8n.
 
 1. Primero crea una **Contraseña de aplicación** en Google:
    - Ve a: https://myaccount.google.com/apppasswords
-   - Inicia sesión con: happyhub.rovellat@gmail.com
+   - Inicia sesión con: hola@happyhub.es
    - Selecciona: **Correo** y **Otro** (nombre: n8n)
    - Copia la contraseña generada (16 caracteres)
 
@@ -59,9 +59,9 @@ Antes de importar los workflows, necesitas configurar 3 credenciales en n8n.
    Host: smtp.gmail.com
    Port: 587
    SSL/TLS: Enable
-   User: happyhub.rovellat@gmail.com
+   User: hola@happyhub.es
    Password: [Pega la contraseña de aplicación de 16 caracteres]
-   From Email: happyhub.rovellat@gmail.com
+   From Email: hola@happyhub.es
    ```
 6. Click **Test Connection** para verificar
 7. Click **Save**
@@ -192,7 +192,7 @@ El workflow se importará con todos los nodos. Verifica que cada nodo tenga las 
 - Frontend muestra: "¡Solicitud Enviada!"
 - En n8n → **Executions**, verás una ejecución exitosa (verde)
 - En Airtable, aparece nuevo registro con Status="Pending"
-- Recibes email en happyhub.rovellat@gmail.com (notificación admin)
+- Recibes email en hola@happyhub.es (notificación admin)
 - El cliente recibe email de confirmación
 
 **❌ Si falla:**
@@ -209,13 +209,13 @@ El workflow se importará con todos los nodos. Verifica que cada nodo tenga las 
 
 **✅ Resultado esperado:**
 - En n8n → **Executions**, verás ejecución del workflow 2 (verde)
-- En Google Calendar (happyhub.rovellat@gmail.com), aparece evento creado
+- En Google Calendar (hola@happyhub.es), aparece evento creado
 - En Airtable, el campo "Google Calendar ID" se rellena automáticamente
 - El cliente recibe email: "🎉 ¡Reserva Aprobada!"
 
 ### Test 3: Slot Ocupado
 
-1. En Google Calendar (happyhub.rovellat@gmail.com), crea un evento manual:
+1. En Google Calendar (hola@happyhub.es), crea un evento manual:
    ```
    Título: Evento de prueba
    Fecha: [La misma que vas a probar]
@@ -257,7 +257,7 @@ El workflow se importará con todos los nodos. Verifica que cada nodo tenga las 
 **Solución:**
 1. Ve a **Settings** → **Credentials** → `Google Calendar happyhub.rovellat`
 2. Click **Reconnect**
-3. Vuelve a autorizar con happyhub.rovellat@gmail.com
+3. Vuelve a autorizar con hola@happyhub.es
 
 ### Error: "SMTP: Connection refused"
 

@@ -73,7 +73,7 @@
     },
     {
       "parameters": {
-        "fromEmail": "Happyhub <happyhub.rovellat@gmail.com>",
+        "fromEmail": "Happyhub <hola@happyhub.es>",
         "toEmail": "={{ $json.email }}",
         "subject": "={{ $json.subject }}",
         "emailFormat": "html",

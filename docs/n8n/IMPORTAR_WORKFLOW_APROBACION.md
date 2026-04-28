@@ -38,7 +38,7 @@ Save as: "whatsapp-auth"
 
 ```
 Name: Gmail SMTP
-User: happyhub.rovellat@gmail.com
+User: hola@happyhub.es
 Password: [tu app password de Gmail]
 Host: smtp.gmail.com
 Port: 587

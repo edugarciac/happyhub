@@ -107,7 +107,7 @@ POST /api/reservations/reject
 ```typescript
 // src/components/FullCalendar.tsx
 - Llamar a API que consulte Google Calendar
-- Endpoint: GET /api/calendar/availability?month=2025-01&calendarId=happyhub.rovellat@gmail.com
+- Endpoint: GET /api/calendar/availability?month=2025-01&calendarId=hola@happyhub.es
 - Mapear eventos a bookedSlots: { date, timeSlot }
 ```
 
@@ -152,7 +152,7 @@ Port: 5432
 ```bash
 # Habilitar Google Calendar API en Google Cloud Console
 # Crear credenciales OAuth 2.0
-# Autorizar cuenta: happyhub.rovellat@gmail.com
+# Autorizar cuenta: hola@happyhub.es
 # Configurar en n8n
 ```
 
@@ -176,13 +176,13 @@ N8N_WEBHOOK_RESERVATION_REQUEST=https://n8n-n8n.ljmvxa.easypanel.host/webhook/re
 N8N_WEBHOOK_RESERVATION_APPROVAL=https://n8n-n8n.ljmvxa.easypanel.host/webhook/reservation-approval
 
 # Google Calendar
-GOOGLE_CALENDAR_ID=happyhub.rovellat@gmail.com
+GOOGLE_CALENDAR_ID=hola@happyhub.es
 GOOGLE_CALENDAR_API_KEY=[API_KEY]
 
 # Email
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
-SMTP_USER=happyhub.rovellat@gmail.com
+SMTP_USER=hola@happyhub.es
 SMTP_PASS=[app_password]
 ```
 
@@ -197,7 +197,7 @@ SMTP_PASS=[app_password]
    - Crear proyecto en Google Cloud
    - Habilitar Calendar API
    - Crear OAuth credentials
-   - Autorizar cuenta happyhub.rovellat@gmail.com
+   - Autorizar cuenta hola@happyhub.es
 
 3. **Configurar n8n**
    - Importar workflow

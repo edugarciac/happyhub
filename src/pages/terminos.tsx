@@ -29,7 +29,7 @@ export default function Terminos() {
               <p>
                 El presente sitio web es propiedad de <strong>HappyHub</strong>, con domicilio en
                 C/ Rovellat, 27, 08950 Esplugues de Llobregat, Barcelona, España.
-                Correo electrónico de contacto: <a href="mailto:happyhub.rovellat@gmail.com" className="text-primary-600 hover:underline">happyhub.rovellat@gmail.com</a>.
+                Correo electrónico de contacto: <a href="mailto:hola@happyhub.es" className="text-primary-600 hover:underline">hola@happyhub.es</a>.
               </p>
             </div>
 
@@ -92,7 +92,8 @@ export default function Terminos() {
                 <li>No realizar actividades ilegales ni que atenten contra el orden público.</li>
                 <li>Supervisar a los menores de edad que asistan al evento en todo momento.</li>
                 <li>Comunicar cualquier incidencia o desperfecto durante el evento.</li>
-                <li>Dejar el espacio en condiciones razonables de orden al finalizar el evento.</li>
+                <li>Dejar el espacio completamente recogido y en las mismas condiciones en que fue entregado al finalizar el evento. Esto incluye recoger todos los residuos, devolver el mobiliario a su posición original y retirar cualquier decoración o material traído por el cliente.</li>
+                <li>No traer ni utilizar equipos de audio o sistemas de sonido propios. El espacio dispone de su propio sistema de sonido. El uso de dispositivos de audio externos no está permitido bajo ninguna circunstancia.</li>
               </ul>
             </div>
 
@@ -159,7 +160,7 @@ export default function Terminos() {
                 Para cualquier consulta sobre estos términos y condiciones, puedes contactarnos en:
               </p>
               <ul className="list-disc list-inside space-y-2 mt-2">
-                <li>Email: <a href="mailto:happyhub.rovellat@gmail.com" className="text-primary-600 hover:underline">happyhub.rovellat@gmail.com</a></li>
+                <li>Email: <a href="mailto:hola@happyhub.es" className="text-primary-600 hover:underline">hola@happyhub.es</a></li>
                 <li>WhatsApp: <a href="https://wa.me/34624645517" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">+34 624 645 517</a></li>
                 <li>Dirección: C/ Rovellat, 27, 08950 Esplugues de Llobregat, Barcelona</li>
               </ul>

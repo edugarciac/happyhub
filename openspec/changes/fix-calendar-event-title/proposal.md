@@ -20,5 +20,5 @@ Google Calendar events created by the n8n reservation flow show "(sin titulo)" i
 ## Impact
 
 - **n8n flow**: `n8n-nodes/n8n-reserva-neon-whatsapp.json` — CrearEventoCalendar node parameters
-- **Google Calendar**: Events for `happyhub.rovellat@gmail.com` calendar
+- **Google Calendar**: Events for `hola@happyhub.es` calendar
 - No frontend or DB changes needed

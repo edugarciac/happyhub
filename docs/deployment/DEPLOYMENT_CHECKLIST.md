@@ -24,15 +24,15 @@
 
 **Google Calendar happyhub.rovellat:**
 - Type: Google Calendar OAuth2 API
-- Autorizar con: happyhub.rovellat@gmail.com
+- Autorizar con: hola@happyhub.es
 
 **SMTP HappyHub:**
 - Type: SMTP
 - Host: smtp.gmail.com
 - Port: 587
-- User: happyhub.rovellat@gmail.com
+- User: hola@happyhub.es
 - Password: [Contraseña de aplicación de Google]
-- From: happyhub.rovellat@gmail.com
+- From: hola@happyhub.es
 
 > Para crear contraseña de aplicación: https://myaccount.google.com/apppasswords
 
@@ -130,7 +130,7 @@ Environments: Production, Preview, Development
 - [ ] Todos los campos llenos correctamente
 
 **En tu email:**
-- [ ] Recibes email en happyhub.rovellat@gmail.com (Admin)
+- [ ] Recibes email en hola@happyhub.es (Admin)
 - [ ] Subject: "🔔 Nueva Solicitud #XXX - Requiere Aprobación"
 - [ ] Contiene link a Airtable
 
@@ -155,7 +155,7 @@ Environments: Production, Preview, Development
 - [ ] Ejecución exitosa (verde)
 
 **En Google Calendar:**
-- [ ] Abre: https://calendar.google.com (con happyhub.rovellat@gmail.com)
+- [ ] Abre: https://calendar.google.com (con hola@happyhub.es)
 - [ ] Evento creado en la fecha y hora correcta
 - [ ] Título: "Reserva HappyHub - Test Usuario"
 
@@ -172,7 +172,7 @@ Environments: Production, Preview, Development
 
 #### Test 3: Slot Ocupado (Validación)
 
-1. En Google Calendar (happyhub.rovellat@gmail.com), crea un evento manual:
+1. En Google Calendar (hola@happyhub.es), crea un evento manual:
    ```
    Título: Evento de prueba bloqueado
    Fecha: [Elige una fecha futura]
@@ -305,7 +305,7 @@ Environments: Production, Preview, Development
 - **Tu sitio en producción:** https://tu-dominio.vercel.app
 - **n8n:** https://n8n-n8n.ljmvxa.easypanel.host
 - **Airtable:** https://airtable.com/appAj3N7bMGIVBagd/tblGakVr6paaokq9N
-- **Google Calendar:** https://calendar.google.com (happyhub.rovellat@gmail.com)
+- **Google Calendar:** https://calendar.google.com (hola@happyhub.es)
 - **Vercel Dashboard:** https://vercel.com/dashboard
 - **GitHub Repo:** https://github.com/edugarciac/happyhub
 

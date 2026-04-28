@@ -8,7 +8,7 @@ Entre las partes:
 
 **ARRENDADOR:**
 HappyHub, con domicilio en C/ Rovellat, 27, 08950 Esplugues de Llobregat, Barcelona.
-Email: happyhub.rovellat@gmail.com
+Email: hola@happyhub.es
 Telefono: +34 624 645 517
 (En adelante, "HappyHub")
 
@@ -127,7 +127,7 @@ Tarjeta bancaria, Bizum o efectivo.
 
 8.3. Los datos se conservaran durante el tiempo necesario para cumplir con las obligaciones contractuales y legales.
 
-8.4. El Cliente puede ejercer sus derechos de acceso, rectificacion, supresion, portabilidad y oposicion dirigiendose a happyhub.rovellat@gmail.com.
+8.4. El Cliente puede ejercer sus derechos de acceso, rectificacion, supresion, portabilidad y oposicion dirigiendose a hola@happyhub.es.
 
 ## 9. Legislacion aplicable y jurisdiccion
 

@@ -57,8 +57,8 @@ export default function Contacto() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-1">Email</h3>
-                    <a href="mailto:happyhub.rovellat@gmail.com" className="text-primary-600 hover:underline">
-                      happyhub.rovellat@gmail.com
+                    <a href="mailto:hola@happyhub.es" className="text-primary-600 hover:underline">
+                      hola@happyhub.es
                     </a>
                     <p className="text-sm text-gray-600 mt-1">Respuesta en 24h</p>
                   </div>
@@ -194,11 +194,11 @@ export default function Contacto() {
                   <div className="text-center text-sm text-gray-600 pt-4 border-t border-gray-200">
                     <p>¿Prefieres email?</p>
                     <a
-                      href="mailto:happyhub.rovellat@gmail.com"
+                      href="mailto:hola@happyhub.es"
                       onClick={() => trackContact('email')}
                       className="text-primary-600 hover:underline font-medium"
                     >
-                      happyhub.rovellat@gmail.com
+                      hola@happyhub.es
                     </a>
                   </div>
                 </div>

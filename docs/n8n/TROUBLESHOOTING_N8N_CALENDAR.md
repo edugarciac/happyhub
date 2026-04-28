@@ -140,7 +140,7 @@ return [{
     formattedDate,
     paymentMethodLabel: paymentLabels[data.paymentMethod] || data.paymentMethod,
     eventTypeLabel: eventTypeLabels[data.eventType] || data.eventType,
-    calendarId: 'happyhub.rovellat@gmail.com'
+    calendarId: 'hola@happyhub.es'
   }
 }];
 ```
@@ -158,7 +158,7 @@ Si sigue sin funcionar, prueba esta configuración más simple:
 ```
 Resource: Event
 Operation: Get Many
-Calendar: happyhub.rovellat@gmail.com (escrito a mano, no expresión)
+Calendar: hola@happyhub.es (escrito a mano, no expresión)
 Return All: false
 Limit: 100
 ```
@@ -190,7 +190,7 @@ Para verificar que Google Calendar funciona:
 2. Añade solo:
    - Webhook trigger (manual)
    - Google Calendar node (Get Many)
-   - Calendar: `happyhub.rovellat@gmail.com`
+   - Calendar: `hola@happyhub.es`
    - Sin opciones adicionales
 3. **Ejecuta** manualmente
 4. Verifica que devuelve eventos

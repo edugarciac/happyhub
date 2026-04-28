@@ -75,6 +75,6 @@ return [{
     formattedDate,
     paymentMethodLabel: paymentLabels[data.paymentMethod] || data.paymentMethod,
     eventTypeLabel: eventTypeLabels[data.eventType] || data.eventType,
-    calendarId: 'happyhub.rovellat@gmail.com'
+    calendarId: 'hola@happyhub.es'
   }
 }];
