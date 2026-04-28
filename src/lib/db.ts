@@ -273,6 +273,9 @@ export async function runPaymentsMigration(): Promise<void> {
   const client = await pool.connect();
   try {
     await client.query(`
+      -- deposit_amount
+      ALTER TABLE reservations ADD COLUMN IF NOT EXISTS deposit_amount DECIMAL(10,2);
+
       -- Change deposit_paid from boolean to decimal amount
       DO $$
       BEGIN
@@ -316,7 +319,7 @@ export async function runPaymentsMigration(): Promise<void> {
       CREATE TABLE IF NOT EXISTS payment_tokens (
         id             SERIAL PRIMARY KEY,
         token          VARCHAR(64) UNIQUE NOT NULL,
-        reservation_id INTEGER NOT NULL,
+        reservation_id VARCHAR(100) NOT NULL,
         token_type     VARCHAR(30) NOT NULL DEFAULT 'remaining_payment',
         expires_at     TIMESTAMP NOT NULL,
         used           BOOLEAN DEFAULT false,
