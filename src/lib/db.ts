@@ -267,3 +267,70 @@ export async function initializeSchema(): Promise<void> {
     client.release();
   }
 }
+
+// Idempotent migration for payment tracking columns
+export async function runPaymentsMigration(): Promise<void> {
+  const client = await pool.connect();
+  try {
+    await client.query(`
+      -- Change deposit_paid from boolean to decimal amount
+      DO $$
+      BEGIN
+        IF EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name='reservations' AND column_name='deposit_paid'
+          AND data_type='boolean'
+        ) THEN
+          ALTER TABLE reservations RENAME COLUMN deposit_paid TO deposit_paid_bool;
+          ALTER TABLE reservations ADD COLUMN deposit_paid DECIMAL(10,2) DEFAULT 0;
+          UPDATE reservations SET deposit_paid = CASE WHEN deposit_paid_bool THEN deposit_amount ELSE 0 END;
+          ALTER TABLE reservations DROP COLUMN deposit_paid_bool;
+        END IF;
+      END
+      $$;
+
+      -- Add deposit_paid as decimal if it doesn't exist yet
+      ALTER TABLE reservations ADD COLUMN IF NOT EXISTS deposit_paid DECIMAL(10,2) DEFAULT 0;
+
+      -- payment_status: 'pending' | 'pending_deposit' | 'deposit_paid' | 'fully_paid'
+      ALTER TABLE reservations ADD COLUMN IF NOT EXISTS payment_status VARCHAR(30) DEFAULT 'pending';
+
+      -- Stripe session IDs for idempotency
+      ALTER TABLE reservations ADD COLUMN IF NOT EXISTS stripe_deposit_session_id VARCHAR(255);
+      ALTER TABLE reservations ADD COLUMN IF NOT EXISTS stripe_remaining_session_id VARCHAR(255);
+
+      -- google_calendar_event_id already exists but ensure it
+      ALTER TABLE reservations ADD COLUMN IF NOT EXISTS google_calendar_event_id VARCHAR(255);
+
+      -- Backfill payment_status from existing data
+      UPDATE reservations
+      SET payment_status = CASE
+        WHEN status = 'cancelled' THEN 'pending'
+        WHEN deposit_paid >= total_price AND total_price > 0 THEN 'fully_paid'
+        WHEN deposit_paid > 0 THEN 'deposit_paid'
+        ELSE 'pending'
+      END
+      WHERE payment_status = 'pending';
+
+      -- payment_tokens table
+      CREATE TABLE IF NOT EXISTS payment_tokens (
+        id             SERIAL PRIMARY KEY,
+        token          VARCHAR(64) UNIQUE NOT NULL,
+        reservation_id INTEGER NOT NULL,
+        token_type     VARCHAR(30) NOT NULL DEFAULT 'remaining_payment',
+        expires_at     TIMESTAMP NOT NULL,
+        used           BOOLEAN DEFAULT false,
+        created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_payment_tokens_token ON payment_tokens(token);
+      CREATE INDEX IF NOT EXISTS idx_payment_tokens_reservation ON payment_tokens(reservation_id);
+    `);
+    console.log('✅ Payments migration complete');
+  } catch (error) {
+    console.error('Error running payments migration:', error);
+    throw error;
+  } finally {
+    client.release();
+  }
+}

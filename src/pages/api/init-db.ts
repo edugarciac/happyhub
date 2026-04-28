@@ -3,7 +3,7 @@
 // IMPORTANTE: Solo ejecutar UNA VEZ, luego puedes eliminar este archivo
 
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { initializeSchema, checkConnection } from '@/lib/db';
+import { initializeSchema, checkConnection, runPaymentsMigration } from '@/lib/db';
 
 export default async function handler(
   req: NextApiRequest,
@@ -31,6 +31,9 @@ export default async function handler(
     await initializeSchema();
 
     console.log('✅ Schema initialized');
+
+    // Run payments migration (idempotent)
+    await runPaymentsMigration();
 
     res.status(200).json({
       success: true,
