@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { buffer } from 'micro';
 import Stripe from 'stripe';
 import { constructWebhookEvent } from '@/lib/stripe';
+import { query } from '@/lib/db';
 import {
   sendReservationConfirmation,
   notifyAdminNewReservation,
@@ -125,6 +126,52 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session, host?: s
     return;
   }
 
+  const reservationId = metadata.reservationId;
+  const paymentType = metadata.type || 'deposit';
+  const amount = session.amount_total ? session.amount_total / 100 : 0;
+
+  if (reservationId) {
+    try {
+      if (paymentType === 'deposit') {
+        await query(
+          `UPDATE reservations
+           SET deposit_paid = $1,
+               payment_status = 'deposit_paid',
+               stripe_deposit_session_id = $2,
+               updated_at = NOW()
+           WHERE reservation_id = $3
+              OR id::text = $3`,
+          [amount, session.id, reservationId]
+        );
+      } else if (paymentType === 'remaining') {
+        await query(
+          `UPDATE reservations
+           SET deposit_paid = total_price,
+               payment_status = 'fully_paid',
+               stripe_remaining_session_id = $1,
+               updated_at = NOW()
+           WHERE reservation_id = $2
+              OR id::text = $2`,
+          [session.id, reservationId]
+        );
+        // Mark payment token as used
+        await query(
+          `UPDATE payment_tokens SET used = true
+           WHERE reservation_id = (
+             SELECT id FROM reservations
+             WHERE reservation_id = $1 OR id::text = $1
+             LIMIT 1
+           ) AND used = false`,
+          [reservationId]
+        );
+      }
+      console.log(`✅ DB updated for ${paymentType} payment, reservation ${reservationId}`);
+    } catch (dbError) {
+      console.error('Error updating DB after payment:', dbError);
+      // Don't fail the webhook — Stripe needs 200
+    }
+  }
+
   const baseUrl = process.env.NEXTAUTH_URL || `https://${Array.isArray(host) ? host[0] : host}`;
   const contractUrl = `${baseUrl}/api/contracts/${metadata.reservationId}`;
 
@@ -169,7 +216,7 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session, host?: s
     try {
       const axios = require('axios');
       await axios.post(process.env.N8N_WEBHOOK_URL, {
-        event: 'checkout_complete',
+        event: paymentType === 'deposit' ? 'checkout_complete' : 'remaining_payment_complete',
         reservationId: metadata.reservationId,
         sessionId: session.id,
         customerEmail: session.customer_email || metadata.email,
