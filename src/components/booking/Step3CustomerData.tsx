@@ -360,7 +360,7 @@ export default function Step3CustomerData() {
                     términos y condiciones
                   </a>{' '}
                   y la{' '}
-                  <a href="/privacidad" target="_blank" className="text-primary-600 hover:underline">
+                  <a href="/politica-privacidad" target="_blank" className="text-primary-600 hover:underline">
                     política de privacidad
                   </a>
                   . *
