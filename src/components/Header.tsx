@@ -27,7 +27,7 @@ export default function Header() {
 
   const navItems = [
     { href: '/', label: 'Inicio' },
-    { href: '/como-funciona', label: '¿Cómo lo hacemos?' },
+    { href: '/como-funciona', label: 'Cómo funciona' },
     { href: '/servicios', label: 'Servicios' },
     { href: '/partners', label: 'Partners' },
     { href: '/contacto', label: 'Contacto' },
@@ -100,7 +100,7 @@ export default function Header() {
             )}
             <Link
               href="/reservas"
-              className="btn-primary ml-4 !py-2.5 !px-6 text-sm"
+              className="btn-primary ml-4 !py-2 !px-4 text-sm whitespace-nowrap"
             >
               Solicitar Reserva
             </Link>

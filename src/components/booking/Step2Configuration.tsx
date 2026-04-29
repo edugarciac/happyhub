@@ -49,7 +49,7 @@ export default function Step2Configuration() {
   }, [state.date, state.timeSlot, state.basePrice, dispatch]);
 
   const handleGuestsChange = (value: number) => {
-    const guests = Math.max(1, Math.min(150, value));
+    const guests = Math.max(1, Math.min(50, value));
     dispatch({ type: 'SET_GUESTS', guests });
   };
 
@@ -62,8 +62,8 @@ export default function Step2Configuration() {
       setError('Debe haber al menos 1 invitado');
       return;
     }
-    if (state.guests > 150) {
-      setError('El máximo de invitados es 150 personas');
+    if (state.guests > 50) {
+      setError('El máximo de invitados es 50 personas');
       return;
     }
     setError(null);
@@ -122,7 +122,7 @@ export default function Step2Configuration() {
                   value={state.guests}
                   onChange={(e) => handleGuestsChange(parseInt(e.target.value) || 0)}
                   min="1"
-                  max="150"
+                  max="50"
                   className="w-full text-center text-4xl font-bold text-primary-600 border-2 border-gray-200 rounded-xl py-4 focus:border-primary-500 focus:outline-none"
                 />
                 <p className="text-center text-sm text-gray-500 mt-2">personas</p>
@@ -136,7 +136,7 @@ export default function Step2Configuration() {
             </div>
 
             <div className="mt-4 flex justify-center gap-2">
-              {[20, 30, 50, 75, 100].map((num) => (
+              {[10, 20, 30, 40, 50].map((num) => (
                 <button
                   key={num}
                   onClick={() => handleGuestsChange(num)}
