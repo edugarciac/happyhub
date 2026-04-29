@@ -1,0 +1,163 @@
+{
+  "name": "HappyHub - Recordatorios de Pago",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 10 * * *"
+            }
+          ]
+        }
+      },
+      "id": "schedule_trigger",
+      "name": "Cron 10:00h diario",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generar lista de fechas objetivo (hoy+30, hoy+7, hoy+3)\nconst today = new Date();\nconst targets = [30, 7, 3].map(days => {\n  const d = new Date(today);\n  d.setDate(d.getDate() + days);\n  return d.toISOString().split('T')[0];\n});\nreturn [{ json: { targetDates: targets, today: today.toISOString() } }];"
+      },
+      "id": "build_dates",
+      "name": "CalcularFechasObjetivo",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT r.id, r.event_date, r.time_slot, r.event_type, r.guests, r.total_price, r.deposit_paid, u.name, u.email, u.phone, (r.total_price - r.deposit_paid) as remaining FROM reservations r LEFT JOIN users u ON r.user_id = u.id WHERE r.payment_status = 'deposit_paid' AND r.status NOT IN ('cancelled', 'rejected') AND r.event_date::date IN (('{{ $json.targetDates[0] }}'::date), ('{{ $json.targetDates[1] }}'::date), ('{{ $json.targetDates[2] }}'::date))",
+        "options": {}
+      },
+      "id": "query_reservations",
+      "name": "BuscarReservasPendientes",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [650, 300],
+      "credentials": {
+        "postgres": {
+          "id": "neon_happyhub",
+          "name": "Neon HappyHub"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $items().length }}",
+              "operation": "larger",
+              "value2": 0
+            }
+          ]
+        }
+      },
+      "id": "if_has_reservations",
+      "name": "HayReservas",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Para cada reserva, calcular días hasta el evento\nconst today = new Date();\ntoday.setHours(0,0,0,0);\n\nreturn items.map(item => {\n  const eventDate = new Date(item.json.event_date);\n  eventDate.setHours(0,0,0,0);\n  const diffMs = eventDate - today;\n  const daysUntil = Math.round(diffMs / (1000*60*60*24));\n  \n  return {\n    json: {\n      ...item.json,\n      daysUntil,\n      remaining: parseFloat(item.json.remaining || 0),\n      totalPrice: parseFloat(item.json.total_price || 0),\n    }\n  };\n});"
+      },
+      "id": "enrich_data",
+      "name": "EnriquecerDatos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1050, 200]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.NEXTAUTH_URL }}/api/payments/token",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "application/json" },
+            { "name": "x-internal-secret", "value": "={{ $env.INTERNAL_API_SECRET }}" }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "reservationId", "value": "={{ $json.id }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "generate_token",
+      "name": "GenerarTokenPago",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1250, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Merge token data with reservation data and build email content\nconst tokenData = items[0].json;\nconst reservationData = $('EnriquecerDatos').item.json;\n\nconst daysUntil = reservationData.daysUntil;\nlet subject, urgencyText, ultimatumHtml;\n\nif (daysUntil <= 3) {\n  subject = '⚠️ Último aviso: completa el pago de tu reserva HappyHub';\n  urgencyText = 'Este es el último recordatorio';\n  ultimatumHtml = '<p style=\"color:#dc2626;font-weight:bold\">Si no realizas el pago en las próximas 48 horas, tu reserva quedará cancelada y la fecha liberada.</p>';\n} else if (daysUntil <= 7) {\n  subject = 'Faltan 7 días — completa el pago de tu reserva HappyHub';\n  urgencyText = 'Queda poco para tu evento';\n  ultimatumHtml = '';\n} else {\n  subject = 'Recuerda completar el pago de tu reserva HappyHub';\n  urgencyText = 'Tu evento se acerca';\n  ultimatumHtml = '';\n}\n\nconst eventDate = new Date(reservationData.event_date).toLocaleDateString('es-ES', {\n  weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'\n});\n\nconst emailBody = `<div style=\"font-family:sans-serif;max-width:600px;margin:0 auto;padding:20px\"><h1 style=\"color:#7c3aed\">HappyHub</h1><h2 style=\"color:#1f2937\">${urgencyText}</h2><p>Hola <strong>${reservationData.name}</strong>,</p><p>Tienes un pago pendiente para tu reserva del <strong>${eventDate}</strong>.</p><table style=\"background:#f9fafb;border-radius:12px;padding:16px;width:100%;margin:20px 0\"><tr><td style=\"color:#6b7280\">Total del evento</td><td style=\"text-align:right\">${reservationData.totalPrice.toFixed(2)} €</td></tr><tr><td style=\"color:#059669\">Paga y señal abonada</td><td style=\"text-align:right;color:#059669\">− ${parseFloat(reservationData.deposit_paid).toFixed(2)} €</td></tr><tr style=\"font-weight:bold;font-size:18px\"><td>Restante a pagar</td><td style=\"text-align:right;color:#7c3aed\">${reservationData.remaining.toFixed(2)} €</td></tr></table>${ultimatumHtml}<a href=\"${tokenData.url}\" style=\"display:block;background:#7c3aed;color:white;text-align:center;padding:16px 24px;border-radius:12px;text-decoration:none;font-weight:bold;font-size:18px;margin:24px 0\">Pagar ${reservationData.remaining.toFixed(2)} € con tarjeta →</a><p style=\"color:#6b7280;font-size:14px\">Este enlace es válido durante 72 horas.</p><p style=\"color:#6b7280;font-size:14px\">¿Tienes alguna duda? Contáctanos por <a href=\"https://wa.me/34624645517\">WhatsApp</a> o email a <a href=\"mailto:hola@happyhub.es\">hola@happyhub.es</a>.</p><hr style=\"border:none;border-top:1px solid #e5e7eb;margin:24px 0\"><p style=\"color:#9ca3af;font-size:12px\">HappyHub · C/ Rovellat, 27, Esplugues de Llobregat</p></div>`;\n\nreturn [{ json: { ...reservationData, paymentUrl: tokenData.url, subject, emailBody, daysUntil } }];"
+      },
+      "id": "build_email",
+      "name": "PrepararEmail",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1450, 200]
+    },
+    {
+      "parameters": {
+        "fromEmail": "hola@happyhub.es",
+        "toEmail": "={{ $json.email }}",
+        "subject": "={{ $json.subject }}",
+        "emailType": "html",
+        "message": "={{ $json.emailBody }}",
+        "options": {}
+      },
+      "id": "send_email",
+      "name": "EnviarEmail",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [1650, 200],
+      "credentials": {
+        "smtp": {
+          "id": "smtp_happyhub",
+          "name": "SMTP HappyHub"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Cron 10:00h diario": {
+      "main": [[{ "node": "CalcularFechasObjetivo", "type": "main", "index": 0 }]]
+    },
+    "CalcularFechasObjetivo": {
+      "main": [[{ "node": "BuscarReservasPendientes", "type": "main", "index": 0 }]]
+    },
+    "BuscarReservasPendientes": {
+      "main": [[{ "node": "HayReservas", "type": "main", "index": 0 }]]
+    },
+    "HayReservas": {
+      "main": [
+        [{ "node": "EnriquecerDatos", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "EnriquecerDatos": {
+      "main": [[{ "node": "GenerarTokenPago", "type": "main", "index": 0 }]]
+    },
+    "GenerarTokenPago": {
+      "main": [[{ "node": "PrepararEmail", "type": "main", "index": 0 }]]
+    },
+    "PrepararEmail": {
+      "main": [[{ "node": "EnviarEmail", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
