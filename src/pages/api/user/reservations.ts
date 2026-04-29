@@ -20,7 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Query reservations via user_id JOIN
     const dbResult = await query(
       `SELECT r.id, r.event_date, r.time_slot, r.event_type, r.guests,
-              r.total_price, r.deposit_paid, r.deposit_amount, r.status,
+              r.total_price, r.deposit_paid, r.deposit_amount, r.payment_status, r.status,
               r.notes, r.google_calendar_event_id, r.created_at
        FROM reservations r
        JOIN users u ON r.user_id = u.id
@@ -40,8 +40,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       basePrice: parseFloat(r.total_price || '0'),
       totalPrice: parseFloat(r.total_price || '0'),
       depositAmount: parseFloat(r.deposit_amount || '0'),
-      depositPaid: r.deposit_paid ? parseFloat(r.deposit_amount || '0') : 0,
-      paymentStatus: r.deposit_paid ? 'paid' : 'unpaid',
+      depositPaid: parseFloat(r.deposit_paid || '0'),
+      paymentStatus: r.payment_status || 'pending',
       status: r.status || 'pending',
       message: r.notes || '',
       createdAt: r.created_at,
