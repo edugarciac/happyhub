@@ -4,7 +4,7 @@ import Link from 'next/link';
 import AdminLayout from '@/components/admin/AdminLayout';
 import {
   Search, Filter, ChevronLeft, ChevronRight, RefreshCw, Calendar,
-  Users, Mail, Phone, MessageCircle, Pencil, Trash2, Plus, X,
+  Users, Mail, Phone, MessageCircle, Pencil, Trash2, Plus, X, CreditCard, CalendarX,
 } from 'lucide-react';
 import {
   ReservationStatus, STATUS_LABELS, STATUS_COLORS,
@@ -25,7 +25,8 @@ interface Reservation {
   guests: number;
   totalPrice: number;
   depositAmount: number;
-  depositPaid: boolean;
+  depositPaid: number;
+  paymentStatus: string;
   status: ReservationStatus;
   notes: string;
   rejectionReason: string;
@@ -75,6 +76,13 @@ export default function AdminReservations() {
   const [statusModal, setStatusModal] = useState<{ reservation: Reservation; newStatus: ReservationStatus } | null>(null);
   const [cancellationReason, setCancellationReason] = useState('');
   const [rejectionReason, setRejectionReason] = useState('');
+
+  const [generatingLinkFor, setGeneratingLinkFor] = useState<number | null>(null);
+  const [paymentLinkModal, setPaymentLinkModal] = useState<{ reservationId: number; url: string } | null>(null);
+
+  // Cancel-full modal
+  const [cancelFullModal, setCancelFullModal] = useState<Reservation | null>(null);
+  const [cancelFullLoading, setCancelFullLoading] = useState(false);
 
   // Delete dialog
   const [deleteReservation, setDeleteReservation] = useState<Reservation | null>(null);
@@ -157,6 +165,17 @@ export default function AdminReservations() {
     finally { setEditSaving(false); }
   };
 
+  const handleGeneratePaymentLink = async (reservationId: number) => {
+    setGeneratingLinkFor(reservationId);
+    try {
+      const res = await fetch(`/api/admin/reservations/${reservationId}/payment-link`, { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) { alert(data.error || 'Error al generar enlace'); return; }
+      setPaymentLinkModal({ reservationId, url: data.url });
+    } catch { alert('No se pudo generar el enlace de pago'); }
+    finally { setGeneratingLinkFor(null); }
+  };
+
   const handleDelete = async () => {
     if (!deleteReservation) return;
     setDeleting(true);
@@ -168,6 +187,19 @@ export default function AdminReservations() {
       fetchReservations();
     } catch { showToast('Error de conexión', 'error'); }
     finally { setDeleting(false); }
+  };
+
+  const handleCancelFull = async () => {
+    if (!cancelFullModal) return;
+    setCancelFullLoading(true);
+    try {
+      const res = await fetch(`/api/admin/reservations/${cancelFullModal.id}/cancel-full`, { method: 'DELETE' });
+      const data = await res.json();
+      if (!res.ok) { alert(data.error || 'Error al cancelar'); return; }
+      setCancelFullModal(null);
+      await fetchReservations();
+    } catch { alert('Error de conexión'); }
+    finally { setCancelFullLoading(false); }
   };
 
   const formatDate = (dateStr: string | null) => {
@@ -294,6 +326,9 @@ export default function AdminReservations() {
                           <td className="px-4 py-3 whitespace-nowrap">
                             <div className="text-sm font-medium text-gray-900">{r.totalPrice} EUR</div>
                             <div className="text-xs text-green-600">Señal: {r.depositAmount} EUR</div>
+                            <div className={`text-xs mt-1 font-medium ${r.paymentStatus === 'fully_paid' ? 'text-green-600' : r.paymentStatus === 'deposit_paid' ? 'text-amber-600' : 'text-gray-400'}`}>
+                              {r.paymentStatus === 'fully_paid' ? '✓ Pagado completo' : r.paymentStatus === 'deposit_paid' ? 'Señal pagada' : ''}
+                            </div>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${colors.bg} ${colors.text}`}>
@@ -332,6 +367,16 @@ export default function AdminReservations() {
                               <button onClick={() => openEdit(r)} className="p-1.5 text-gray-600 hover:bg-gray-100 rounded transition-colors" title="Editar">
                                 <Pencil className="w-4 h-4" />
                               </button>
+                              {r.paymentStatus === 'deposit_paid' && (
+                                <button onClick={() => handleGeneratePaymentLink(r.id)} disabled={generatingLinkFor === r.id} className="p-1.5 text-amber-600 hover:bg-amber-50 rounded transition-colors" title="Generar enlace de pago">
+                                  <CreditCard className="w-4 h-4" />
+                                </button>
+                              )}
+                              {r.status !== 'cancelled' && (
+                                <button onClick={() => setCancelFullModal(r)} className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors" title="Cancelar y eliminar del calendario">
+                                  <CalendarX className="w-4 h-4" />
+                                </button>
+                              )}
                               <button onClick={() => setDeleteReservation(r)} className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors" title="Eliminar">
                                 <Trash2 className="w-4 h-4" />
                               </button>
@@ -484,6 +529,36 @@ export default function AdminReservations() {
                 <button onClick={handleDelete} disabled={deleting}
                   className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50">
                   {deleting ? 'Eliminando...' : 'Eliminar'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        {paymentLinkModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Enlace de pago generado</h3>
+              <p className="text-sm text-gray-600 mb-4">Copia este enlace y envíaselo al cliente. Válido 72 horas.</p>
+              <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg p-3 mb-4">
+                <span className="text-xs text-gray-700 flex-1 break-all font-mono">{paymentLinkModal.url}</span>
+                <button onClick={() => navigator.clipboard.writeText(paymentLinkModal.url)} className="shrink-0 px-3 py-1 bg-primary-600 text-white text-xs rounded-lg hover:bg-primary-700 transition">Copiar</button>
+              </div>
+              <button onClick={() => setPaymentLinkModal(null)} className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 transition">Cerrar</button>
+            </div>
+          </div>
+        )}
+        {cancelFullModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Cancelar reserva</h3>
+              <p className="text-gray-600 mb-4">
+                ¿Cancelar la reserva <strong>#{cancelFullModal.id}</strong> de {cancelFullModal.name}?
+                Se eliminará el evento del Google Calendar y se notificará al cliente.
+              </p>
+              <div className="flex gap-3">
+                <button onClick={() => setCancelFullModal(null)} disabled={cancelFullLoading} className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 transition disabled:opacity-50">No cancelar</button>
+                <button onClick={handleCancelFull} disabled={cancelFullLoading} className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition disabled:opacity-50">
+                  {cancelFullLoading ? 'Cancelando...' : 'Sí, cancelar'}
                 </button>
               </div>
             </div>

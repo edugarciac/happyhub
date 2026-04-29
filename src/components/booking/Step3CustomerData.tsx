@@ -160,10 +160,11 @@ export default function Step3CustomerData() {
         return;
       }
 
-      // Success! Move to next step (confirmation)
+      // Success! reservation created
+      const reservationId = result.reservationId;
       dispatch({
         type: 'SET_RESERVATION_ID',
-        id: result.reservationId,
+        id: reservationId,
       });
 
       if (result.emailWarning) {
@@ -173,6 +174,48 @@ export default function Step3CustomerData() {
         });
       }
 
+      // If card payment: redirect to Stripe for deposit
+      if (data.paymentMethod === 'card') {
+        try {
+          const checkoutRes = await fetch('/api/create-checkout-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              reservationId,
+              type: 'deposit',
+              name: data.name,
+              email: data.email,
+              phone: data.phone,
+              eventType: data.eventType,
+              message: data.message || '',
+              date: dateStr,
+              timeSlot: state.timeSlot,
+              guests: state.guests,
+              extras: state.selectedExtras || [],
+              basePrice: state.basePrice || totalPrice,
+              totalPrice,
+              depositAmount,
+            }),
+          });
+
+          const checkoutData = await checkoutRes.json();
+
+          if (!checkoutRes.ok || !checkoutData.url) {
+            setSubmitError('Error al iniciar el pago con tarjeta. Inténtalo de nuevo.');
+            setIsSubmitting(false);
+            return;
+          }
+
+          window.location.href = checkoutData.url;
+          return;
+        } catch (stripeError: any) {
+          setSubmitError('No se pudo conectar con el sistema de pago. Inténtalo de nuevo.');
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
+      // Non-card payment: advance to confirmation step
       nextStep();
     } catch (error: any) {
       console.error('Error submitting reservation:', error);

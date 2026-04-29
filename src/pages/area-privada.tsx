@@ -108,6 +108,8 @@ export default function AreaPrivadaPage() {
   const [passwordMsg, setPasswordMsg] = useState({ type: '', text: '' });
   const [expandedReservation, setExpandedReservation] = useState<string | null>(null);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [payingRemainingId, setPayingRemainingId] = useState<string | null>(null);
+  const [payRemainingError, setPayRemainingError] = useState<string>('');
 
   // Review form state
   const [reviewTitle, setReviewTitle] = useState('');
@@ -234,6 +236,29 @@ export default function AreaPrivadaPage() {
       }
     } catch {
       setPasswordMsg({ type: 'error', text: 'Error de conexión' });
+    }
+  };
+
+  // Pay remaining balance
+  const handlePayRemaining = async (reservationId: string) => {
+    setPayingRemainingId(reservationId);
+    setPayRemainingError('');
+    try {
+      const res = await fetch('/api/payments/remaining', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reservationId: parseInt(reservationId) }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.url) {
+        setPayRemainingError(data.error || 'Error al iniciar el pago');
+        setPayingRemainingId(null);
+        return;
+      }
+      window.location.href = data.url;
+    } catch {
+      setPayRemainingError('No se pudo conectar con el servidor');
+      setPayingRemainingId(null);
     }
   };
 
@@ -743,6 +768,36 @@ export default function AreaPrivadaPage() {
                               <span className="text-gray-500">Pagado</span>
                               <p className="font-medium">{formatCurrency(reservation.depositPaid)}</p>
                             </div>
+                            {/* Remaining payment */}
+                            {reservation.paymentStatus === 'deposit_paid' && (
+                              <div className="col-span-2 sm:col-span-3 mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <p className="text-sm font-medium text-amber-900">Pago restante pendiente</p>
+                                    <p className="text-lg font-bold text-amber-800">
+                                      {formatCurrency(reservation.totalPrice - reservation.depositPaid)}
+                                    </p>
+                                  </div>
+                                  <button
+                                    onClick={() => handlePayRemaining(reservation.id)}
+                                    disabled={payingRemainingId === reservation.id}
+                                    className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition disabled:opacity-50"
+                                  >
+                                    {payingRemainingId === reservation.id ? 'Redirigiendo...' : 'Pagar ahora →'}
+                                  </button>
+                                </div>
+                                {payRemainingError && (
+                                  <p className="text-red-600 text-xs mt-2">{payRemainingError}</p>
+                                )}
+                              </div>
+                            )}
+                            {reservation.paymentStatus === 'fully_paid' && (
+                              <div className="col-span-2 sm:col-span-3 mt-2">
+                                <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                                  ✓ Pago completo
+                                </span>
+                              </div>
+                            )}
                             {reservation.extras.length > 0 && (
                               <div className="col-span-2 sm:col-span-3">
                                 <span className="text-gray-500">Extras</span>

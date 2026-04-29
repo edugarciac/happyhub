@@ -69,6 +69,7 @@ async function handleList(req: NextApiRequest, res: NextApiResponse) {
     const result = await query(
       `SELECT r.id, r.event_type, r.event_date, r.time_slot,
               r.guests, r.total_price, r.deposit_amount, r.deposit_paid,
+              r.payment_status,
               r.status, r.notes, r.created_at, r.updated_at,
               r.rejection_reason, r.cancellation_reason,
               r.admin_approved_by, r.approved_at,
@@ -92,7 +93,8 @@ async function handleList(req: NextApiRequest, res: NextApiResponse) {
       guests: r.guests || 0,
       totalPrice: parseFloat(r.total_price || '0'),
       depositAmount: parseFloat(r.deposit_amount || '0'),
-      depositPaid: r.deposit_paid || false,
+      depositPaid: parseFloat(r.deposit_paid || '0'),
+      paymentStatus: r.payment_status || 'pending',
       status: r.status || 'pending',
       notes: r.notes || '',
       rejectionReason: r.rejection_reason || '',
