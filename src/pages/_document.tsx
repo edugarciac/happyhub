@@ -7,9 +7,9 @@ export default function Document() {
         <meta charSet="utf-8" />
 
         {/* Favicon - HappyHub Logo */}
-        <link rel="icon" type="image/jpeg" href="/favicon.jpeg" />
-        <link rel="shortcut icon" type="image/jpeg" href="/favicon.jpeg" />
-        <link rel="apple-touch-icon" href="/favicon.jpeg" />
+        <link rel="icon" type="image/png" href="/favicon.png" />
+        <link rel="shortcut icon" type="image/png" href="/favicon.png" />
+        <link rel="apple-touch-icon" href="/favicon.png" />
 
         {/* Meta tags */}
         <meta name="description" content="HappyHub - Espacio polivalente para todo tipo de celebraciones" />
