@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -6,6 +7,16 @@ import { XCircle, ArrowLeft, Phone, Mail } from 'lucide-react';
 export default function BookingCancel() {
   const router = useRouter();
   const { reservation_id } = router.query;
+
+  // Cancel the pending reservation and free the calendar slot
+  useEffect(() => {
+    if (!reservation_id) return;
+    fetch('/api/reservations/cancel-pending', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reservationId: reservation_id }),
+    }).catch(() => {});
+  }, [reservation_id]);
 
   return (
     <>
