@@ -69,7 +69,7 @@ export default function Header() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`text-gray-700 hover:text-primary-600 font-medium transition-colors px-4 py-2 rounded-xl hover:bg-primary-50 ${
+                className={`text-sm text-gray-700 hover:text-primary-600 font-medium transition-colors px-3 h-9 flex items-center rounded-xl whitespace-nowrap hover:bg-primary-50 ${
                   router.pathname === item.href ? 'bg-primary-50 text-primary-600' : ''
                 }`}
               >
