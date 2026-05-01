@@ -1,0 +1,156 @@
+{
+  "name": "HappyHub - Backup DB a S3",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 2 * * *"
+            }
+          ]
+        }
+      },
+      "id": "schedule_trigger",
+      "name": "Cron 02:00h diario",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const now = new Date();\nconst pad = n => String(n).padStart(2, '0');\nconst year = now.getFullYear();\nconst month = pad(now.getMonth() + 1);\nconst day = pad(now.getDate());\nconst hour = pad(now.getHours());\nconst min = pad(now.getMinutes());\nconst dateStr = `${year}-${month}-${day}`;\nconst filename = `happyhub_${dateStr}_${hour}${min}.dump`;\nconst s3Key = `backups/${year}-${month}/${filename}`;\nreturn [{ json: { filename, s3Key, startedAt: now.toISOString() } }];"
+      },
+      "id": "build_metadata",
+      "name": "PrepararMetadatos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "command": "pg_dump \"$DATABASE_URL\" --format=custom --no-owner --no-acl | aws s3 cp - \"s3://$AWS_S3_BUCKET/{{ $json.s3Key }}\" --region \"${AWS_S3_REGION:-eu-west-1}\""
+      },
+      "id": "run_backup",
+      "name": "EjecutarBackup",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const exitCode = items[0].json.exitCode;\nconst stderr = items[0].json.stderr || '';\nconst s3Key = $('PrepararMetadatos').first().json.s3Key;\nconst startedAt = $('PrepararMetadatos').first().json.startedAt;\nconst success = exitCode === 0;\nreturn [{ json: { success, exitCode, s3Key, stderr: stderr.trim(), startedAt, finishedAt: new Date().toISOString() } }];"
+      },
+      "id": "check_result",
+      "name": "VerificarResultado",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.success }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "if_success",
+      "name": "EsExitoso",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const { s3Key, startedAt, finishedAt } = $json;\nconsole.log(`[BACKUP OK] ${s3Key} | inicio: ${startedAt} | fin: ${finishedAt}`);\nreturn [{ json: { status: 'success', s3Key, startedAt, finishedAt } }];"
+      },
+      "id": "log_success",
+      "name": "RegistrarExito",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1250, 180]
+    },
+    {
+      "parameters": {
+        "jsCode": "const { exitCode, stderr, s3Key, startedAt } = $json;\nconsole.error(`[BACKUP FAILED] ${s3Key} | exitCode: ${exitCode} | stderr: ${stderr} | inicio: ${startedAt}`);\nreturn [{ json: { status: 'failed', exitCode, stderr, s3Key, startedAt } }];"
+      },
+      "id": "log_failure",
+      "name": "RegistrarError",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1250, 420]
+    }
+  ],
+  "connections": {
+    "Cron 02:00h diario": {
+      "main": [
+        [
+          {
+            "node": "PrepararMetadatos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PrepararMetadatos": {
+      "main": [
+        [
+          {
+            "node": "EjecutarBackup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "EjecutarBackup": {
+      "main": [
+        [
+          {
+            "node": "VerificarResultado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "VerificarResultado": {
+      "main": [
+        [
+          {
+            "node": "EsExitoso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "EsExitoso": {
+      "main": [
+        [
+          {
+            "node": "RegistrarExito",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "RegistrarError",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
