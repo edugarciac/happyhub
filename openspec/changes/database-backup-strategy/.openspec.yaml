@@ -1,0 +1,5 @@
+change: database-backup-strategy
+status: proposed
+priority: P1
+module: Infrastructure
+created: 2026-05-01
