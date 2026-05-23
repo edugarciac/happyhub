@@ -82,7 +82,7 @@ export default function Home({ instagramPosts }: HomeProps) {
     },
     {
       icon: Sparkles,
-      title: 'Todo incluido',
+      title: 'Servicios adicionales',
       description: 'Catering, decoración, animación y más. Personaliza cada aspecto de tu celebración.',
     },
     {
