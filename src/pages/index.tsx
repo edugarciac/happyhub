@@ -92,8 +92,8 @@ export default function Home({ instagramPosts }: HomeProps) {
     },
     {
       icon: Clock,
-      title: 'Horarios flexibles',
-      description: 'Elige la duración perfecta: desde 2 hasta 5 horas según tus necesidades.',
+      title: 'Elige tu horario',
+      description: 'Elige la franja que mas te interese o combina varias.',
     },
     {
       icon: Heart,
