@@ -251,6 +251,40 @@ Document key architectural choices, their context, and trade-offs.
 - Variables de entorno configuradas en AWS Amplify Console
 - Build specification en `amplify.yml`
 
+### ADR-009: Backup Diario de Neon DB con n8n + pg_dump + S3 (2026-05-01)
+
+**Context:**
+- Neon Postgres es el único almacén persistente de la plataforma
+- Sin backup externo, un fallo en Neon o un borrado accidental implica pérdida total de datos
+- Neon free tier ofrece PITR (point-in-time recovery) con ventana corta (~24h)
+- La alternativa evaluada fue migrar a Supabase (que incluye backups diarios en free tier)
+- La infraestructura existente (EC2 con n8n, S3 bucket `happyhub-assets-prod`, AWS CLI configurado) permite implementar la solución sin coste adicional
+
+**Decision:**
+- Mantener Neon como base de datos (no migrar a Supabase)
+- Añadir backup diario automatizado: n8n cron → `pg_dump` → `aws s3 cp` → S3
+- Workflow n8n ejecuta a las 02:00h, genera dump en formato custom, lo sube a `s3://happyhub-assets-prod/backups/YYYY-MM/`
+- Las credenciales sensibles (`DATABASE_URL`, `AWS_S3_BUCKET`) se leen como variables de entorno del servidor EC2, no se hardcodean en el workflow
+
+**Alternatives Considered:**
+- Migrar a Supabase → Rechazado: mismo motor (PostgreSQL), coste de migración sin beneficio neto; Supabase free tier pausa proyectos inactivos 1 semana
+- S3 Lifecycle Rules para retención → Aceptado como tarea futura, no urgente
+- Alertas por WhatsApp en fallo → Aceptado como mejora futura; los logs de n8n son suficiente para la fase actual
+
+**Consequences:**
+- ✅ Backup externo bajo control propio, sin dependencia de Neon para recovery
+- ✅ Coste cero (usa infraestructura ya existente)
+- ✅ Sin cambios en el código de la aplicación
+- ✅ Formato `--format=custom` permite restauración selectiva por tabla
+- ✅ Pipe directo a S3 sin uso de disco en EC2
+- ❌ Requiere `postgresql-client` instalado en el servidor n8n EC2
+- ❌ No hay alerta activa en caso de fallo (depende de revisar logs de n8n)
+- ❌ Sin retención automática hasta configurar S3 Lifecycle Rules
+
+**Implementación:**
+- Workflow: `n8n/n8n-nodes/n8n-db-backup-cron.json`
+- Spec completo: `openspec/changes/database-backup-strategy/`
+
 ## Tips
 
 - Number decisions sequentially
