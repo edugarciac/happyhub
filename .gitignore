@@ -73,3 +73,4 @@ AMPLIFY_ENV_VARS_GOOGLE.txt
 docs/GOOGLE_OAUTH_CREDENTIALS.md
 allianz-claude-code-helper-darwin-arm64
 .worktrees/
+.env*
