@@ -226,9 +226,14 @@ export default function AdminReservations() {
               <h1 className="text-3xl font-bold text-gray-900 mb-2">Reservas</h1>
               <p className="text-gray-600">{total} reservas encontradas</p>
             </div>
-            <Link href="/admin/reservations/create" className="flex items-center gap-2 px-4 py-3 bg-primary-600 text-white rounded-xl shadow hover:bg-primary-700 transition-colors font-medium text-sm">
-              <Plus className="w-4 h-4" /> Nueva Reserva
-            </Link>
+            <div className="flex items-center gap-3">
+              <Link href="/admin/reservations/blocked-dates" className="flex items-center gap-2 px-4 py-3 bg-amber-500 text-white rounded-xl shadow hover:bg-amber-600 transition-colors font-medium text-sm">
+                <CalendarX className="w-4 h-4" /> Bloquear fechas
+              </Link>
+              <Link href="/admin/reservations/create" className="flex items-center gap-2 px-4 py-3 bg-primary-600 text-white rounded-xl shadow hover:bg-primary-700 transition-colors font-medium text-sm">
+                <Plus className="w-4 h-4" /> Nueva Reserva
+              </Link>
+            </div>
           </div>
 
           {/* Filters */}

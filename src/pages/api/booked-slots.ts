@@ -7,14 +7,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const result = await query<{ event_date: string; time_slot: string }>(
-      `SELECT TO_CHAR(event_date, 'YYYY-MM-DD') AS event_date, time_slot
-       FROM reservations
-       WHERE status IN ('pending', 'approved', 'confirmed')
-         AND event_date >= CURRENT_DATE`
-    );
+    const [reservationsResult, blockedResult] = await Promise.all([
+      query<{ event_date: string; time_slot: string }>(
+        `SELECT TO_CHAR(event_date, 'YYYY-MM-DD') AS event_date, time_slot
+         FROM reservations
+         WHERE status IN ('pending', 'approved', 'confirmed')
+           AND event_date >= CURRENT_DATE`
+      ),
+      query<{ event_date: string; time_slot: string }>(
+        `SELECT TO_CHAR(slot_date, 'YYYY-MM-DD') AS event_date, time_slot
+         FROM blocked_slots
+         WHERE slot_date >= CURRENT_DATE`
+      ),
+    ]);
 
-    const bookedSlots = result.rows.map((row) => ({
+    const allRows = [...reservationsResult.rows, ...blockedResult.rows];
+
+    const bookedSlots = allRows.map((row) => ({
       // Use noon UTC to avoid date shifting across timezones
       date: `${row.event_date}T12:00:00.000Z`,
       timeSlot: row.time_slot,
