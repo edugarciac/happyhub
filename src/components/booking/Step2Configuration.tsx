@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useBooking, EXTRAS, Extra } from './BookingContext';
+import { useBooking, Extra } from './BookingContext';
 import PriceSummary from './PriceSummary';
 import { isWeekend, isFriday, isHoliday, isHolidayEve, type TimeSlot } from '@/utils/pricing';
 import { ChevronLeft, ChevronRight, Users, Package, Check, AlertCircle } from 'lucide-react';
@@ -7,6 +7,25 @@ import { ChevronLeft, ChevronRight, Users, Package, Check, AlertCircle } from 'l
 export default function Step2Configuration() {
   const { state, dispatch, nextStep, prevStep, calculateExtrasPrice } = useBooking();
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (state.services.length > 0) return;
+    fetch('/api/services-catalog')
+      .then(r => r.json())
+      .then(data => {
+        if (data.success && data.services) {
+          const mapped: Extra[] = data.services.map((s: any) => ({
+            id: String(s.id),
+            name: s.title,
+            priceType: 'fixed' as const,
+            basePrice: parseFloat(s.price) || 0,
+            description: s.description,
+          }));
+          dispatch({ type: 'SET_SERVICES', services: mapped });
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Calculate basePrice when arriving with a preselected date/slot (skipping step 1)
   useEffect(() => {
@@ -164,7 +183,7 @@ export default function Step2Configuration() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {EXTRAS.map((extra) => {
+              {state.services.map((extra) => {
                 const isSelected = state.selectedExtras.includes(extra.id);
                 const totalPrice = getExtraTotalPrice(extra);
 

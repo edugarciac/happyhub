@@ -1,4 +1,4 @@
-import { useBooking, EXTRAS } from './BookingContext';
+import { useBooking } from './BookingContext';
 import { formatDate } from '@/utils/formatters';
 import { TIME_SLOTS } from '@/utils/pricing';
 
@@ -80,7 +80,7 @@ export default function PriceSummary({ showDeposit = true, compact = false }: Pr
         <div className="mt-3 pt-3 border-t border-primary-200">
           <p className="text-sm font-medium text-gray-700 mb-2">Servicios adicionales:</p>
           {state.selectedExtras.map(extraId => {
-            const extra = EXTRAS.find(e => e.id === extraId);
+            const extra = state.services.find(e => e.id === extraId);
             if (!extra) return null;
             const price = extra.priceType === 'per_person'
               ? extra.basePrice * state.guests

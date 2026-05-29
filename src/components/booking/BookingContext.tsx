@@ -12,13 +12,7 @@ export interface Extra {
   description?: string;
 }
 
-export const EXTRAS: Extra[] = [
-  { id: 'catering', name: 'Catering', priceType: 'per_person', basePrice: 15, description: 'Menú completo por persona' },
-  { id: 'animacion', name: 'Animación infantil', priceType: 'fixed', basePrice: 150, description: 'Payasos, magia, juegos' },
-  { id: 'decoracion', name: 'Decoración temática', priceType: 'fixed', basePrice: 100, description: 'Globos, banderines, centro mesa' },
-  { id: 'fotografia', name: 'Fotografía profesional', priceType: 'fixed', basePrice: 200, description: '2h de sesión + 50 fotos editadas' },
-  { id: 'tarta', name: 'Tarta personalizada', priceType: 'fixed', basePrice: 50, description: 'Diseño a medida' },
-];
+export const EXTRAS: Extra[] = [];
 
 export type EventType = 'cumpleaños' | 'celebracion-familiar' | 'eventos-amigos' | 'eventos-colegio-trabajo' | 'taller' | 'otros';
 export type PaymentMethod = 'card' | 'bizum' | 'cash';
@@ -31,6 +25,7 @@ export interface BookingState {
   // Step 2: Configuration
   guests: number;
   selectedExtras: string[];
+  services: Extra[];
   // Step 3: Customer data
   name: string;
   email: string;
@@ -53,6 +48,7 @@ type BookingAction =
   | { type: 'SET_DATE'; date: Date | null }
   | { type: 'SET_TIME_SLOT'; timeSlot: TimeSlot | null }
   | { type: 'SET_GUESTS'; guests: number }
+  | { type: 'SET_SERVICES'; services: Extra[] }
   | { type: 'TOGGLE_EXTRA'; extraId: string }
   | { type: 'SET_CUSTOMER_DATA'; data: Partial<Pick<BookingState, 'name' | 'email' | 'phone' | 'eventType' | 'message' | 'acceptTerms' | 'paymentMethod'>> }
   | { type: 'SET_BASE_PRICE'; price: number | 'consult' }
@@ -67,6 +63,7 @@ const initialState: BookingState = {
   timeSlot: null,
   guests: 20,
   selectedExtras: [],
+  services: [],
   name: '',
   email: '',
   phone: '',
@@ -90,6 +87,8 @@ function bookingReducer(state: BookingState, action: BookingAction): BookingStat
       return { ...state, timeSlot: action.timeSlot };
     case 'SET_GUESTS':
       return { ...state, guests: action.guests };
+    case 'SET_SERVICES':
+      return { ...state, services: action.services };
     case 'TOGGLE_EXTRA':
       return {
         ...state,
@@ -170,7 +169,7 @@ export function BookingProvider({ children, initialDate, initialTimeSlot }: Book
 
   const calculateExtrasPrice = (): number => {
     return state.selectedExtras.reduce((total, extraId) => {
-      const extra = EXTRAS.find(e => e.id === extraId);
+      const extra = state.services.find(e => e.id === extraId);
       if (!extra) return total;
       if (extra.priceType === 'per_person') {
         return total + extra.basePrice * state.guests;
