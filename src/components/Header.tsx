@@ -31,6 +31,7 @@ export default function Header() {
     { href: '/servicios', label: 'Servicios' },
     { href: '/partners', label: 'Partners' },
     { href: '/contacto', label: 'Contacto' },
+    { href: '/mis-eventos', label: 'Mis Eventos' },
     ...(session?.user
       ? [(session.user as any).role === 'admin'
           ? { href: '/admin/dashboard', label: 'Panel admin' }
