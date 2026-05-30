@@ -104,3 +104,104 @@ export async function sendVerificationEmail(
   console.log('=====================================');
   return true;
 }
+
+function buildInvitationEmailHtml(
+  guestName: string,
+  eventTitle: string,
+  eventDate: string | null,
+  eventLocation: string | null,
+  rsvpUrl: string
+): string {
+  const dateStr = eventDate
+    ? new Date(eventDate).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+    : '';
+
+  return `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background-color:#f5f5f5;font-family:Arial,Helvetica,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f5f5;padding:40px 0;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+          <tr>
+            <td style="background:linear-gradient(135deg,#6366f1,#8b5cf6);padding:32px;text-align:center;">
+              <h1 style="color:#ffffff;margin:0;font-size:28px;">HappyHub</h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:40px 32px;">
+              <h2 style="color:#1f2937;margin:0 0 8px;font-size:22px;">Tienes una invitación 🎉</h2>
+              <p style="color:#4b5563;font-size:16px;line-height:1.6;margin:0 0 8px;">
+                Hola ${guestName}, te han invitado a:
+              </p>
+              <p style="color:#1f2937;font-size:20px;font-weight:700;margin:0 0 16px;">${eventTitle}</p>
+              ${dateStr ? `<p style="color:#6b7280;font-size:15px;margin:0 0 8px;">📅 ${dateStr}</p>` : ''}
+              ${eventLocation ? `<p style="color:#6b7280;font-size:15px;margin:0 0 24px;">📍 ${eventLocation}</p>` : '<br/>'}
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="center" style="padding:8px 0 24px;">
+                    <a href="${rsvpUrl}" style="display:inline-block;background-color:#6366f1;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:8px;font-size:16px;font-weight:600;">
+                      Confirmar asistencia
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              <p style="color:#9ca3af;font-size:13px;margin:0;">
+                O copia este enlace: <span style="color:#6366f1;">${rsvpUrl}</span>
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background-color:#f9fafb;padding:24px 32px;text-align:center;">
+              <p style="color:#9ca3af;font-size:12px;margin:0;">HappyHub - Tu espacio para celebrar</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`.trim();
+}
+
+export async function sendInvitationEmail(
+  email: string,
+  guestName: string,
+  eventTitle: string,
+  eventDate: string | null,
+  eventLocation: string | null,
+  inviteToken: string
+): Promise<boolean> {
+  const rsvpUrl = `${BASE_URL}/invitacion/${inviteToken}`;
+  const html = buildInvitationEmailHtml(guestName, eventTitle, eventDate, eventLocation, rsvpUrl);
+
+  const n8nUrl = process.env.N8N_EMAIL_WEBHOOK_URL;
+  if (n8nUrl) {
+    try {
+      const response = await fetch(n8nUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: email,
+          subject: `Invitación: ${eventTitle}`,
+          html,
+          name: guestName,
+          rsvpUrl,
+        }),
+      });
+      if (response.ok) return true;
+      console.warn('n8n invitation email failed, status:', response.status);
+    } catch (err) {
+      console.warn('n8n invitation email error:', err);
+    }
+  }
+
+  console.log('=== INVITATION EMAIL (dev mode) ===');
+  console.log(`To: ${email} (${guestName})`);
+  console.log(`Event: ${eventTitle}`);
+  console.log(`RSVP URL: ${rsvpUrl}`);
+  console.log('===================================');
+  return true;
+}
