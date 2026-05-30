@@ -206,7 +206,7 @@ export default function GiftSection({ eventId, isOrganizer, currentParticipantId
                     {item.price_approx && <span>~€{item.price_approx}</span>}
                     {item.url && (
                       <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-violet-500 hover:underline truncate max-w-[160px]">
-                        {new URL(item.url).hostname}
+                        {(() => { try { return new URL(item.url!).hostname; } catch { return item.url; } })()}
                       </a>
                     )}
                   </div>
