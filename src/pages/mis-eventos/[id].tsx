@@ -14,6 +14,7 @@ import {
 } from '@/utils/db/collaborative-events';
 import EventDashboardLayout from '@/components/events/EventDashboardLayout';
 import EventTimeline from '@/components/events/EventTimeline';
+import GuestList from '@/components/events/GuestList';
 
 interface Props {
   event: CollaborativeEvent;
@@ -86,7 +87,14 @@ export default function MisEventosDashboard({ event, participants, milestones, i
           />
         );
       case 'info': return <SectionPlaceholder label="Info" />;
-      case 'invitados': return <SectionPlaceholder label="Invitados" />;
+      case 'invitados':
+        return (
+          <GuestList
+            eventId={event.id}
+            isOrganizer={isOrganizer}
+            inviteCode={event.invite_code}
+          />
+        );
       case 'regalo': return <SectionPlaceholder label="Regalo" />;
       case 'entretenimiento': return <SectionPlaceholder label="Entretenimiento" />;
       case 'detalles': return <SectionPlaceholder label="Detalles" />;
