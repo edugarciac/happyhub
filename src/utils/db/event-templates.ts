@@ -71,3 +71,28 @@ export async function deleteTemplate(id: number): Promise<void> {
 export async function deleteMilestone(id: number): Promise<void> {
   await query(`DELETE FROM event_template_milestones WHERE id = $1`, [id]);
 }
+
+export async function getOrCreateTemplateForEventType(eventTypeName: string): Promise<EventTemplate> {
+  const existing = await query<EventTemplate>(
+    `SELECT * FROM event_templates WHERE event_type = $1 LIMIT 1`,
+    [eventTypeName]
+  );
+  if (existing.rows.length) return existing.rows[0];
+  const created = await query<EventTemplate>(
+    `INSERT INTO event_templates (event_type, name) VALUES ($1, $1) RETURNING *`,
+    [eventTypeName]
+  );
+  return created.rows[0];
+}
+
+export async function getMilestonesByEventTypeName(eventTypeName: string): Promise<EventTemplateMilestone[]> {
+  const result = await query<EventTemplateMilestone>(
+    `SELECT etm.*
+     FROM event_template_milestones etm
+     JOIN event_templates et ON et.id = etm.template_id
+     WHERE et.event_type = $1
+     ORDER BY etm.phase, etm.sort_order, etm.id`,
+    [eventTypeName]
+  );
+  return result.rows;
+}
