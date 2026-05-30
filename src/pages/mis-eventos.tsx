@@ -79,7 +79,7 @@ export default function MisEventosPage() {
         {/* Hero */}
         <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-black">
           <Image
-            src="/images/Happyhub_eventos.png"
+            src="/images/Happyhub_eventos_3.png"
             alt="Evento en HappyHub"
             fill
             className="object-contain"
