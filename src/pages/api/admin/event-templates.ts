@@ -7,6 +7,7 @@ import {
   addMilestoneToTemplate,
   deleteTemplate,
   deleteMilestone,
+  getOrCreateTemplateForEventType,
 } from '@/utils/db/event-templates';
 
 const createTemplateSchema = z.object({
@@ -15,13 +16,17 @@ const createTemplateSchema = z.object({
 });
 
 const addMilestoneSchema = z.object({
-  template_id: z.number().int(),
+  template_id: z.number().int().optional(),
+  event_type_name: z.string().min(1).max(100).optional(),
   emoji: z.string().max(10).optional().nullable(),
   title: z.string().min(1).max(255),
   hito_type: z.string().min(1).max(50),
   phase: z.enum(['before', 'during', 'after']),
   sort_order: z.number().int().optional().default(0),
-});
+}).refine(
+  (data) => data.template_id !== undefined || data.event_type_name !== undefined,
+  { message: 'Se requiere template_id o event_type_name' }
+);
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const admin = await verifyAdminSession(req, res);
@@ -45,8 +50,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (action === 'add_milestone') {
       const parsed = addMilestoneSchema.safeParse(req.body);
       if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
-      const { template_id, ...rest } = parsed.data;
-      const milestone = await addMilestoneToTemplate(template_id, { ...rest, emoji: rest.emoji ?? null });
+
+      let templateId = parsed.data.template_id;
+      if (templateId === undefined) {
+        const template = await getOrCreateTemplateForEventType(parsed.data.event_type_name!);
+        templateId = template.id;
+      }
+
+      const { template_id: _tid, event_type_name: _etn, ...rest } = parsed.data;
+      const milestone = await addMilestoneToTemplate(templateId, { ...rest, emoji: rest.emoji ?? null });
       return res.status(201).json({ milestone });
     }
 
