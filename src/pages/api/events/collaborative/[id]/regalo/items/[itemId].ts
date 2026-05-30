@@ -21,6 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const participant = await getParticipantByUserId(eventId, userId);
   const isOrganizer = event.organizer_id === userId;
+  if (!participant && !isOrganizer) return res.status(403).json({ error: 'Sin acceso' });
 
   const itemResult = await query(
     `SELECT * FROM event_gift_items WHERE id = $1 AND event_id = $2`,
