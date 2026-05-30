@@ -2,27 +2,19 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { z } from 'zod';
-import {
-  ensureCollaborativeEventsSchema,
-  getCollaborativeEventById,
-  getParticipantByUserId,
-  updateTimelineEntry,
-  deleteTimelineEntry,
-} from '@/utils/db/collaborative-events';
-import { queryOne } from '@/lib/db';
-import type { CollaborativeEventTimeline } from '@/utils/db/collaborative-events';
+import { query } from '@/lib/db';
+import { getCollaborativeEventById } from '@/utils/db/collaborative-events';
 
 const updateSchema = z.object({
-  time: z.string().regex(/^\d{2}:\d{2}$/).optional(),
   title: z.string().min(1).max(255).optional(),
-  description: z.string().max(1000).optional().nullable(),
-  responsible_participant_id: z.number().int().positive().optional().nullable(),
-  sort_order: z.number().int().optional(),
+  time: z.string().regex(/^\d{2}:\d{2}$/).optional().nullable(),
+  description: z.string().max(2000).optional().nullable(),
+  completed: z.boolean().optional(),
+  detail_data: z.record(z.any()).optional().nullable(),
+  phase: z.enum(['before', 'during', 'after']).optional(),
 });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  await ensureCollaborativeEventsSchema();
-
   const session = await getServerSession(req, res, authOptions);
   if (!session?.user) return res.status(401).json({ error: 'No autenticado' });
 
@@ -34,35 +26,44 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const event = await getCollaborativeEventById(eventId);
   if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
+  if (event.organizer_id !== userId) return res.status(403).json({ error: 'Solo el organizador puede editar hitos' });
 
-  const participant = await getParticipantByUserId(eventId, userId);
-  const isOrganizer = event.organizer_id === userId;
-
-  if ((!participant && !isOrganizer) ||
-      (!isOrganizer && participant?.role !== 'co-organizer')) {
-    return res.status(403).json({ error: 'Solo el organizador puede editar el timeline' });
-  }
-
-  // Verify entry belongs to this event
-  const entry = await queryOne<CollaborativeEventTimeline>(
-    'SELECT * FROM collaborative_event_timeline WHERE id = $1 AND event_id = $2',
+  const existing = await query(
+    `SELECT id FROM collaborative_event_timeline WHERE id = $1 AND event_id = $2`,
     [tid, eventId]
   );
-  if (!entry) return res.status(404).json({ error: 'Entrada no encontrada' });
+  if (!existing.rows.length) return res.status(404).json({ error: 'Hito no encontrado' });
 
   if (req.method === 'PATCH') {
-    const result = updateSchema.safeParse(req.body);
-    if (!result.success) {
-      return res.status(400).json({ error: 'Datos inválidos', details: result.error.flatten() });
-    }
-    const updated = await updateTimelineEntry(tid, result.data);
-    return res.status(200).json(updated);
+    const parsed = updateSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+
+    const fields: string[] = [];
+    const values: any[] = [];
+    let idx = 1;
+
+    const d = parsed.data;
+    if (d.title !== undefined) { fields.push(`title = $${idx++}`); values.push(d.title); }
+    if (d.time !== undefined) { fields.push(`time = $${idx++}`); values.push(d.time); }
+    if (d.description !== undefined) { fields.push(`description = $${idx++}`); values.push(d.description); }
+    if (d.completed !== undefined) { fields.push(`completed = $${idx++}`); values.push(d.completed); }
+    if (d.detail_data !== undefined) { fields.push(`detail_data = $${idx++}`); values.push(d.detail_data ? JSON.stringify(d.detail_data) : null); }
+    if (d.phase !== undefined) { fields.push(`phase = $${idx++}`); values.push(d.phase); }
+
+    if (!fields.length) return res.status(400).json({ error: 'Nada que actualizar' });
+
+    values.push(tid);
+    const result = await query(
+      `UPDATE collaborative_event_timeline SET ${fields.join(', ')} WHERE id = $${idx} RETURNING *`,
+      values
+    );
+    return res.status(200).json({ milestone: result.rows[0] });
   }
 
   if (req.method === 'DELETE') {
-    await deleteTimelineEntry(tid);
-    return res.status(204).end();
+    await query(`DELETE FROM collaborative_event_timeline WHERE id = $1`, [tid]);
+    return res.status(200).json({ deleted: true });
   }
 
-  return res.status(405).json({ error: 'Método no permitido' });
+  return res.status(405).json({ error: 'Method not allowed' });
 }
