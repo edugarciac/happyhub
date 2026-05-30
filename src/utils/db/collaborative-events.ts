@@ -30,11 +30,17 @@ export interface CollaborativeEventParticipant {
 export interface CollaborativeEventTimeline {
   id: number;
   event_id: number;
-  time: string;
+  time: string | null;
   title: string;
   description: string | null;
   responsible_participant_id: number | null;
   sort_order: number;
+  // Nuevos campos del dashboard
+  phase: 'before' | 'during' | 'after';
+  emoji: string | null;
+  hito_type: string | null;
+  detail_data: Record<string, any> | null;
+  completed: boolean;
 }
 
 export async function ensureCollaborativeEventsSchema(): Promise<void> {

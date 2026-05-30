@@ -33,13 +33,18 @@ export default function TimelineEditor({ timeline, participants, eventId, canEdi
     setSaving(true);
     await onAdd({
       event_id: eventId,
-      time: form.time,
+      time: form.time || null,
       title: form.title,
       description: form.description || null,
       responsible_participant_id: form.responsible_participant_id
         ? parseInt(form.responsible_participant_id)
         : null,
       sort_order: timeline.length,
+      phase: 'during',
+      emoji: null,
+      hito_type: null,
+      detail_data: null,
+      completed: false,
     });
     setForm(EMPTY_FORM);
     setShowForm(false);
@@ -49,7 +54,7 @@ export default function TimelineEditor({ timeline, participants, eventId, canEdi
   const handleStartEdit = (entry: CollaborativeEventTimeline) => {
     setEditingId(entry.id);
     setEditForm({
-      time: entry.time,
+      time: entry.time ?? '',
       title: entry.title,
       description: entry.description || '',
       responsible_participant_id: entry.responsible_participant_id?.toString() || '',
@@ -87,7 +92,7 @@ export default function TimelineEditor({ timeline, participants, eventId, canEdi
       {timeline.map((entry) => (
         <div key={entry.id} className="flex gap-3 items-start">
           <div className="flex-shrink-0 w-14 text-right">
-            <span className="text-sm font-mono font-semibold text-purple-700">{entry.time.slice(0, 5)}</span>
+            <span className="text-sm font-mono font-semibold text-purple-700">{entry.time?.slice(0, 5)}</span>
           </div>
 
           <div className="flex-1 border-l-2 border-purple-200 pl-4 pb-2">
