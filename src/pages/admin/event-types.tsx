@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Head from 'next/head';
 import AdminLayout from '@/components/admin/AdminLayout';
 import toast, { Toaster } from 'react-hot-toast';
-import { Plus, Pencil, Trash2, X, Check } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Check, ChevronDown } from 'lucide-react';
 
 interface EventType {
   id: number;
@@ -23,6 +23,25 @@ interface FormData {
 
 const emptyForm: FormData = { name: '', description: '', icon: '', features: [] };
 
+interface EventTemplateMilestone {
+  id: number;
+  template_id: number;
+  emoji: string | null;
+  title: string;
+  hito_type: string;
+  phase: 'before' | 'during' | 'after';
+  sort_order: number;
+}
+
+interface MilestoneForm {
+  emoji: string;
+  title: string;
+  hito_type: string;
+  phase: 'before' | 'during' | 'after';
+}
+
+const emptyMilestoneForm: MilestoneForm = { emoji: '', title: '', hito_type: '', phase: 'before' };
+
 export default function AdminEventTypes() {
   const [types, setTypes] = useState<EventType[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,6 +53,13 @@ export default function AdminEventTypes() {
   const [newFeature, setNewFeature] = useState('');
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState('');
+
+  const [expandedTypeId, setExpandedTypeId] = useState<number | null>(null);
+  const [milestonesCache, setMilestonesCache] = useState<Record<number, EventTemplateMilestone[]>>({});
+  const [loadingMilestones, setLoadingMilestones] = useState<Record<number, boolean>>({});
+  const [showMilestoneForm, setShowMilestoneForm] = useState<number | null>(null);
+  const [milestoneForm, setMilestoneForm] = useState<MilestoneForm>(emptyMilestoneForm);
+  const [savingMilestone, setSavingMilestone] = useState(false);
 
   const fetchTypes = useCallback(async () => {
     try {
@@ -108,6 +134,74 @@ export default function AdminEventTypes() {
       toast.success('Tipo eliminado'); closeModals(); fetchTypes();
     } catch { toast.error('Error de conexion'); }
     finally { setSaving(false); }
+  };
+
+  const toggleExpand = async (t: EventType) => {
+    if (expandedTypeId === t.id) {
+      setExpandedTypeId(null);
+      setShowMilestoneForm(null);
+      return;
+    }
+    setExpandedTypeId(t.id);
+    if (milestonesCache[t.id] !== undefined) return;
+    setLoadingMilestones((prev) => ({ ...prev, [t.id]: true }));
+    try {
+      const res = await fetch(`/api/admin/event-types/${t.id}/milestones`);
+      const data = await res.json();
+      if (res.ok) setMilestonesCache((prev) => ({ ...prev, [t.id]: data.milestones }));
+      else toast.error('Error al cargar hitos');
+    } catch { toast.error('Error de conexión'); }
+    finally { setLoadingMilestones((prev) => ({ ...prev, [t.id]: false })); }
+  };
+
+  const handleAddMilestone = async (t: EventType) => {
+    if (!milestoneForm.title.trim() || !milestoneForm.hito_type.trim()) return;
+    setSavingMilestone(true);
+    try {
+      const res = await fetch('/api/admin/event-templates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'add_milestone',
+          event_type_name: t.name,
+          emoji: milestoneForm.emoji || null,
+          title: milestoneForm.title,
+          hito_type: milestoneForm.hito_type,
+          phase: milestoneForm.phase,
+          sort_order: milestonesCache[t.id]?.length ?? 0,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setMilestonesCache((prev) => ({ ...prev, [t.id]: [...(prev[t.id] || []), data.milestone] }));
+        setMilestoneForm(emptyMilestoneForm);
+        setShowMilestoneForm(null);
+        toast.success('Hito añadido');
+      } else {
+        toast.error(data.error || 'Error al añadir hito');
+      }
+    } catch { toast.error('Error de conexión'); }
+    finally { setSavingMilestone(false); }
+  };
+
+  const handleDeleteMilestone = async (typeId: number, milestoneId: number) => {
+    if (!confirm('¿Eliminar este hito?')) return;
+    try {
+      const res = await fetch('/api/admin/event-templates', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'milestone', id: milestoneId }),
+      });
+      if (res.ok) {
+        setMilestonesCache((prev) => ({
+          ...prev,
+          [typeId]: (prev[typeId] || []).filter((m) => m.id !== milestoneId),
+        }));
+        toast.success('Hito eliminado');
+      } else {
+        toast.error('Error al eliminar hito');
+      }
+    } catch { toast.error('Error de conexión'); }
   };
 
   const toggleActive = async (t: EventType) => {
@@ -197,7 +291,8 @@ export default function AdminEventTypes() {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {types.map((t) => (
-                    <tr key={t.id} className={`hover:bg-gray-50 ${!t.active ? 'opacity-50' : ''}`}>
+                    <React.Fragment key={t.id}>
+                    <tr className={`hover:bg-gray-50 ${!t.active ? 'opacity-50' : ''}`}>
                       <td className="px-4 py-3 text-2xl">{t.icon || '🎉'}</td>
                       <td className="px-4 py-3"><div className="text-sm font-medium text-gray-900">{t.name}</div></td>
                       <td className="px-4 py-3"><div className="text-sm text-gray-600 max-w-xs truncate">{t.description || '-'}</div></td>
@@ -209,10 +304,117 @@ export default function AdminEventTypes() {
                         </button>
                       </td>
                       <td className="px-4 py-3 text-right">
+                        <button
+                          onClick={() => toggleExpand(t)}
+                          title="Hitos de plantilla"
+                          className={`p-1.5 rounded-lg transition-colors mr-1 ${expandedTypeId === t.id ? 'text-primary-600 bg-primary-50' : 'text-gray-400 hover:text-primary-600 hover:bg-primary-50'}`}
+                        >
+                          <ChevronDown className={`w-4 h-4 transition-transform duration-150 ${expandedTypeId === t.id ? 'rotate-180' : ''}`} />
+                        </button>
                         <button onClick={() => openEdit(t)} className="p-1.5 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"><Pencil className="w-4 h-4" /></button>
                         <button onClick={() => setDeletingType(t)} className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors ml-1"><Trash2 className="w-4 h-4" /></button>
                       </td>
                     </tr>
+                    {expandedTypeId === t.id && (
+                      <tr>
+                        <td colSpan={6} className="px-4 py-4 bg-gray-50 border-b border-gray-200">
+                          {loadingMilestones[t.id] ? (
+                            <p className="text-sm text-gray-400 py-2">Cargando hitos...</p>
+                          ) : (
+                            <div>
+                              {(milestonesCache[t.id] || []).length === 0 ? (
+                                <p className="text-sm text-gray-400 mb-3">Sin hitos de plantilla. Añade el primero.</p>
+                              ) : (
+                                <div className="flex flex-col gap-1 mb-3">
+                                  {(['before', 'during', 'after'] as const).map((phase) => {
+                                    const phaseMs = (milestonesCache[t.id] || []).filter((m) => m.phase === phase);
+                                    if (phaseMs.length === 0) return null;
+                                    const phaseLabel = { before: 'Antes', during: 'Durante', after: 'Después' }[phase];
+                                    return (
+                                      <div key={phase} className="mb-2">
+                                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">{phaseLabel}</p>
+                                        <div className="flex flex-wrap gap-2">
+                                          {phaseMs.map((m) => (
+                                            <span key={m.id} className="inline-flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg px-2.5 py-1 text-xs text-gray-700">
+                                              {m.emoji && <span>{m.emoji}</span>}
+                                              <span className="font-medium">{m.title}</span>
+                                              <span className="text-gray-400">·</span>
+                                              <span className="text-gray-400 font-mono">{m.hito_type}</span>
+                                              <button
+                                                onClick={() => handleDeleteMilestone(t.id, m.id)}
+                                                className="ml-1 text-gray-300 hover:text-red-400 transition-colors"
+                                              >
+                                                <X className="w-3 h-3" />
+                                              </button>
+                                            </span>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                              {showMilestoneForm !== t.id ? (
+                                <button
+                                  onClick={() => { setShowMilestoneForm(t.id); setMilestoneForm(emptyMilestoneForm); }}
+                                  className="text-xs text-primary-600 border border-primary-200 hover:bg-primary-50 px-3 py-1.5 rounded-lg font-medium transition-colors"
+                                >
+                                  + Añadir hito
+                                </button>
+                              ) : (
+                                <div className="bg-white border border-gray-200 rounded-xl p-3 mt-2">
+                                  <div className="flex flex-wrap gap-2 mb-2">
+                                    <input
+                                      placeholder="Emoji"
+                                      value={milestoneForm.emoji}
+                                      onChange={(e) => setMilestoneForm({ ...milestoneForm, emoji: e.target.value })}
+                                      className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm w-16 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                                    />
+                                    <input
+                                      placeholder="Título *"
+                                      value={milestoneForm.title}
+                                      onChange={(e) => setMilestoneForm({ ...milestoneForm, title: e.target.value })}
+                                      className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm flex-1 min-w-32 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                                    />
+                                    <input
+                                      placeholder="hito_type * (ej: invitations)"
+                                      value={milestoneForm.hito_type}
+                                      onChange={(e) => setMilestoneForm({ ...milestoneForm, hito_type: e.target.value })}
+                                      className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm flex-1 min-w-32 font-mono focus:outline-none focus:ring-2 focus:ring-primary-400"
+                                    />
+                                    <select
+                                      value={milestoneForm.phase}
+                                      onChange={(e) => setMilestoneForm({ ...milestoneForm, phase: e.target.value as 'before' | 'during' | 'after' })}
+                                      className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
+                                    >
+                                      <option value="before">Antes</option>
+                                      <option value="during">Durante</option>
+                                      <option value="after">Después</option>
+                                    </select>
+                                  </div>
+                                  <div className="flex gap-2 justify-end">
+                                    <button
+                                      onClick={() => setShowMilestoneForm(null)}
+                                      className="text-xs text-gray-500 px-3 py-1.5 hover:bg-gray-100 rounded-lg"
+                                    >
+                                      Cancelar
+                                    </button>
+                                    <button
+                                      onClick={() => handleAddMilestone(t)}
+                                      disabled={!milestoneForm.title.trim() || !milestoneForm.hito_type.trim() || savingMilestone}
+                                      className="text-xs bg-primary-600 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-primary-700 disabled:opacity-50"
+                                    >
+                                      {savingMilestone ? '...' : 'Añadir'}
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    )}
+                    </React.Fragment>
                   ))}
                 </tbody>
               </table>
