@@ -41,10 +41,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     );
     return res.status(200).json({ item: result.rows[0], action: 'released' });
   } else {
-    // Libre — cualquier participante puede reservar
+    // Libre — cualquier participante puede reservar (no el organizador puro)
+    if (!participant) {
+      return res.status(400).json({ error: 'El organizador debe ser también invitado para reservar ítems' });
+    }
     const result = await query(
       `UPDATE event_gift_items SET reserved_by_participant_id = $1, reserved_at = NOW() WHERE id = $2 RETURNING *`,
-      [participant?.id ?? null, itemId]
+      [participant.id, itemId]
     );
     return res.status(200).json({ item: result.rows[0], action: 'reserved' });
   }
