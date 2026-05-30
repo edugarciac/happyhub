@@ -15,12 +15,14 @@ import {
 import EventDashboardLayout from '@/components/events/EventDashboardLayout';
 import EventTimeline from '@/components/events/EventTimeline';
 import GuestList from '@/components/events/GuestList';
+import GiftSection from '@/components/events/GiftSection';
 
 interface Props {
   event: CollaborativeEvent;
   participants: CollaborativeEventParticipant[];
   milestones: CollaborativeEventTimeline[];
   isOrganizer: boolean;
+  currentParticipantId: number | null;
   section: string;
 }
 
@@ -59,6 +61,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async (context) => 
       participants: JSON.parse(JSON.stringify(participants)),
       milestones: JSON.parse(JSON.stringify(milestones)),
       isOrganizer,
+      currentParticipantId: participant?.id ?? null,
       section,
     },
   };
@@ -73,7 +76,7 @@ function SectionPlaceholder({ label }: { label: string }) {
   );
 }
 
-export default function MisEventosDashboard({ event, participants, milestones, isOrganizer, section }: Props) {
+export default function MisEventosDashboard({ event, participants, milestones, isOrganizer, currentParticipantId, section }: Props) {
   const renderSection = () => {
     switch (section) {
       case 'timeline':
@@ -95,7 +98,15 @@ export default function MisEventosDashboard({ event, participants, milestones, i
             inviteCode={event.invite_code}
           />
         );
-      case 'regalo': return <SectionPlaceholder label="Regalo" />;
+      case 'regalo':
+        return (
+          <GiftSection
+            eventId={event.id}
+            isOrganizer={isOrganizer}
+            currentParticipantId={currentParticipantId}
+            eventType={event.category}
+          />
+        );
       case 'entretenimiento': return <SectionPlaceholder label="Entretenimiento" />;
       case 'detalles': return <SectionPlaceholder label="Detalles" />;
       case 'servicios': return <SectionPlaceholder label="Servicios" />;
