@@ -3,7 +3,14 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
+// Cache de client credentials token (válido 3600s, renovamos 60s antes)
+let cachedToken: { value: string; expiresAt: number } | null = null;
+
 async function getClientCredentialsToken(): Promise<string> {
+  if (cachedToken && Date.now() < cachedToken.expiresAt) {
+    return cachedToken.value;
+  }
+
   const clientId = process.env.SPOTIFY_CLIENT_ID;
   const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
   if (!clientId || !clientSecret) throw new Error('Spotify credentials not configured');
@@ -19,7 +26,11 @@ async function getClientCredentialsToken(): Promise<string> {
   });
   if (!res.ok) throw new Error('Failed to get Spotify token');
   const data = await res.json();
-  return data.access_token as string;
+  cachedToken = {
+    value: data.access_token as string,
+    expiresAt: Date.now() + (data.expires_in - 60) * 1000,
+  };
+  return cachedToken.value;
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

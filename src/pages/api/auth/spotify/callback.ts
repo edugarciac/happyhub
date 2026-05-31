@@ -1,4 +1,5 @@
 // src/pages/api/auth/spotify/callback.ts
+import crypto from 'crypto';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 
@@ -10,10 +11,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (error) return res.redirect('/mis-eventos?error=spotify_denied');
   if (!code || !state) return res.redirect('/mis-eventos?error=spotify_invalid');
 
-  const [eventIdStr, userIdStr] = (state as string).split(':');
+  const parts = (state as string).split(':');
+  if (parts.length < 3) return res.redirect('/mis-eventos?error=spotify_invalid');
+  const [eventIdStr, userIdStr, sig] = parts;
   const eventId = parseInt(eventIdStr, 10);
   const userId = parseInt(userIdStr, 10);
   if (isNaN(eventId) || isNaN(userId)) return res.redirect('/mis-eventos?error=spotify_invalid');
+
+  // Verificar firma HMAC
+  const hmacSecret = process.env.NEXTAUTH_SECRET || 'fallback-secret';
+  const expectedSig = crypto.createHmac('sha256', hmacSecret)
+    .update(`${eventIdStr}:${userIdStr}`).digest('hex');
+  if (sig !== expectedSig) return res.redirect('/mis-eventos?error=spotify_invalid');
 
   const clientId = process.env.SPOTIFY_CLIENT_ID;
   const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;

@@ -1,4 +1,5 @@
 // src/pages/api/events/collaborative/[id]/entertainment/spotify/connect.ts
+import crypto from 'crypto';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
@@ -22,7 +23,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const redirectUri = process.env.SPOTIFY_REDIRECT_URI;
   if (!clientId || !redirectUri) return res.status(500).json({ error: 'Spotify no configurado' });
 
-  const state = `${eventId}:${userId}`;
+  const hmacSecret = process.env.NEXTAUTH_SECRET || 'fallback-secret';
+  const hmac = crypto.createHmac('sha256', hmacSecret);
+  hmac.update(`${eventId}:${userId}`);
+  const sig = hmac.digest('hex');
+  const state = `${eventId}:${userId}:${sig}`;
   const scopes = 'playlist-modify-public playlist-modify-private';
   const params = new URLSearchParams({
     client_id: clientId,
