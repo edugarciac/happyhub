@@ -22,7 +22,7 @@ interface Props {
   eventType: string | null;
 }
 
-export default function ActivitiesTab({ eventId, isOrganizer, currentParticipantId }: Props) {
+export default function ActivitiesTab({ eventId, isOrganizer, currentParticipantId, eventType }: Props) {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdvisor, setShowAdvisor] = useState(false);
