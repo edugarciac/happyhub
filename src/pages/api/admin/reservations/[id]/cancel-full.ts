@@ -85,8 +85,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     return res.status(200).json({ success: true, message: 'Reserva cancelada y eliminada del calendario' });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('cancel-full error:', error);
-    return res.status(500).json({ error: error.message || 'Error al cancelar la reserva' });
+    const message = error instanceof Error ? error.message : 'Error al cancelar la reserva';
+    return res.status(500).json({ error: message });
   }
 }
