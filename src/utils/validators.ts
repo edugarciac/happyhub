@@ -115,3 +115,24 @@ export const serviceSchema = z.object({
 });
 
 export type ServiceFormData = z.infer<typeof serviceSchema>;
+
+export const clientUpdateSchema = z.object({
+  name: z.string().min(1, 'El nombre no puede estar vacío').optional(),
+  phone: z.string().optional(),
+  role: z.enum(['admin', 'client']).optional(),
+});
+
+export type ClientUpdateFormData = z.infer<typeof clientUpdateSchema>;
+
+export const reservationAdminSchema = z.object({
+  user_id: z.number().int().positive('ID de usuario inválido'),
+  event_date: z.string().min(1, 'La fecha es obligatoria'),
+  time_slot: z.enum(['morning', 'afternoon', 'night'], {
+    errorMap: () => ({ message: 'Selecciona una franja horaria válida' }),
+  }),
+  guests: z.number().int().positive('Debe haber al menos 1 invitado').min(1, 'Debe haber al menos 1 invitado'),
+  status: z.enum(['pending', 'confirmed', 'cancelled', 'completed']).default('pending'),
+  notes: z.string().optional(),
+});
+
+export type ReservationAdminFormData = z.infer<typeof reservationAdminSchema>;
