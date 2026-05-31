@@ -24,7 +24,11 @@ async function getClientCredentialsToken(): Promise<string> {
     },
     body: 'grant_type=client_credentials',
   });
-  if (!res.ok) throw new Error('Failed to get Spotify token');
+  if (!res.ok) {
+    const errBody = await res.text();
+    console.error('[Spotify] Token fetch failed:', res.status, errBody);
+    throw new Error(`Failed to get Spotify token: ${res.status}`);
+  }
   const data = await res.json();
   cachedToken = {
     value: data.access_token as string,
@@ -48,7 +52,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       `https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=track&limit=8&market=ES`,
       { headers: { Authorization: `Bearer ${token}` } }
     );
-    if (!searchRes.ok) return res.status(502).json({ error: 'Error buscando en Spotify' });
+    if (!searchRes.ok) {
+      const errBody = await searchRes.text();
+      console.error('[Spotify] Search failed:', searchRes.status, errBody.slice(0, 500));
+      return res.status(502).json({ error: 'Error buscando en Spotify', spotifyStatus: searchRes.status });
+    }
 
     const data = await searchRes.json();
     const tracks = (data.tracks?.items || []).map((t: any) => ({
