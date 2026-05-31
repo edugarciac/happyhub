@@ -45,12 +45,12 @@ export default async function handler(
       }
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('❌ Init DB error:', error);
-
+    const message = error instanceof Error ? error.message : String(error);
     res.status(500).json({
       success: false,
-      error: error.message,
+      error: message,
       hint: 'Check logs for details. Verify DATABASE_URL in .env.local'
     });
   }
