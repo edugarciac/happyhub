@@ -9,6 +9,7 @@ interface Song {
   artist: string | null;
   spotify_track_id: string | null;
   spotify_track_uri: string | null;
+  suggested_by_participant_id: number | null;
   suggested_by_name: string | null;
   status: 'pending' | 'approved' | 'rejected';
 }
@@ -55,6 +56,12 @@ export default function SpotifyPlaylistTab({ eventId, isOrganizer, currentPartic
   }, [eventId]);
 
   useEffect(() => { fetchSongs(); }, [fetchSongs]);
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
 
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
@@ -214,6 +221,7 @@ export default function SpotifyPlaylistTab({ eventId, isOrganizer, currentPartic
                   key={song.id}
                   song={song}
                   isOrganizer={isOrganizer}
+                  currentParticipantId={currentParticipantId}
                   actionId={actionId}
                   onStatus={handleStatus}
                   onDelete={handleDelete}
@@ -231,6 +239,7 @@ export default function SpotifyPlaylistTab({ eventId, isOrganizer, currentPartic
                   key={song.id}
                   song={song}
                   isOrganizer={isOrganizer}
+                  currentParticipantId={currentParticipantId}
                   actionId={actionId}
                   onStatus={handleStatus}
                   onDelete={handleDelete}
@@ -248,6 +257,7 @@ export default function SpotifyPlaylistTab({ eventId, isOrganizer, currentPartic
                   key={song.id}
                   song={song}
                   isOrganizer={isOrganizer}
+                  currentParticipantId={currentParticipantId}
                   actionId={actionId}
                   onStatus={handleStatus}
                   onDelete={handleDelete}
@@ -285,9 +295,10 @@ export default function SpotifyPlaylistTab({ eventId, isOrganizer, currentPartic
   );
 }
 
-function SongRow({ song, isOrganizer, actionId, onStatus, onDelete }: {
+function SongRow({ song, isOrganizer, currentParticipantId, actionId, onStatus, onDelete }: {
   song: Song;
   isOrganizer: boolean;
+  currentParticipantId: number | null;
   actionId: number | null;
   onStatus: (id: number, status: 'approved' | 'rejected') => void;
   onDelete: (id: number) => void;
@@ -333,14 +344,16 @@ function SongRow({ song, isOrganizer, actionId, onStatus, onDelete }: {
         {song.status === 'rejected' && isOrganizer && (
           <span className="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded-full">Rechazada</span>
         )}
-        <button
-          onClick={() => onDelete(song.id)}
-          disabled={busy}
-          className="text-gray-300 hover:text-red-500 p-1"
-          title="Eliminar"
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-        </button>
+        {(isOrganizer || song.suggested_by_participant_id === currentParticipantId) && (
+          <button
+            onClick={() => onDelete(song.id)}
+            disabled={busy}
+            className="text-gray-300 hover:text-red-500 p-1"
+            title="Eliminar"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        )}
       </div>
     </div>
   );
