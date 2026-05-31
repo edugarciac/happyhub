@@ -42,18 +42,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { participantTypes, context } = parsed.data;
   const eventType = event.category || 'fiesta';
 
-  const templatesResult = await query(
-    `SELECT title, description, tags FROM activity_templates
-     WHERE $1 = ANY(event_types) OR array_length(event_types, 1) IS NULL
-     ORDER BY usage_count DESC LIMIT 10`,
-    [eventType]
-  );
-
-  const templatesContext = templatesResult.rows.length > 0
-    ? templatesResult.rows.map((t: any) =>
-        `- ${t.title}${t.description ? ': ' + t.description : ''}`
-      ).join('\n')
-    : '';
+  let templatesContext = '';
+  try {
+    const templatesResult = await query(
+      `SELECT title, description, tags FROM activity_templates
+       WHERE $1 = ANY(event_types) OR array_length(event_types, 1) IS NULL
+       ORDER BY usage_count DESC LIMIT 10`,
+      [eventType]
+    );
+    templatesContext = templatesResult.rows.length > 0
+      ? templatesResult.rows.map((t: any) =>
+          `- ${t.title}${t.description ? ': ' + t.description : ''}`
+        ).join('\n')
+      : '';
+  } catch (dbErr: any) {
+    console.error('[suggest] DB query failed (activity_templates):', dbErr?.message);
+    // tabla puede no existir aún — continuamos sin contexto de plantillas
+  }
 
   const searchQuery = `actividades juegos ${eventType} ${participantTypes.join(' ')} fiesta ideas`;
   const webResults = await searchWeb(searchQuery, 5);
@@ -86,7 +91,8 @@ Genera actividades variadas y apropiadas para este evento.`;
       return res.status(500).json({ error: 'Respuesta IA inválida' });
     }
   } catch (err: any) {
-    console.error('Error generando sugerencias:', err);
-    return res.status(500).json({ error: 'Error generando sugerencias' });
+    console.error('[suggest] Error generando sugerencias:', err);
+    console.error('[suggest] Error details:', err?.message, err?.status, err?.error);
+    return res.status(500).json({ error: 'Error generando sugerencias: ' + (err?.message || 'unknown') });
   }
 }

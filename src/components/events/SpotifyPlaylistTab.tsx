@@ -1,7 +1,7 @@
 // src/components/events/SpotifyPlaylistTab.tsx
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
-import { Music, Check, X, Trash2, RefreshCw, ExternalLink } from 'lucide-react';
+import { Music, Check, X, Trash2, RefreshCw, ExternalLink, PlusCircle } from 'lucide-react';
 
 interface Song {
   id: number;
@@ -19,14 +19,6 @@ interface SpotifyStatus {
   playlistUrl: string | null;
 }
 
-interface SpotifyTrack {
-  id: string;
-  uri: string;
-  title: string;
-  artist: string;
-  albumImage: string | null;
-}
-
 interface Props {
   eventId: number;
   isOrganizer: boolean;
@@ -37,13 +29,13 @@ export default function SpotifyPlaylistTab({ eventId, isOrganizer, currentPartic
   const [songs, setSongs] = useState<Song[]>([]);
   const [spotify, setSpotify] = useState<SpotifyStatus>({ connected: false, playlistUrl: null });
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<SpotifyTrack[]>([]);
-  const [searching, setSearching] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [actionId, setActionId] = useState<number | null>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Formulario añadir canción
+  const [newTitle, setNewTitle] = useState('');
+  const [newArtist, setNewArtist] = useState('');
+  const [adding, setAdding] = useState(false);
 
   const fetchSongs = useCallback(async () => {
     const res = await fetch(`/api/events/collaborative/${eventId}/entertainment/songs`);
@@ -57,50 +49,26 @@ export default function SpotifyPlaylistTab({ eventId, isOrganizer, currentPartic
 
   useEffect(() => { fetchSongs(); }, [fetchSongs]);
 
-  useEffect(() => {
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
-  }, []);
-
-  const handleSearchChange = (value: string) => {
-    setSearchQuery(value);
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    if (!value.trim()) { setSearchResults([]); setShowDropdown(false); return; }
-    debounceRef.current = setTimeout(async () => {
-      setSearching(true);
-      try {
-        const res = await fetch(`/api/entertainment/spotify/search?q=${encodeURIComponent(value)}`);
-        if (res.ok) {
-          const data = await res.json();
-          setSearchResults(data.tracks);
-          setShowDropdown(true);
-        }
-      } finally {
-        setSearching(false);
+  const handleAddSong = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTitle.trim()) return;
+    setAdding(true);
+    try {
+      const res = await fetch(`/api/events/collaborative/${eventId}/entertainment/songs`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: newTitle.trim(), artist: newArtist.trim() || undefined }),
+      });
+      if (res.ok) {
+        toast.success('Canción añadida');
+        setNewTitle('');
+        setNewArtist('');
+        fetchSongs();
+      } else {
+        toast.error('Error añadiendo canción');
       }
-    }, 350);
-  };
-
-  const handleSelectTrack = async (track: SpotifyTrack) => {
-    setShowDropdown(false);
-    setSearchQuery('');
-    setSearchResults([]);
-    const res = await fetch(`/api/events/collaborative/${eventId}/entertainment/songs`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title: track.title,
-        artist: track.artist,
-        spotifyTrackId: track.id,
-        spotifyTrackUri: track.uri,
-      }),
-    });
-    if (res.ok) {
-      toast.success('Canción añadida');
-      fetchSongs();
-    } else {
-      toast.error('Error añadiendo canción');
+    } finally {
+      setAdding(false);
     }
   };
 
@@ -171,44 +139,34 @@ export default function SpotifyPlaylistTab({ eventId, isOrganizer, currentPartic
         </div>
       )}
 
-      {/* Búsqueda de canciones */}
-      <div className="relative">
+      {/* Formulario añadir canción */}
+      <form onSubmit={handleAddSong} className="flex flex-col sm:flex-row gap-2">
         <input
-          className="w-full border rounded-lg px-3 py-2 text-sm pr-8"
-          placeholder="Buscar canción en Spotify..."
-          value={searchQuery}
-          onChange={e => handleSearchChange(e.target.value)}
-          onFocus={() => searchResults.length > 0 && setShowDropdown(true)}
+          className="flex-1 border rounded-lg px-3 py-2 text-sm"
+          placeholder="Título de la canción *"
+          value={newTitle}
+          onChange={e => setNewTitle(e.target.value)}
+          required
         />
-        {searching && (
-          <div className="absolute right-3 top-2.5">
-            <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
-          </div>
-        )}
-        {showDropdown && searchResults.length > 0 && (
-          <div className="absolute z-10 w-full bg-white border rounded-lg shadow-lg mt-1 max-h-64 overflow-y-auto">
-            {searchResults.map(track => (
-              <button
-                key={track.id}
-                onClick={() => handleSelectTrack(track)}
-                className="w-full flex items-center gap-3 px-3 py-2 hover:bg-gray-50 text-left"
-              >
-                {track.albumImage && (
-                  <img src={track.albumImage} alt="" className="w-8 h-8 rounded object-cover flex-shrink-0" />
-                )}
-                <div className="min-w-0">
-                  <div className="text-sm font-medium truncate">{track.title}</div>
-                  <div className="text-xs text-gray-500 truncate">{track.artist}</div>
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+        <input
+          className="flex-1 border rounded-lg px-3 py-2 text-sm"
+          placeholder="Artista (opcional)"
+          value={newArtist}
+          onChange={e => setNewArtist(e.target.value)}
+        />
+        <button
+          type="submit"
+          disabled={adding || !newTitle.trim()}
+          className="flex items-center gap-1.5 bg-indigo-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-indigo-700 disabled:opacity-50 whitespace-nowrap"
+        >
+          <PlusCircle className="h-4 w-4" />
+          {adding ? 'Añadiendo...' : 'Añadir canción'}
+        </button>
+      </form>
 
       {/* Lista de canciones */}
       {songs.length === 0 ? (
-        <p className="text-gray-400 text-center py-8 text-sm">Sin canciones todavía. ¡Busca y añade la primera!</p>
+        <p className="text-gray-400 text-center py-8 text-sm">Sin canciones todavía. ¡Añade la primera!</p>
       ) : (
         <div className="space-y-3">
           {approved.length > 0 && (
