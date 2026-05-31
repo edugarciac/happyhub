@@ -14,6 +14,7 @@ interface Review {
   review_text: string;
   status: ReviewStatus;
   created_at: string;
+  updated_at: string;
 }
 
 const STATUS_LABELS: Record<ReviewStatus, string> = {
@@ -49,6 +50,7 @@ export default function AdminReviews() {
   const [total, setTotal] = useState(0);
   const [deleteConfirm, setDeleteConfirm] = useState<Review | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [viewingReview, setViewingReview] = useState<Review | null>(null);
 
   const limit = 20;
 
@@ -149,7 +151,7 @@ export default function AdminReviews() {
                   </thead>
                   <tbody className="divide-y divide-gray-200">
                     {reviews.map((review) => (
-                      <tr key={review.id} className="hover:bg-gray-50">
+                      <tr key={review.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => setViewingReview(review)}>
                         <td className="px-4 py-3">
                           <div className="text-sm font-medium text-gray-900 max-w-[150px] truncate" title={review.title || ''}>{review.title || '-'}</div>
                         </td>
@@ -172,23 +174,23 @@ export default function AdminReviews() {
                           <div className="flex items-center gap-1">
                             {review.status === 'pending_review' && (
                               <>
-                                <button onClick={() => handleStatusChange(review, 'published')} className="px-2 py-1 text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition-colors">Publicar</button>
-                                <button onClick={() => handleStatusChange(review, 'cancelled')} className="px-2 py-1 text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition-colors">Cancelar</button>
+                                <button onClick={(e) => { e.stopPropagation(); handleStatusChange(review, 'published'); }} className="px-2 py-1 text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition-colors">Publicar</button>
+                                <button onClick={(e) => { e.stopPropagation(); handleStatusChange(review, 'cancelled'); }} className="px-2 py-1 text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition-colors">Cancelar</button>
                               </>
                             )}
                             {review.status === 'published' && (
                               <>
-                                <button onClick={() => handleStatusChange(review, 'archived')} className="px-2 py-1 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">Archivar</button>
-                                <button onClick={() => handleStatusChange(review, 'cancelled')} className="px-2 py-1 text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition-colors">Cancelar</button>
+                                <button onClick={(e) => { e.stopPropagation(); handleStatusChange(review, 'archived'); }} className="px-2 py-1 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">Archivar</button>
+                                <button onClick={(e) => { e.stopPropagation(); handleStatusChange(review, 'cancelled'); }} className="px-2 py-1 text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition-colors">Cancelar</button>
                               </>
                             )}
                             {review.status === 'archived' && (
-                              <button onClick={() => handleStatusChange(review, 'published')} className="px-2 py-1 text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition-colors">Publicar</button>
+                              <button onClick={(e) => { e.stopPropagation(); handleStatusChange(review, 'published'); }} className="px-2 py-1 text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition-colors">Publicar</button>
                             )}
                             {review.status === 'cancelled' && (
-                              <button onClick={() => handleStatusChange(review, 'pending_review')} className="px-2 py-1 text-xs font-medium text-yellow-700 bg-yellow-50 hover:bg-yellow-100 rounded-lg transition-colors">Reabrir</button>
+                              <button onClick={(e) => { e.stopPropagation(); handleStatusChange(review, 'pending_review'); }} className="px-2 py-1 text-xs font-medium text-yellow-700 bg-yellow-50 hover:bg-yellow-100 rounded-lg transition-colors">Reabrir</button>
                             )}
-                            <button onClick={() => setDeleteConfirm(review)} className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors" title="Eliminar">
+                            <button onClick={(e) => { e.stopPropagation(); setDeleteConfirm(review); }} className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors" title="Eliminar">
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
@@ -219,6 +221,57 @@ export default function AdminReviews() {
             )}
           </div>
         </div>
+
+        {/* Review Detail Modal */}
+        {viewingReview && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setViewingReview(null)}>
+            <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-bold text-gray-900">Detalle de reseña</h3>
+                <button onClick={() => setViewingReview(null)} className="p-1 hover:bg-gray-100 rounded-lg"><X className="w-5 h-5" /></button>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <p className="text-xs font-medium text-gray-500 uppercase mb-1">Valoración</p>
+                  <Stars rating={viewingReview.rating} />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-gray-500 uppercase mb-1">Cliente</p>
+                  <p className="text-sm text-gray-900">{viewingReview.customer_name}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-gray-500 uppercase mb-1">Estado</p>
+                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${STATUS_BADGE[viewingReview.status]}`}>
+                    {STATUS_LABELS[viewingReview.status] || viewingReview.status}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs font-medium text-gray-500 uppercase mb-1">Fecha creación</p>
+                    <p className="text-sm text-gray-900">{new Date(viewingReview.created_at).toLocaleString('es-ES')}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-gray-500 uppercase mb-1">Última actualización</p>
+                    <p className="text-sm text-gray-900">{viewingReview.updated_at ? new Date(viewingReview.updated_at).toLocaleString('es-ES') : '-'}</p>
+                  </div>
+                </div>
+                {viewingReview.title && (
+                  <div>
+                    <p className="text-xs font-medium text-gray-500 uppercase mb-1">Título</p>
+                    <p className="text-sm text-gray-900">{viewingReview.title}</p>
+                  </div>
+                )}
+                <div>
+                  <p className="text-xs font-medium text-gray-500 uppercase mb-1">Texto completo</p>
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap">{viewingReview.review_text || '-'}</p>
+                </div>
+              </div>
+              <div className="mt-6">
+                <button onClick={() => setViewingReview(null)} className="w-full px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg transition-colors">Cerrar</button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Delete Confirmation Modal */}
         {deleteConfirm && (
