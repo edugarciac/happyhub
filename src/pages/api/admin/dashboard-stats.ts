@@ -4,11 +4,11 @@ import { requireAdminSession } from '../../../utils/adminAuth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    await requireAdminSession(req, res);
-
     if (req.method !== 'GET') {
       return res.status(405).json({ success: false, error: 'Method not allowed' });
     }
+
+    await requireAdminSession(req, res);
 
     const [usersResult, reservationsResult, pendingResult, reviewsResult] = await Promise.all([
       query(`SELECT COUNT(*) as count FROM users WHERE role = 'client'`, []),
@@ -20,10 +20,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json({
       success: true,
       stats: {
-        totalUsers: parseInt(usersResult.rows[0].count),
-        totalReservations: parseInt(reservationsResult.rows[0].count),
-        pendingReservations: parseInt(pendingResult.rows[0].count),
-        totalReviews: parseInt(reviewsResult.rows[0].count),
+        totalUsers: parseInt(usersResult.rows[0].count, 10),
+        totalReservations: parseInt(reservationsResult.rows[0].count, 10),
+        pendingReservations: parseInt(pendingResult.rows[0].count, 10),
+        totalReviews: parseInt(reviewsResult.rows[0].count, 10),
       },
     });
   } catch (error: any) {

@@ -29,6 +29,11 @@ export default function AdminDashboard() {
       const res = await fetch('/api/admin/dashboard-stats');
       const data = await res.json();
 
+      if (!res.ok || !data.success) {
+        console.error('Error cargando stats:', data.error);
+        return;
+      }
+
       if (data.success) {
         setStats({
           totalUsers: data.stats.totalUsers,
