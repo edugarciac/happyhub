@@ -1,0 +1,36 @@
+// src/pages/api/events/collaborative/[id]/entertainment/spotify/connect.ts
+import type { NextApiRequest, NextApiResponse } from 'next';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { getCollaborativeEventById } from '@/utils/db/collaborative-events';
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+
+  const session = await getServerSession(req, res, authOptions);
+  if (!session?.user) return res.status(401).json({ error: 'No autenticado' });
+
+  const userId = parseInt((session.user as any).id as string, 10);
+  const eventId = parseInt(req.query.id as string, 10);
+  if (isNaN(eventId)) return res.status(400).json({ error: 'ID inválido' });
+
+  const event = await getCollaborativeEventById(eventId);
+  if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
+  if (event.organizer_id !== userId) return res.status(403).json({ error: 'Solo el organizador puede conectar Spotify' });
+
+  const clientId = process.env.SPOTIFY_CLIENT_ID;
+  const redirectUri = process.env.SPOTIFY_REDIRECT_URI;
+  if (!clientId || !redirectUri) return res.status(500).json({ error: 'Spotify no configurado' });
+
+  const state = `${eventId}:${userId}`;
+  const scopes = 'playlist-modify-public playlist-modify-private';
+  const params = new URLSearchParams({
+    client_id: clientId,
+    response_type: 'code',
+    redirect_uri: redirectUri,
+    scope: scopes,
+    state,
+  });
+
+  return res.redirect(`https://accounts.spotify.com/authorize?${params.toString()}`);
+}
