@@ -48,15 +48,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const token = await getClientCredentialsToken();
-    console.log('[Spotify] Token obtained, length:', token?.length, 'prefix:', token?.slice(0, 10));
     const searchRes = await fetch(
       `https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=track&limit=8`,
       { headers: { Authorization: `Bearer ${token}` } }
     );
     if (!searchRes.ok) {
       const errBody = await searchRes.text();
-      console.error('[Spotify] Search failed:', searchRes.status, errBody.slice(0, 300));
-      return res.status(422).json({ error: 'Error buscando en Spotify', spotifyStatus: searchRes.status, spotifyBody: errBody.slice(0, 300) });
+      console.error('[Spotify] Search failed:', searchRes.status, errBody.slice(0, 200));
+      return res.status(502).json({ error: 'Error buscando en Spotify' });
     }
 
     const data = await searchRes.json();
