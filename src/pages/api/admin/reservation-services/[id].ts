@@ -22,67 +22,83 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 }
 
+const VALID_STATUSES = ['requested', 'confirmed', 'cancelled', 'completed'];
+
 async function handleUpdate(id: number, req: NextApiRequest, res: NextApiResponse) {
-  const { service_name, service_type, reservation_id, partner_id, price, status, notes } = req.body;
+  try {
+    const { service_name, service_type, reservation_id, partner_id, price, status, notes } = req.body;
 
-  const fields: string[] = [];
-  const params: any[] = [];
-  let idx = 1;
+    if (status !== undefined && !VALID_STATUSES.includes(status)) {
+      return res.status(400).json({ success: false, error: 'Estado inválido' });
+    }
 
-  if (service_name !== undefined) {
-    fields.push(`service_name = $${idx++}`);
-    params.push(service_name.trim());
-  }
-  if (service_type !== undefined) {
-    fields.push(`service_type = $${idx++}`);
-    params.push(service_type ? service_type.trim() : null);
-  }
-  if (reservation_id !== undefined) {
-    fields.push(`reservation_id = $${idx++}`);
-    params.push(reservation_id ? parseInt(reservation_id) : null);
-  }
-  if (partner_id !== undefined) {
-    fields.push(`partner_id = $${idx++}`);
-    params.push(partner_id ? parseInt(partner_id) : null);
-  }
-  if (price !== undefined) {
-    fields.push(`price = $${idx++}`);
-    params.push(price !== '' && price !== null ? parseFloat(price) : null);
-  }
-  if (status !== undefined) {
-    fields.push(`status = $${idx++}`);
-    params.push(status);
-  }
-  if (notes !== undefined) {
-    fields.push(`notes = $${idx++}`);
-    params.push(notes ? notes.trim() : null);
-  }
+    const fields: string[] = [];
+    const params: any[] = [];
+    let idx = 1;
 
-  if (fields.length === 0) {
-    return res.status(400).json({ success: false, error: 'No hay campos para actualizar' });
+    if (service_name !== undefined) {
+      fields.push(`service_name = $${idx++}`);
+      params.push(service_name.trim());
+    }
+    if (service_type !== undefined) {
+      fields.push(`service_type = $${idx++}`);
+      params.push(service_type ? service_type.trim() : null);
+    }
+    if (reservation_id !== undefined) {
+      fields.push(`reservation_id = $${idx++}`);
+      params.push(reservation_id ? parseInt(reservation_id) : null);
+    }
+    if (partner_id !== undefined) {
+      fields.push(`partner_id = $${idx++}`);
+      params.push(partner_id ? parseInt(partner_id) : null);
+    }
+    if (price !== undefined) {
+      fields.push(`price = $${idx++}`);
+      params.push(price !== '' && price !== null ? parseFloat(price) : null);
+    }
+    if (status !== undefined) {
+      fields.push(`status = $${idx++}`);
+      params.push(status);
+    }
+    if (notes !== undefined) {
+      fields.push(`notes = $${idx++}`);
+      params.push(notes ? notes.trim() : null);
+    }
+
+    if (fields.length === 0) {
+      return res.status(400).json({ success: false, error: 'No hay campos para actualizar' });
+    }
+
+    fields.push('updated_at = CURRENT_TIMESTAMP');
+    params.push(id);
+
+    const result = await query(
+      `UPDATE services SET ${fields.join(', ')} WHERE id = $${idx} RETURNING *`,
+      params
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Servicio no encontrado' });
+    }
+
+    return res.status(200).json({ success: true, service: result.rows[0] });
+  } catch (error) {
+    console.error('Error updating reservation service:', error);
+    return res.status(500).json({ success: false, error: 'Error al actualizar servicio' });
   }
-
-  fields.push('updated_at = CURRENT_TIMESTAMP');
-  params.push(id);
-
-  const result = await query(
-    `UPDATE services SET ${fields.join(', ')} WHERE id = $${idx} RETURNING *`,
-    params
-  );
-
-  if (result.rows.length === 0) {
-    return res.status(404).json({ success: false, error: 'Servicio no encontrado' });
-  }
-
-  return res.status(200).json({ success: true, service: result.rows[0] });
 }
 
 async function handleDelete(id: number, res: NextApiResponse) {
-  const existing = await query('SELECT id FROM services WHERE id = $1', [id]);
-  if (existing.rows.length === 0) {
-    return res.status(404).json({ success: false, error: 'Servicio no encontrado' });
-  }
+  try {
+    const existing = await query('SELECT id FROM services WHERE id = $1', [id]);
+    if (existing.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Servicio no encontrado' });
+    }
 
-  await query('DELETE FROM services WHERE id = $1', [id]);
-  return res.status(200).json({ success: true });
+    await query('DELETE FROM services WHERE id = $1', [id]);
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Error deleting reservation service:', error);
+    return res.status(500).json({ success: false, error: 'Error al eliminar servicio' });
+  }
 }

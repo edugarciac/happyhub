@@ -68,12 +68,18 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
   }
 }
 
+const VALID_STATUSES = ['requested', 'confirmed', 'cancelled', 'completed'];
+
 async function handleCreate(req: NextApiRequest, res: NextApiResponse) {
   try {
     const { service_name, service_type, reservation_id, partner_id, price, status, notes } = req.body;
 
     if (!service_name || !service_name.trim()) {
       return res.status(400).json({ success: false, error: 'El nombre del servicio es obligatorio' });
+    }
+
+    if (status !== undefined && !VALID_STATUSES.includes(status)) {
+      return res.status(400).json({ success: false, error: 'Estado inválido' });
     }
 
     const result = await query(
