@@ -25,7 +25,7 @@ const PARTICIPANT_TYPE_OPTIONS = [
 ];
 
 export default function ActivityAdvisor({ eventId, onAddActivity, onClose }: Props) {
-  const [participantTypes, setParticipantTypes] = useState<string[]>(['adultos']);
+  const [participantTypes, setParticipantTypes] = useState<string[]>([]);
   const [context, setContext] = useState('');
   const [loading, setLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<ActivitySuggestion[]>([]);
