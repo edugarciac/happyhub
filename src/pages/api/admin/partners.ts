@@ -1,8 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
+import { requireAdminSession } from '@/utils/adminAuth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
+    await requireAdminSession(req, res);
+
     if (req.method === 'GET') {
       const result = await query('SELECT * FROM partners ORDER BY name ASC');
       return res.json(result.rows);
@@ -40,6 +43,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.setHeader('Allow', 'GET,POST,PUT,DELETE');
     return res.status(405).end();
   } catch (err: any) {
+    if (err.message === 'Unauthorized') {
+      return res.status(401).json({ error: 'No autorizado' });
+    }
     console.error('Partners API error:', err);
     return res.status(500).json({ error: err.message });
   }
