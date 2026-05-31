@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import AdminLayout from '../../components/admin/AdminLayout';
-import { apiClient } from '../../lib/apiClient';
 import { Star, Users, Calendar, Building2, Briefcase, Tag } from 'lucide-react';
 import Link from 'next/link';
 
@@ -27,19 +26,17 @@ export default function AdminDashboard() {
 
   const fetchStats = async () => {
     try {
-      // Fetch quick stats (could be optimized with single endpoint later)
-      const [reviewsRes] = await Promise.all([
-        fetch('/api/reviews/stats'),
-      ]);
+      const res = await fetch('/api/admin/dashboard-stats');
+      const data = await res.json();
 
-      const reviewsData = await reviewsRes.json();
-
-      setStats({
-        totalUsers: 0, // TODO: Add endpoint
-        totalReservations: 0, // TODO: Add endpoint
-        totalReviews: reviewsData.stats?.count || 0,
-        pendingReservations: 0, // TODO: Add endpoint
-      });
+      if (data.success) {
+        setStats({
+          totalUsers: data.stats.totalUsers,
+          totalReservations: data.stats.totalReservations,
+          totalReviews: data.stats.totalReviews,
+          pendingReservations: data.stats.pendingReservations,
+        });
+      }
     } catch (error) {
       console.error('Error fetching stats:', error);
     } finally {
