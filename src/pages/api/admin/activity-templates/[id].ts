@@ -33,7 +33,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     if (req.method === 'DELETE') {
-      await query(`DELETE FROM activity_templates WHERE id = $1`, [id]);
+      const deleteResult = await query(`DELETE FROM activity_templates WHERE id = $1`, [id]);
+      if (deleteResult.rowCount === 0) return res.status(404).json({ success: false, error: 'Template no encontrado' });
       return res.status(200).json({ success: true });
     }
 

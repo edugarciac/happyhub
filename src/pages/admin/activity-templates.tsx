@@ -40,6 +40,8 @@ export default function AdminActivityTemplates() {
     if (res.ok) {
       const data = await res.json();
       setTemplates(data.templates);
+    } else {
+      toast.error('Error cargando actividades');
     }
     setLoading(false);
   };
