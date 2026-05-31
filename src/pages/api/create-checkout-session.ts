@@ -94,8 +94,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     return res.status(200).json({ url: session.url, sessionId: session.id });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating checkout session:', error);
-    return res.status(500).json({ error: error.message || 'Error al crear la sesión de pago' });
+    const message = error instanceof Error ? error.message : 'Error al crear la sesión de pago';
+    return res.status(500).json({ error: message });
   }
 }
