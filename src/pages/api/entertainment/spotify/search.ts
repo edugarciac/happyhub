@@ -56,7 +56,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!searchRes.ok) {
       const errBody = await searchRes.text();
       console.error('[Spotify] Search failed:', searchRes.status, errBody.slice(0, 300));
-      return res.status(502).json({ error: 'Error buscando en Spotify', spotifyStatus: searchRes.status });
+      return res.status(422).json({ error: 'Error buscando en Spotify', spotifyStatus: searchRes.status, spotifyBody: errBody.slice(0, 300) });
     }
 
     const data = await searchRes.json();
