@@ -79,9 +79,14 @@ Genera actividades variadas y apropiadas para este evento.`;
     const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
     if (!jsonMatch) return res.status(500).json({ error: 'Respuesta IA inválida' });
 
-    const result = JSON.parse(jsonMatch[0]) as { suggestions: ActivitySuggestion[] };
-    return res.status(200).json({ suggestions: result.suggestions });
+    try {
+      const result = JSON.parse(jsonMatch[0]) as { suggestions: ActivitySuggestion[] };
+      return res.status(200).json({ suggestions: result.suggestions });
+    } catch {
+      return res.status(500).json({ error: 'Respuesta IA inválida' });
+    }
   } catch (err: any) {
-    return res.status(500).json({ error: 'Error generando sugerencias: ' + err.message });
+    console.error('Error generando sugerencias:', err);
+    return res.status(500).json({ error: 'Error generando sugerencias' });
   }
 }
