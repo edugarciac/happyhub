@@ -36,7 +36,11 @@ async function handleGet(id: number, res: NextApiResponse) {
   if (result.rows.length === 0) {
     return res.status(404).json({ success: false, error: 'Cliente no encontrado' });
   }
-  return res.status(200).json({ success: true, client: result.rows[0] });
+  const reservations = await query(
+    'SELECT id, event_date, time_slot, status, total_price, created_at FROM reservations WHERE user_id = $1 ORDER BY event_date DESC',
+    [id]
+  );
+  return res.status(200).json({ success: true, client: result.rows[0], reservations: reservations.rows });
 }
 
 async function handleUpdate(id: number, req: NextApiRequest, res: NextApiResponse) {

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Head from 'next/head';
 import AdminLayout from '../../components/admin/AdminLayout';
 import toast, { Toaster } from 'react-hot-toast';
-import { Search, ChevronLeft, ChevronRight, Users, Plus, Pencil, Trash2, X } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Users, Plus, Pencil, Trash2, X, Eye } from 'lucide-react';
 
 interface Client {
   id: number;
@@ -13,6 +13,29 @@ interface Client {
   email_verified: boolean;
   created_at: string;
 }
+
+interface Reservation {
+  id: number;
+  event_date: string;
+  time_slot: string;
+  status: string;
+  total_price: number;
+  created_at: string;
+}
+
+const RESERVATION_STATUS_BADGE: Record<string, string> = {
+  pending: 'bg-yellow-100 text-yellow-800',
+  confirmed: 'bg-green-100 text-green-800',
+  cancelled: 'bg-red-100 text-red-800',
+  completed: 'bg-blue-100 text-blue-800',
+};
+
+const RESERVATION_STATUS_LABELS: Record<string, string> = {
+  pending: 'Pendiente',
+  confirmed: 'Confirmada',
+  cancelled: 'Cancelada',
+  completed: 'Completada',
+};
 
 const ROLE_BADGE: Record<string, string> = {
   admin: 'bg-purple-100 text-purple-800',
@@ -48,6 +71,10 @@ export default function AdminClients() {
   const [form, setForm] = useState<ClientForm>(emptyForm);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState('');
+
+  // Detail modal state
+  const [viewingClient, setViewingClient] = useState<{ client: Client; reservations: Reservation[] } | null>(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
 
   const limit = 20;
 
@@ -94,7 +121,28 @@ export default function AdminClients() {
     setShowCreateModal(false);
     setEditingClient(null);
     setDeletingClient(null);
+    setViewingClient(null);
     setFormError('');
+  };
+
+  const openDetail = async (client: Client) => {
+    setLoadingDetail(true);
+    setViewingClient({ client, reservations: [] });
+    try {
+      const res = await fetch(`/api/admin/clients/${client.id}`);
+      const data = await res.json();
+      if (data.success) {
+        setViewingClient({ client: data.client, reservations: data.reservations });
+      } else {
+        toast.error('Error al cargar detalles');
+        setViewingClient(null);
+      }
+    } catch {
+      toast.error('Error de conexión');
+      setViewingClient(null);
+    } finally {
+      setLoadingDetail(false);
+    }
   };
 
   const handleCreate = async () => {
@@ -258,8 +306,15 @@ export default function AdminClients() {
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-right">
                           <button
+                            onClick={() => openDetail(client)}
+                            className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                            title="Ver detalles"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button
                             onClick={() => openEdit(client)}
-                            className="p-1.5 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                            className="p-1.5 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors ml-1"
                             title="Editar"
                           >
                             <Pencil className="w-4 h-4" />
@@ -388,6 +443,95 @@ export default function AdminClients() {
                 <button onClick={handleUpdate} disabled={saving} className="flex-1 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50">
                   {saving ? 'Guardando...' : 'Guardar'}
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Detail Modal */}
+        {viewingClient && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={closeModals}>
+            <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-bold text-gray-900">Detalles del cliente</h3>
+                <button onClick={closeModals} className="p-1 hover:bg-gray-100 rounded-lg"><X className="w-5 h-5" /></button>
+              </div>
+
+              {/* Client info */}
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div>
+                  <div className="text-xs font-medium text-gray-500 uppercase mb-1">Nombre</div>
+                  <div className="text-sm text-gray-900">{viewingClient.client.name || '-'}</div>
+                </div>
+                <div>
+                  <div className="text-xs font-medium text-gray-500 uppercase mb-1">Email</div>
+                  <div className="text-sm text-gray-900">{viewingClient.client.email}</div>
+                </div>
+                <div>
+                  <div className="text-xs font-medium text-gray-500 uppercase mb-1">Teléfono</div>
+                  <div className="text-sm text-gray-900">{viewingClient.client.phone || '-'}</div>
+                </div>
+                <div>
+                  <div className="text-xs font-medium text-gray-500 uppercase mb-1">Rol</div>
+                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${ROLE_BADGE[viewingClient.client.role] || ROLE_BADGE.client}`}>
+                    {ROLE_LABELS[viewingClient.client.role] || viewingClient.client.role}
+                  </span>
+                </div>
+                <div>
+                  <div className="text-xs font-medium text-gray-500 uppercase mb-1">Email verificado</div>
+                  {viewingClient.client.email_verified ? (
+                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Sí</span>
+                  ) : (
+                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">No</span>
+                  )}
+                </div>
+                <div>
+                  <div className="text-xs font-medium text-gray-500 uppercase mb-1">Fecha de registro</div>
+                  <div className="text-sm text-gray-900">{new Date(viewingClient.client.created_at).toLocaleDateString('es-ES')}</div>
+                </div>
+              </div>
+
+              {/* Reservations */}
+              <div>
+                <h4 className="text-sm font-semibold text-gray-700 mb-3">Historial de reservas</h4>
+                {loadingDetail ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="w-6 h-6 border-4 border-primary-600 border-t-transparent rounded-full animate-spin" />
+                  </div>
+                ) : viewingClient.reservations.length === 0 ? (
+                  <div className="text-sm text-gray-500 text-center py-6 bg-gray-50 rounded-lg">Sin reservas</div>
+                ) : (
+                  <div className="overflow-x-auto rounded-lg border border-gray-200">
+                    <table className="w-full text-sm">
+                      <thead className="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Horario</th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+                          <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase">Total</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {viewingClient.reservations.map((r) => (
+                          <tr key={r.id} className="hover:bg-gray-50">
+                            <td className="px-3 py-2 text-gray-500">#{r.id}</td>
+                            <td className="px-3 py-2 text-gray-900">{new Date(r.event_date).toLocaleDateString('es-ES')}</td>
+                            <td className="px-3 py-2 text-gray-900">{r.time_slot}</td>
+                            <td className="px-3 py-2">
+                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${RESERVATION_STATUS_BADGE[r.status] || 'bg-gray-100 text-gray-800'}`}>
+                                {RESERVATION_STATUS_LABELS[r.status] || r.status}
+                              </span>
+                            </td>
+                            <td className="px-3 py-2 text-right text-gray-900 font-medium">
+                              {r.total_price != null ? `${Number(r.total_price).toLocaleString('es-ES', { minimumFractionDigits: 2 })} €` : '-'}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             </div>
           </div>
