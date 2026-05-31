@@ -124,8 +124,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     );
 
     return res.status(200).json({ url: stripeSession.url });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating remaining payment session:', error);
-    return res.status(500).json({ error: error.message || 'Error al crear sesión de pago' });
+    const message = error instanceof Error ? error.message : 'Error al crear sesión de pago';
+    return res.status(500).json({ error: message });
   }
 }
