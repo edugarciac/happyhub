@@ -7,6 +7,7 @@ import {
   Calendar,
   Tag,
   Building2,
+  Wrench,
   Briefcase,
 } from 'lucide-react';
 
@@ -24,6 +25,7 @@ export default function DashboardNav({ onNavigate }: DashboardNavProps) {
     { href: '/admin/reservations', icon: Calendar, label: 'Reservas' },
     { href: '/admin/event-types', icon: Tag, label: 'Tipos de Eventos' },
     { href: '/admin/partners', icon: Building2, label: 'Partners' },
+    { href: '/admin/reservation-services', icon: Wrench, label: 'Servicios Reservas' },
     { href: '/admin/services', icon: Briefcase, label: 'Servicios' },
   ];
 
