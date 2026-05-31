@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS event_entertainment_songs (
   spotify_track_id VARCHAR(100),
   spotify_track_uri VARCHAR(150),
   suggested_by_participant_id INTEGER REFERENCES collaborative_event_participants(id) ON DELETE SET NULL,
-  status VARCHAR(20) DEFAULT 'pending',
+  status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS event_entertainment_songs (
 CREATE TABLE IF NOT EXISTS event_spotify_connections (
   id SERIAL PRIMARY KEY,
   event_id INTEGER NOT NULL UNIQUE REFERENCES collaborative_events(id) ON DELETE CASCADE,
-  user_id INTEGER NOT NULL,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   access_token TEXT NOT NULL,
   refresh_token TEXT NOT NULL,
   token_expires_at TIMESTAMP,
@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS event_activities (
   title VARCHAR(255) NOT NULL,
   description TEXT,
   proposed_by_participant_id INTEGER REFERENCES collaborative_event_participants(id) ON DELETE SET NULL,
-  status VARCHAR(20) DEFAULT 'pending',
+  status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
