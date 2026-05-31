@@ -16,6 +16,7 @@ import EventDashboardLayout from '@/components/events/EventDashboardLayout';
 import EventTimeline from '@/components/events/EventTimeline';
 import GuestList from '@/components/events/GuestList';
 import GiftSection from '@/components/events/GiftSection';
+import EntertainmentSection from '@/components/events/EntertainmentSection';
 
 interface Props {
   event: CollaborativeEvent;
@@ -107,7 +108,15 @@ export default function MisEventosDashboard({ event, participants, milestones, i
             eventType={event.category}
           />
         );
-      case 'entretenimiento': return <SectionPlaceholder label="Entretenimiento" />;
+      case 'entretenimiento':
+        return (
+          <EntertainmentSection
+            eventId={event.id}
+            isOrganizer={isOrganizer}
+            currentParticipantId={currentParticipantId}
+            eventType={event.category}
+          />
+        );
       case 'detalles': return <SectionPlaceholder label="Detalles" />;
       case 'servicios': return <SectionPlaceholder label="Servicios" />;
       case 'fotos': return <SectionPlaceholder label="Fotos" />;
