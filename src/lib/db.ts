@@ -319,7 +319,7 @@ export async function runPaymentsMigration(): Promise<void> {
       CREATE TABLE IF NOT EXISTS payment_tokens (
         id             SERIAL PRIMARY KEY,
         token          VARCHAR(64) UNIQUE NOT NULL,
-        reservation_id VARCHAR(100) NOT NULL,
+        reservation_id INTEGER NOT NULL,
         token_type     VARCHAR(30) NOT NULL DEFAULT 'remaining_payment',
         expires_at     TIMESTAMP NOT NULL,
         used           BOOLEAN DEFAULT false,
