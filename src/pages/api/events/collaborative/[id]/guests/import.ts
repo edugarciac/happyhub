@@ -46,12 +46,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       );
       if (row.email) {
         await sendInvitationEmail(
-          row.email, row.name, event.title, event.event_date, event.location, invite_token
+          row.email, row.name, event.title, event.event_date, event.location ?? null, invite_token
         );
       }
       imported++;
-    } catch (err: any) {
-      errors.push(`${row.name}: ${err.message}`);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Error desconocido';
+      errors.push(`${row.name}: ${message}`);
     }
   }
 
