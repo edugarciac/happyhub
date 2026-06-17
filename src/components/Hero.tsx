@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { ArrowRight, ChevronDown, Star, Users, Clock } from 'lucide-react';
 
 const WhatsAppIcon = ({ className }: { className?: string }) => (
@@ -7,6 +8,17 @@ const WhatsAppIcon = ({ className }: { className?: string }) => (
 );
 
 export default function Hero() {
+  const [reviewStats, setReviewStats] = useState<{ average: number | null; count: number } | null>(null);
+
+  useEffect(() => {
+    fetch('/api/reviews/stats')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.success && data.stats) setReviewStats(data.stats);
+      })
+      .catch(() => {});
+  }, []);
+
   const scrollToFeatures = () => {
     const element = document.getElementById('features');
     if (element) element.scrollIntoView({ behavior: 'smooth' });
@@ -69,11 +81,15 @@ export default function Hero() {
           </div>
 
           <div className="flex flex-wrap gap-5 text-sm text-white/70">
-            <div className="flex items-center gap-1.5">
-              <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-              <span className="font-semibold text-white">4.9/5</span> valoración
-            </div>
-            <span className="text-white/30">·</span>
+            {reviewStats && reviewStats.count > 0 && (
+              <>
+                <div className="flex items-center gap-1.5">
+                  <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+                  <span className="font-semibold text-white">{reviewStats.average?.toFixed(1)}/5</span> valoración
+                </div>
+                <span className="text-white/30">·</span>
+              </>
+            )}
             <div className="flex items-center gap-1.5">
               <Users className="w-4 h-4 text-primary-300" />
               Hasta <span className="font-semibold text-white mx-1">50 personas</span>
