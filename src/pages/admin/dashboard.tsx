@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import AdminLayout from '../../components/admin/AdminLayout';
-import { Star, Users, Calendar, Building2, Briefcase, Tag } from 'lucide-react';
+import { Star, Users, Calendar, Building2, Briefcase, Tag, Euro } from 'lucide-react';
 import Link from 'next/link';
 
 interface Stats {
@@ -95,6 +95,13 @@ export default function AdminDashboard() {
       href: '/admin/services',
       color: 'text-pink-600',
       bgColor: 'bg-pink-100',
+    },
+    {
+      title: 'Precios',
+      icon: Euro,
+      href: '/admin/pricing',
+      color: 'text-emerald-600',
+      bgColor: 'bg-emerald-100',
     },
   ];
 
