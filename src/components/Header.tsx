@@ -61,7 +61,7 @@ export default function Header() {
             </div>
             <span className="text-2xl font-bold">
               <span className="text-[#FF6B35]">Happy</span>
-              <span className="text-[#00BCD4]">hub</span>
+              <span className="text-[#00BCD4]">Hub</span>
             </span>
           </Link>
 
