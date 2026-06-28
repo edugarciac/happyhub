@@ -69,7 +69,7 @@ export default function ResetTokenPage() {
         <div className="max-w-md w-full space-y-8">
           <div className="bg-white rounded-lg shadow-lg p-8">
             <div className="text-center mb-8">
-              <h1 className="text-4xl font-bold text-primary-600 mb-2">Happyhub</h1>
+              <h1 className="text-4xl font-bold text-primary-600 mb-2">HappyHub</h1>
               <p className="text-gray-600">Establece tu nueva contraseña</p>
             </div>
 

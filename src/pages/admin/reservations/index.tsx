@@ -209,7 +209,7 @@ export default function AdminReservations() {
 
   return (
     <>
-      <Head><title>Reservas - Admin Happyhub</title></Head>
+      <Head><title>Reservas - Admin HappyHub</title></Head>
 
       <AdminLayout>
         {/* Toast */}

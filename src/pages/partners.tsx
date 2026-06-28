@@ -30,8 +30,8 @@ export default function PartnersPage({ partners }: Props) {
   return (
     <>
       <Head>
-        <title>Partners - Happyhub</title>
-        <meta name="description" content="Conoce las empresas que forman parte del hub de Happyhub. Profesionales seleccionados para hacer tu evento perfecto." />
+        <title>Partners - HappyHub</title>
+        <meta name="description" content="Conoce las empresas que forman parte del hub de HappyHub. Profesionales seleccionados para hacer tu evento perfecto." />
       </Head>
 
       <section className="bg-gradient-to-br from-primary-50 to-secondary-50 pt-28 pb-16">
@@ -40,7 +40,7 @@ export default function PartnersPage({ partners }: Props) {
             Nuestros Partners
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Happyhub es un hub de empresas que colaboran para hacer tus eventos inolvidables.
+            HappyHub es un hub de empresas que colaboran para hacer tus eventos inolvidables.
             Cada partner ha sido seleccionado por su profesionalidad, calidad y compromiso.
           </p>
         </div>
@@ -112,7 +112,7 @@ export default function PartnersPage({ partners }: Props) {
             <Users className="w-12 h-12 text-primary-600 mx-auto mb-4" />
             <h2 className="section-title mb-4">Unete al hub</h2>
             <p className="text-xl text-gray-600 mb-4">
-              Eres una empresa de servicios para eventos y quieres formar parte de Happyhub?
+              Eres una empresa de servicios para eventos y quieres formar parte de HappyHub?
               Estamos buscando profesionales comprometidos con la calidad.
             </p>
             <p className="text-gray-500 mb-8">

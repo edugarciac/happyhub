@@ -222,7 +222,7 @@ export default function Home({ instagramPosts }: HomeProps) {
               Siguenos en Instagram
             </h2>
             <p className="section-subtitle max-w-3xl mx-auto">
-              Descubre momentos reales de celebraciones en Happyhub
+              Descubre momentos reales de celebraciones en HappyHub
             </p>
           </div>
 
@@ -238,7 +238,7 @@ export default function Home({ instagramPosts }: HomeProps) {
                 >
                   <Image
                     src={post.thumbnail_url || post.media_url}
-                    alt={post.caption?.slice(0, 100) || 'Happyhub en Instagram'}
+                    alt={post.caption?.slice(0, 100) || 'HappyHub en Instagram'}
                     fill
                     className="object-cover group-hover:scale-105 transition-transform duration-300"
                     sizes="(max-width: 768px) 50vw, 33vw"

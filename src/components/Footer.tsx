@@ -27,7 +27,7 @@ export default function Footer() {
             <div className="flex items-center space-x-3 mb-6">
               <div className="relative w-12 h-12">
                 <Image
-                  src="/happyhub_logo_white.png"
+                  src="/happyhub_logo_white.jpg"
                   alt="HappyHub Logo"
                   width={48}
                   height={48}

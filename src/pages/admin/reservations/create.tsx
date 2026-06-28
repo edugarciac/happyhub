@@ -117,7 +117,7 @@ export default function CreateReservation() {
   return (
     <AdminLayout>
       <Head>
-        <title>Nueva Reserva - Admin Happyhub</title>
+        <title>Nueva Reserva - Admin HappyHub</title>
       </Head>
 
       <div className="max-w-2xl mx-auto">
