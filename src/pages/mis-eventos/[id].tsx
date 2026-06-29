@@ -17,6 +17,8 @@ import EventTimeline from '@/components/events/EventTimeline';
 import GuestList from '@/components/events/GuestList';
 import GiftSection from '@/components/events/GiftSection';
 import EntertainmentSection from '@/components/events/EntertainmentSection';
+import RemindersSection from '@/components/events/RemindersSection';
+import PhotoAlbumSection from '@/components/events/PhotoAlbumSection';
 
 interface Props {
   event: CollaborativeEvent;
@@ -90,7 +92,6 @@ export default function MisEventosDashboard({ event, participants, milestones, i
             isOrganizer={isOrganizer}
           />
         );
-      case 'info': return <SectionPlaceholder label="Info" />;
       case 'invitados':
         return (
           <GuestList
@@ -117,9 +118,17 @@ export default function MisEventosDashboard({ event, participants, milestones, i
             eventType={event.category}
           />
         );
-      case 'detalles': return <SectionPlaceholder label="Detalles" />;
+      case 'recordatorios':
+        return <RemindersSection eventId={event.id} participants={participants} />;
       case 'servicios': return <SectionPlaceholder label="Servicios" />;
-      case 'fotos': return <SectionPlaceholder label="Fotos" />;
+      case 'fotos':
+        return (
+          <PhotoAlbumSection
+            eventId={event.id}
+            isOrganizer={isOrganizer}
+            currentParticipantId={currentParticipantId}
+          />
+        );
       case 'mensajes': return <SectionPlaceholder label="Mensajes" />;
       default: return <SectionPlaceholder label={section} />;
     }

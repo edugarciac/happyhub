@@ -22,6 +22,9 @@ const nextConfig = {
   reactStrictMode: false, // Disabled to prevent double rendering issues
   images: {
     domains: ['localhost', 'scontent.cdninstagram.com', 'scontent-mad1-1.cdninstagram.com'],
+    remotePatterns: [
+      { protocol: 'https', hostname: '*.s3.*.amazonaws.com' },
+    ],
     unoptimized: false, // Vercel has native image optimization
   },
   serverRuntimeConfig: {

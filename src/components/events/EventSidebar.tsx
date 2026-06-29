@@ -1,16 +1,26 @@
 import Link from 'next/link';
+import {
+  Clock,
+  Users,
+  Gift,
+  Drama,
+  Bell,
+  ConciergeBell,
+  Camera,
+  MessageCircle,
+  type LucideIcon,
+} from 'lucide-react';
 
-const SECTIONS = [
-  { id: 'timeline', emoji: '⏱', label: 'Timeline' },
-  { id: 'info', emoji: '📋', label: 'Info' },
-  { id: 'invitados', emoji: '👥', label: 'Invitados' },
-  { id: 'regalo', emoji: '🎁', label: 'Regalo' },
-  { id: 'entretenimiento', emoji: '🎭', label: 'Entret.' },
-  { id: 'detalles', emoji: '🎀', label: 'Detalles' },
-  { id: 'servicios', emoji: '🛎', label: 'Servicios' },
-  { id: 'fotos', emoji: '📸', label: 'Fotos' },
-  { id: 'mensajes', emoji: '💬', label: 'Mensajes' },
-] as const;
+const SECTIONS: { id: string; icon: LucideIcon; label: string }[] = [
+  { id: 'timeline', icon: Clock, label: 'Timeline' },
+  { id: 'invitados', icon: Users, label: 'Invitados' },
+  { id: 'regalo', icon: Gift, label: 'Regalo' },
+  { id: 'entretenimiento', icon: Drama, label: 'Entretenimiento' },
+  { id: 'recordatorios', icon: Bell, label: 'Recordatorios' },
+  { id: 'servicios', icon: ConciergeBell, label: 'Servicios' },
+  { id: 'fotos', icon: Camera, label: 'Fotos' },
+  { id: 'mensajes', icon: MessageCircle, label: 'Mensajes' },
+];
 
 interface EventSidebarProps {
   eventId: number;
@@ -19,23 +29,21 @@ interface EventSidebarProps {
 
 export default function EventSidebar({ eventId, activeSection }: EventSidebarProps) {
   return (
-    <aside className="w-[76px] flex-shrink-0 bg-gray-50 border-r border-gray-200 flex flex-col items-center py-3 gap-1 sticky top-16 self-start min-h-[calc(100vh-4rem)] overflow-y-auto">
-      {SECTIONS.map((s) => {
-        const isActive = activeSection === s.id;
+    <aside className="w-[200px] flex-shrink-0 bg-white border-r border-gray-200 flex flex-col py-4 px-2.5 gap-1 sticky top-16 self-start min-h-[calc(100vh-4rem)] overflow-y-auto">
+      {SECTIONS.map(({ id, icon: Icon, label }) => {
+        const isActive = activeSection === id;
         return (
           <Link
-            key={s.id}
-            href={`/mis-eventos/${eventId}?section=${s.id}`}
-            className={`w-[60px] rounded-lg py-2 px-1 flex flex-col items-center gap-0.5 transition-colors ${
+            key={id}
+            href={`/mis-eventos/${eventId}?section=${id}`}
+            className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
               isActive
-                ? 'bg-violet-100 text-violet-700'
-                : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
+                ? 'bg-violet-600 text-white shadow-sm'
+                : 'text-gray-600 hover:bg-violet-50 hover:text-violet-700'
             }`}
           >
-            <span className="text-xl leading-none">{s.emoji}</span>
-            <span className={`text-[9px] font-medium text-center leading-tight ${isActive ? 'text-violet-700' : ''}`}>
-              {s.label}
-            </span>
+            <Icon className="w-[18px] h-[18px] flex-shrink-0" strokeWidth={isActive ? 2.25 : 2} />
+            <span className="truncate">{label}</span>
           </Link>
         );
       })}

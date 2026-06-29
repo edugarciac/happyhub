@@ -36,7 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ success: false, error: 'La imagen debe ser menor a 5MB' });
     }
 
-    const allowedFolders = ['services', 'event-types', 'reviews', 'uploads'];
+    const allowedFolders = ['services', 'event-types', 'reviews', 'uploads', 'event-photos'];
     const safeFolder = allowedFolders.includes(folder) ? folder : 'uploads';
 
     const url = await uploadToS3(file.data, safeFolder, file.name);
