@@ -18,12 +18,16 @@ export async function fetchInstagramPosts(limit = 9): Promise<InstagramPost[]> {
     const res = await fetch(
       `https://graph.instagram.com/me/media?fields=${INSTAGRAM_FIELDS}&limit=${limit}&access_token=${INSTAGRAM_TOKEN}`
     );
-    if (!res.ok) return [];
+    if (!res.ok) {
+      console.warn(`Instagram API returned status ${res.status}`);
+      return [];
+    }
     const data = await res.json();
     return (data.data || []).filter(
       (p: InstagramPost) => p.media_type === 'IMAGE' || p.media_type === 'CAROUSEL_ALBUM'
     );
-  } catch {
+  } catch (err) {
+    console.error('Instagram API error:', err);
     return [];
   }
 }

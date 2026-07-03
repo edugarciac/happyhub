@@ -53,7 +53,7 @@ export default function AdminReservations() {
   useEffect(() => {
     fetch('/api/event-types').then(r => r.json()).then(d => {
       if (d.success) setEventTypes(d.eventTypes);
-    }).catch(() => {});
+    }).catch((err) => console.warn('Failed to load event types:', err));
   }, []);
   const [total, setTotal] = useState(0);
   const [error, setError] = useState('');

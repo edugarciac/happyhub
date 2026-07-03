@@ -15,6 +15,7 @@ export default function Disponibilidad() {
   const [bookedSlots, setBookedSlots] = useState<{ date: Date; timeSlot: TimeSlot }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [pricing, setPricing] = useState<Record<string, number>>({});
+  const [loadError, setLoadError] = useState(false);
 
   // Fetch pricing and booked slots
   useEffect(() => {
@@ -41,6 +42,7 @@ export default function Disponibilidad() {
         }
       } catch (error) {
         console.error('Error fetching data:', error);
+        setLoadError(true);
       } finally {
         setIsLoading(false);
       }
@@ -129,6 +131,8 @@ export default function Disponibilidad() {
                 <p className="text-gray-600">Cargando disponibilidad...</p>
               </div>
             </div>
+          ) : loadError ? (
+            <div className="text-center py-12 text-red-500">Error al cargar la disponibilidad. Inténtalo de nuevo más tarde.</div>
           ) : (
             <FullCalendar onSlotSelect={handleSlotSelect} bookedSlots={bookedSlots} selectedDate={selectedDate} selectedTimeSlot={selectedTimeSlot} />
           )}

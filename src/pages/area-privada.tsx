@@ -145,8 +145,8 @@ export default function AreaPrivadaPage() {
         setProfile(data);
         profileForm.reset({ name: data.name || '', phone: data.phone || '' });
       }
-    } catch {
-      // silent
+    } catch (err) {
+      console.warn('Failed to fetch profile:', err);
     } finally {
       setLoadingProfile(false);
     }
@@ -160,8 +160,8 @@ export default function AreaPrivadaPage() {
         setOrganizedEvents(data.organized || []);
         setParticipatingEvents(data.participating || []);
       }
-    } catch {
-      // silent
+    } catch (err) {
+      console.warn('Failed to fetch collaborative events:', err);
     } finally {
       setLoadingEvents(false);
     }

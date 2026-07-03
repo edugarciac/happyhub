@@ -68,6 +68,7 @@ export const authOptions: NextAuthOptions = {
         await ensureUsersTable();
       } catch (err) {
         console.error('[AUTH] ensureUsersTable failed:', err);
+        return false;
       }
 
       // Handle Google OAuth sign-in

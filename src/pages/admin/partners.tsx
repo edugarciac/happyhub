@@ -52,7 +52,7 @@ export default function AdminPartners() {
     try {
       const res = await fetch('/api/admin/partners');
       if (res.ok) setPartners(await res.json());
-    } catch { /* ignore */ }
+    } catch (err) { console.warn('Failed to fetch partners:', err); }
     setLoading(false);
   }, []);
 

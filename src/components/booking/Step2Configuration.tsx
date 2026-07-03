@@ -24,7 +24,7 @@ export default function Step2Configuration() {
           dispatch({ type: 'SET_SERVICES', services: mapped });
         }
       })
-      .catch(() => {});
+      .catch((err) => console.warn('Failed to load services catalog:', err));
   }, []);
 
   // Calculate basePrice when arriving with a preselected date/slot (skipping step 1)

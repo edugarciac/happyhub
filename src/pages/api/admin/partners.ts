@@ -42,11 +42,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     res.setHeader('Allow', 'GET,POST,PUT,DELETE');
     return res.status(405).end();
-  } catch (err: any) {
-    if (err.message === 'Unauthorized') {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    if (message === 'Unauthorized') {
       return res.status(401).json({ error: 'No autorizado' });
     }
     console.error('Partners API error:', err);
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: 'Error interno del servidor' });
   }
 }

@@ -83,10 +83,12 @@ export default async function handler(
       });
 
     return res.status(200).json({ bookedSlots });
-  } catch (error: any) {
-    console.error('Error fetching booked slots from Google Calendar:', error.message);
-
-    // If API fails, return empty array (better UX - show all as available)
-    return res.status(200).json({ bookedSlots: [] });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error('Error fetching booked slots from Google Calendar:', message);
+    return res.status(500).json({
+      error: 'Error al obtener disponibilidad del calendario',
+      bookedSlots: [],
+    });
   }
 }

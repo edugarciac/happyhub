@@ -38,12 +38,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       providers,
       authOptionsLoaded: !!authOptions,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    console.error('test-auth-config error:', error);
+    const message = error instanceof Error ? error.message : String(error);
+    const name = error instanceof Error ? error.name : 'Error';
     res.status(500).json({
       success: false,
-      error: error.message,
-      stack: error.stack,
-      name: error.name,
+      error: message,
+      name,
+      ...(process.env.NODE_ENV === 'development' && error instanceof Error
+        ? { stack: error.stack }
+        : {}),
     });
   }
 }
