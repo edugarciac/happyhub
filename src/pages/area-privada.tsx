@@ -8,6 +8,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { User, Lock, Calendar, ChevronDown, ChevronUp, RefreshCw, Star, Users, Plus, ArrowRight } from 'lucide-react';
 import type { CollaborativeEvent } from '@/utils/db/collaborative-events';
+import { formatCurrency } from '@/utils/formatters';
 
 // -- Types --
 
@@ -84,10 +85,6 @@ function formatDate(dateStr: string) {
     month: 'long',
     year: 'numeric',
   });
-}
-
-function formatCurrency(amount: number) {
-  return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(amount);
 }
 
 // -- Component --

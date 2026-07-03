@@ -1,8 +1,6 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import type { NextApiResponse } from 'next';
+import { withCollaborativeEventAuth } from '@/lib/apiMiddleware';
 import { query } from '@/lib/db';
-import { getCollaborativeEventById } from '@/utils/db/collaborative-events';
 
 async function getValidToken(conn: any): Promise<string> {
   if (conn.token_expires_at && new Date(conn.token_expires_at) > new Date()) {
@@ -26,19 +24,11 @@ async function getValidToken(conn: any): Promise<string> {
   return data.access_token;
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default withCollaborativeEventAuth(async (req, res, ctx) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const session = await getServerSession(req, res, authOptions);
-  if (!session?.user) return res.status(401).json({ error: 'No autenticado' });
-
-  const userId = parseInt((session.user as any).id as string, 10);
-  const eventId = parseInt(req.query.id as string, 10);
-  if (isNaN(eventId)) return res.status(400).json({ error: 'ID inválido' });
-
-  const event = await getCollaborativeEventById(eventId);
-  if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
-  if (event.organizer_id !== userId) return res.status(403).json({ error: 'Solo el organizador' });
+  const { eventId, event, isOrganizer } = ctx;
+  if (!isOrganizer) return res.status(403).json({ error: 'Solo el organizador' });
 
   const connResult = await query(
     `SELECT * FROM event_spotify_connections WHERE event_id = $1`,
@@ -100,4 +90,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } catch (err: any) {
     return res.status(500).json({ error: err.message });
   }
-}
+});
