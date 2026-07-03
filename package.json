@@ -8,7 +8,9 @@
     "start": "next start",
     "export": "next export",
     "lint": "next lint",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test": "jest",
+    "test:coverage": "jest --coverage"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
@@ -45,6 +47,7 @@
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
+    "@types/jest": "^30.0.0",
     "@types/jsonwebtoken": "^9.0.5",
     "@types/micro": "^7.3.7",
     "@types/node": "^20.10.6",
@@ -55,8 +58,10 @@
     "autoprefixer": "^10.4.16",
     "eslint": "^8.56.0",
     "eslint-config-next": "^14.0.4",
+    "jest": "^30.4.2",
     "postcss": "^8.4.32",
     "tailwindcss": "^3.4.0",
+    "ts-jest": "^29.4.11",
     "typescript": "^5.3.3"
   }
 }
