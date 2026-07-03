@@ -3,7 +3,11 @@ import { validateVerificationToken } from '../../../utils/emailVerification';
 import { getUserById } from '../../../utils/db/users';
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error('JWT_SECRET environment variable is required');
+  return secret;
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -46,7 +50,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Generate new JWT with emailVerified: true
     const newToken = jwt.sign(
       { userId: user.id, email: user.email, role: user.role, emailVerified: true },
-      JWT_SECRET,
+      getJwtSecret(),
       { expiresIn: '30d' }
     );
 

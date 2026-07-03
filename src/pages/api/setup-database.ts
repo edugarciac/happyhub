@@ -6,6 +6,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { Pool } from 'pg';
 import fs from 'fs';
 import path from 'path';
+import { requireAdminSession } from '@/utils/adminAuth';
 
 const pool = new Pool({
   host: process.env.DB_HOST,
@@ -20,6 +21,12 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  try {
+    await requireAdminSession(req, res);
+  } catch {
+    return res.status(401).json({ success: false, error: 'No autorizado' });
+  }
+
   try {
     const client = await pool.connect();
 

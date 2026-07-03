@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { stripe } from '@/lib/stripe';
+import { requireAdminSession } from '@/utils/adminAuth';
 
 const TIME_SLOT_LABELS: Record<string, string> = {
   morning: 'Mañana',
@@ -19,6 +20,12 @@ const EVENT_TYPE_LABELS: Record<string, string> = {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    await requireAdminSession(req, res);
+  } catch {
+    return res.status(401).json({ error: 'No autorizado' });
   }
 
   const { dateFrom, dateTo, format = 'csv' } = req.query;

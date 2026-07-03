@@ -7,11 +7,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Simple API key auth for cron jobs
+  // API key auth for cron jobs
   const apiKey = req.headers['x-api-key'];
   const expectedKey = process.env.CRON_API_KEY;
 
-  if (expectedKey && apiKey !== expectedKey) {
+  if (!expectedKey || apiKey !== expectedKey) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
