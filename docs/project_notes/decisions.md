@@ -285,6 +285,33 @@ Document key architectural choices, their context, and trade-offs.
 - Workflow: `n8n/n8n-nodes/n8n-db-backup-cron.json`
 - Spec completo: `openspec/changes/database-backup-strategy/`
 
+### ADR-010: Subida de Precios del 20% vía Script de Migración (2026-07-06)
+
+**Context:**
+- El negocio necesita subir todas las tarifas de franjas horarias un 20%
+- Los precios ya viven en la tabla `pricing_rules` (ADR previo: `pricing-database-migration`), no en código
+- Se busca un cambio auditable y repetible en vez de una edición manual fila a fila desde `/admin/pricing`
+
+**Decision:**
+- Migración `database/migrations/015_increase_pricing_20_percent.sql`: `UPDATE pricing_rules SET price = ROUND(price * 1.20, 2)`
+- Script runner `scripts/run-pricing-increase-migration.js` (mismo patrón que `run-pricing-migration.js`), imprime precios antes/después para verificación
+- Sin cambios de código: `pricingDb.ts` lee `pricing_rules` dinámicamente (caché de 5 min)
+
+**Alternatives Considered:**
+- Editar cada regla manualmente en `/admin/pricing` → Rechazado: propenso a errores, no auditable, tedioso para 9 filas
+- Hardcodear los nuevos precios absolutos en el SQL → Rechazado: frágil si las reglas cambian antes de ejecutar el script
+
+**Consequences:**
+- ✅ Cambio de precio auditable vía control de versiones
+- ✅ Reutilizable como plantilla para futuras subidas porcentuales
+- ✅ Los slots "a consultar" (price=0) no se ven afectados
+- ❌ No es idempotente: ejecutarlo dos veces compondría la subida (20% sobre 20%)
+- ❌ Requiere `DATABASE_URL` configurado para ejecutarse; no se lanzó en este entorno por no tener acceso a la base de datos de producción
+
+**Implementación:**
+- Spec completo: `openspec/changes/pricing-rate-increase/`
+- Ejecutar con: `node scripts/run-pricing-increase-migration.js`
+
 ## Tips
 
 - Number decisions sequentially
