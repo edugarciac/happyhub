@@ -62,8 +62,9 @@ amplify-env-variables.txt
 next-env.d.ts
 aws-credentials-happyhub.json
 
-# GitHub Spec Kit (may contain credentials/tokens)
-.claude/
+# Claude Code local state (may contain credentials/tokens) - commands/skills are tracked
+.claude/settings.local.json
+.claude/*.local.json
 .speckit/
 
 # Style Dictionary
