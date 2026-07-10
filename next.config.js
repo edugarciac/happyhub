@@ -13,7 +13,7 @@ const securityHeaders = [
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: https:",
       "frame-src https://js.stripe.com",
-      "connect-src 'self' https://www.google-analytics.com https://analytics.google.com",
+      "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com",
     ].join('; '),
   },
 ]
