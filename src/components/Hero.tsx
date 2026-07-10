@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { ArrowRight, ChevronDown, Star, Users, Clock } from 'lucide-react';
 
 const WhatsAppIcon = ({ className }: { className?: string }) => (
@@ -7,6 +8,28 @@ const WhatsAppIcon = ({ className }: { className?: string }) => (
 );
 
 export default function Hero() {
+  const [reviewStats, setReviewStats] = useState<{ average: number | null; count: number } | null>(null);
+
+  useEffect(() => {
+    const fetchReviewStats = async () => {
+      try {
+        const response = await fetch('/api/reviews/stats');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            setReviewStats(data.stats);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching review stats:', error);
+      }
+    };
+
+    fetchReviewStats();
+  }, []);
+
+  const hasReviews = !!reviewStats && reviewStats.count > 0 && reviewStats.average !== null;
+
   const scrollToFeatures = () => {
     const element = document.getElementById('features');
     if (element) element.scrollIntoView({ behavior: 'smooth' });
@@ -69,11 +92,15 @@ export default function Hero() {
           </div>
 
           <div className="flex flex-wrap gap-5 text-sm text-white/70">
-            <div className="flex items-center gap-1.5">
-              <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-              <span className="font-semibold text-white">4.9/5</span> valoración
-            </div>
-            <span className="text-white/30">·</span>
+            {hasReviews && (
+              <>
+                <div className="flex items-center gap-1.5">
+                  <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+                  <span className="font-semibold text-white">{reviewStats!.average}/5</span> valoración ({reviewStats!.count})
+                </div>
+                <span className="text-white/30">·</span>
+              </>
+            )}
             <div className="flex items-center gap-1.5">
               <Users className="w-4 h-4 text-primary-300" />
               Hasta <span className="font-semibold text-white mx-1">50 personas</span>
