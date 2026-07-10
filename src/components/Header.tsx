@@ -4,12 +4,14 @@ import { useRouter } from 'next/router';
 import { useState, useEffect } from 'react';
 import { Menu, X, User, LogOut } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
+import { isBookingAllowedEmail } from '@/utils/bookingAccess';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const { data: session } = useSession();
   const router = useRouter();
+  const canRequestReservation = isBookingAllowedEmail(session?.user?.email);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -99,12 +101,22 @@ export default function Header() {
                 <User className="w-5 h-5" />
               </Link>
             )}
-            <Link
-              href="/reservas"
-              className="btn-primary ml-4 !py-2 !px-4 text-sm whitespace-nowrap"
-            >
-              Solicitar Reserva
-            </Link>
+            {canRequestReservation ? (
+              <Link
+                href="/reservas"
+                className="btn-primary ml-4 !py-2 !px-4 text-sm whitespace-nowrap"
+              >
+                Solicitar Reserva
+              </Link>
+            ) : (
+              <span
+                aria-disabled="true"
+                title="Solicitar reserva no está disponible con esta cuenta."
+                className="btn-primary ml-4 !py-2 !px-4 text-sm whitespace-nowrap opacity-50 cursor-not-allowed pointer-events-none"
+              >
+                Solicitar Reserva
+              </span>
+            )}
           </div>
 
           <button
@@ -152,13 +164,23 @@ export default function Header() {
                 Iniciar Sesión
               </Link>
             )}
-            <Link
-              href="/reservas"
-              onClick={() => setIsMenuOpen(false)}
-              className="block btn-primary text-center mt-4"
-            >
-              Solicitar Reserva
-            </Link>
+            {canRequestReservation ? (
+              <Link
+                href="/reservas"
+                onClick={() => setIsMenuOpen(false)}
+                className="block btn-primary text-center mt-4"
+              >
+                Solicitar Reserva
+              </Link>
+            ) : (
+              <span
+                aria-disabled="true"
+                title="Solicitar reserva no está disponible con esta cuenta."
+                className="block btn-primary text-center mt-4 opacity-50 cursor-not-allowed"
+              >
+                Solicitar Reserva
+              </span>
+            )}
           </div>
         )}
       </nav>
