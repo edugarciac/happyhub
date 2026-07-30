@@ -209,11 +209,13 @@ export default function ComoFunciona() {
                           />
                         </button>
 
-                        {isOpen && (
-                          <div className="px-6 pb-5 text-gray-600 leading-relaxed border-t border-gray-200 pt-4">
-                            {faq.answer}
-                          </div>
-                        )}
+                        <div
+                          className={`px-6 pb-5 text-gray-600 leading-relaxed border-t border-gray-200 pt-4 ${
+                            isOpen ? 'block' : 'hidden'
+                          }`}
+                        >
+                          {faq.answer}
+                        </div>
                       </div>
                     );
                   })}

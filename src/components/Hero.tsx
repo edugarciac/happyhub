@@ -36,9 +36,9 @@ export default function Hero() {
       <div className="container-custom relative z-10 w-full">
         <div className="max-w-xl animate-slide-up">
 
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-white/90 px-4 py-2 rounded-full text-sm font-semibold mb-8 border border-white/20">
-            <span className="w-2 h-2 rounded-full bg-primary-400 animate-pulse" />
-            Espacio disponible · Apertura Julio 2026
+          <div className="inline-flex items-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-full text-sm font-bold mb-8 border border-orange-300 shadow-lg shadow-orange-500/30">
+            <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+            Abrimos a partir de Septiembre de 2026
           </div>
 
           <h1 className="text-5xl md:text-6xl xl:text-7xl font-bold text-white leading-[1.05] tracking-tight mb-6">

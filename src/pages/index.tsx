@@ -252,7 +252,7 @@ export default function Home({ instagramPosts }: HomeProps) {
           ) : (
             <div className="text-center text-gray-500 py-8">
               <Instagram className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-              <p>Proximamente: nuestro feed de Instagram</p>
+              <p>Muy pronto compartiremos aquí nuestros mejores momentos. Síguenos en Instagram para no perderte nada.</p>
             </div>
           )}
 

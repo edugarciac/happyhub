@@ -139,6 +139,10 @@ export default function PricingTable() {
                 </tbody>
               </table>
             </div>
+            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-start gap-2 text-sm text-gray-600">
+              <Info className="w-4 h-4 text-primary-500 flex-shrink-0 mt-0.5" />
+              <span>¿Necesitas más tiempo? Puedes ampliar tu franja horaria según disponibilidad — consúltanos para conocer la tarifa adicional.</span>
+            </div>
           </div>
 
           {/* What's included */}

@@ -1,17 +1,8 @@
 import Image from 'next/image';
+import Link from 'next/link';
 import { Instagram, Mail, Phone, MapPin, Heart } from 'lucide-react';
 
 export default function Footer() {
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      const offset = 80;
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - offset;
-      window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
-    }
-  };
-
   return (
     <footer id="contact" className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white relative overflow-hidden">
       {/* Decorative elements */}
@@ -59,31 +50,31 @@ export default function Footer() {
             <h4 className="text-lg font-bold mb-6 text-white">Navegación</h4>
             <ul className="space-y-3">
               <li>
-                <button
-                  onClick={() => scrollToSection('hero')}
+                <Link
+                  href="/"
                   className="text-gray-400 hover:text-primary-400 transition-colors flex items-center group"
                 >
                   <span className="mr-2 group-hover:mr-3 transition-all">→</span>
                   Inicio
-                </button>
+                </Link>
               </li>
               <li>
-                <button
-                  onClick={() => scrollToSection('features')}
+                <Link
+                  href="/#features"
                   className="text-gray-400 hover:text-primary-400 transition-colors flex items-center group"
                 >
                   <span className="mr-2 group-hover:mr-3 transition-all">→</span>
                   Características
-                </button>
+                </Link>
               </li>
               <li>
-                <button
-                  onClick={() => scrollToSection('services')}
+                <Link
+                  href="/servicios"
                   className="text-gray-400 hover:text-primary-400 transition-colors flex items-center group"
                 >
                   <span className="mr-2 group-hover:mr-3 transition-all">→</span>
                   Servicios
-                </button>
+                </Link>
               </li>
               <li>
                 <a
@@ -112,14 +103,14 @@ export default function Footer() {
                 </a>
               </li>
               <li>
-                <a href="/politica-cancelacion" className="text-gray-400 hover:text-primary-400 transition-colors">
+                <Link href="/como-funciona" className="text-gray-400 hover:text-primary-400 transition-colors">
                   Política de cancelación
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/faq" className="text-gray-400 hover:text-primary-400 transition-colors">
+                <Link href="/como-funciona" className="text-gray-400 hover:text-primary-400 transition-colors">
                   Preguntas frecuentes
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
