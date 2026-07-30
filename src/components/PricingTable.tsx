@@ -46,35 +46,35 @@ export default function PricingTable() {
   const pricingRows: PriceRow[] = [
     {
       day: 'Lunes a Jueves',
-      morning: pricing.weekday_morning || 110,
-      afternoon: pricing.weekday_afternoon || 110,
+      morning: pricing.weekday_morning ?? 110,
+      afternoon: pricing.weekday_afternoon ?? 110,
       night: 'consult'
     },
     {
       day: 'Viernes',
-      morning: pricing.weekday_morning || 110,
-      afternoon: pricing.friday_afternoon || 155,
+      morning: pricing.weekday_morning ?? 110,
+      afternoon: pricing.friday_afternoon ?? 155,
       night: 'consult',
       highlight: true
     },
     {
       day: 'Sábados y Domingos',
-      morning: pricing.weekend_morning || 145,
-      afternoon: pricing.weekend_afternoon || 185,
+      morning: pricing.weekend_morning ?? 145,
+      afternoon: pricing.weekend_afternoon ?? 185,
       night: 'consult',
       highlight: true
     },
     {
       day: 'Festivos',
-      morning: pricing.holiday_morning || 145,
-      afternoon: pricing.holiday_afternoon || 185,
+      morning: pricing.holiday_morning ?? 145,
+      afternoon: pricing.holiday_afternoon ?? 185,
       night: 'consult',
       highlight: true
     },
   ];
 
   const formatPrice = (price: number | 'consult') => {
-    if (price === 'consult') return 'Consultar';
+    if (price === 'consult' || price === 0) return 'Consultar';
     return `${price}€`;
   };
 
