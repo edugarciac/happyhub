@@ -15,7 +15,6 @@ const INCLUDED = [
   'Mobiliario básico (mesas y sillas)',
   'Sistema de sonido',
   'Microondas y nevera',
-  'Limpieza final',
   'Apertura anticipada sin coste extra',
 ];
 
