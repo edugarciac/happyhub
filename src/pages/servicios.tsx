@@ -42,7 +42,7 @@ export default function Servicios() {
   return (
     <>
       <Head>
-        <title>Servicios - Happyhub</title>
+        <title>Servicios - HappyHub</title>
         <meta name="description" content="Servicios y extras para tu celebracion. Catering, animacion, decoracion, fotografia y mas." />
       </Head>
 

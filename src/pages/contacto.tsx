@@ -226,7 +226,7 @@ export default function Contacto() {
               allowFullScreen
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
-              title="Ruta desde el parking gratuito hasta Happyhub"
+              title="Ruta desde el parking gratuito hasta HappyHub"
             />
           </div>
 
@@ -236,7 +236,7 @@ export default function Contacto() {
                 <MapPin className="w-6 h-6 text-primary-600" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900 mb-1">Happyhub</h3>
+                <h3 className="font-semibold text-gray-900 mb-1">HappyHub</h3>
                 <p className="text-gray-600 text-sm">
                   C/ Rovellat, 27<br />
                   08950 Esplugues de Llobregat

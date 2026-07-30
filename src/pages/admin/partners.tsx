@@ -155,7 +155,7 @@ export default function AdminPartners() {
 
   return (
     <AdminLayout>
-      <Head><title>Partners - Admin Happyhub</title></Head>
+      <Head><title>Partners - Admin HappyHub</title></Head>
       <Toaster position="top-right" />
 
       <div className="flex items-center justify-between mb-6">

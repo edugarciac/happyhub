@@ -97,7 +97,7 @@ export default function VerifyEmailPage() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-ocean-light/20 to-primary/10 py-12 px-4">
         <div className="max-w-md w-full">
           <div className="bg-white rounded-lg shadow-lg p-8 text-center">
-            <h1 className="text-4xl font-bold text-primary mb-6">Happyhub</h1>
+            <h1 className="text-4xl font-bold text-primary mb-6">HappyHub</h1>
 
             <div className={`${bgColor} border rounded-lg p-6 mb-6`}>
               {state === 'loading' && (

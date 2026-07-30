@@ -1,4 +1,23 @@
 /** @type {import('next').NextConfig} */
+const securityHeaders = [
+  { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+  { key: 'X-Content-Type-Options', value: 'nosniff' },
+  { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+  { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+  {
+    key: 'Content-Security-Policy',
+    value: [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://js.stripe.com",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "font-src 'self' https://fonts.gstatic.com",
+      "img-src 'self' data: https:",
+      "frame-src https://js.stripe.com",
+      "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com",
+    ].join('; '),
+  },
+]
+
 const nextConfig = {
   reactStrictMode: false, // Disabled to prevent double rendering issues
   images: {
@@ -22,6 +41,9 @@ const nextConfig = {
     NEXTAUTH_URL: process.env.NEXTAUTH_URL || 'https://www.happyhub.es',
     N8N_WEBHOOK_URL: process.env.N8N_WEBHOOK_URL,
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+  },
+  async headers() {
+    return [{ source: '/(.*)', headers: securityHeaders }]
   },
 }
 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import AdminLayout from '../../components/admin/AdminLayout';
-import { Star, Users, Calendar, Building2, Briefcase, Tag } from 'lucide-react';
+import { Star, Users, Calendar, Building2, Briefcase, Tag, Euro } from 'lucide-react';
 import Link from 'next/link';
 
 interface Stats {
@@ -96,6 +96,13 @@ export default function AdminDashboard() {
       color: 'text-pink-600',
       bgColor: 'bg-pink-100',
     },
+    {
+      title: 'Precios',
+      icon: Euro,
+      href: '/admin/pricing',
+      color: 'text-emerald-600',
+      bgColor: 'bg-emerald-100',
+    },
   ];
 
   return (
@@ -108,7 +115,7 @@ export default function AdminDashboard() {
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard de Administración</h1>
-            <p className="text-gray-600">Gestiona todos los aspectos de Happyhub desde aquí</p>
+            <p className="text-gray-600">Gestiona todos los aspectos de HappyHub desde aquí</p>
           </div>
 
           {/* Management Cards */}

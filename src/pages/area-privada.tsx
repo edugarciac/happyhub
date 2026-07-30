@@ -542,7 +542,7 @@ export default function AreaPrivadaPage() {
                   maxLength={500}
                   rows={4}
                   className="block w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition resize-none"
-                  placeholder="Cuéntanos cómo fue tu experiencia en Happyhub..."
+                  placeholder="Cuéntanos cómo fue tu experiencia en HappyHub..."
                 />
                 <p className="text-xs text-gray-400 mt-1 text-right">{reviewText.length}/500</p>
               </div>
