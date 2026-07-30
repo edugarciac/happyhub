@@ -4,8 +4,8 @@ import { Check, Info } from 'lucide-react';
 
 interface PriceRow {
   day: string;
-  morning: number | 'consult';
-  afternoon: number | 'consult';
+  morning: number | 'consult' | undefined;
+  afternoon: number | 'consult' | undefined;
   night: 'consult';
   highlight?: boolean;
 }
@@ -46,35 +46,36 @@ export default function PricingTable() {
   const pricingRows: PriceRow[] = [
     {
       day: 'Lunes a Jueves',
-      morning: pricing.weekday_morning ?? 110,
-      afternoon: pricing.weekday_afternoon ?? 110,
+      morning: pricing.weekday_morning,
+      afternoon: pricing.weekday_afternoon,
       night: 'consult'
     },
     {
       day: 'Viernes',
-      morning: pricing.weekday_morning ?? 110,
-      afternoon: pricing.friday_afternoon ?? 155,
+      morning: pricing.weekday_morning,
+      afternoon: pricing.friday_afternoon,
       night: 'consult',
       highlight: true
     },
     {
       day: 'Sábados y Domingos',
-      morning: pricing.weekend_morning ?? 145,
-      afternoon: pricing.weekend_afternoon ?? 185,
+      morning: pricing.weekend_morning,
+      afternoon: pricing.weekend_afternoon,
       night: 'consult',
       highlight: true
     },
     {
       day: 'Festivos',
-      morning: pricing.holiday_morning ?? 145,
-      afternoon: pricing.holiday_afternoon ?? 185,
+      morning: pricing.holiday_morning,
+      afternoon: pricing.holiday_afternoon,
       night: 'consult',
       highlight: true
     },
   ];
 
-  const formatPrice = (price: number | 'consult') => {
-    if (price === 'consult' || price === 0) return 'Consultar';
+  const formatPrice = (price: number | 'consult' | undefined) => {
+    if (price === 'consult' || price === 0) return 'A consultar';
+    if (price === undefined) return '—';
     return `${price}€`;
   };
 
@@ -120,14 +121,22 @@ export default function PricingTable() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-center">
-                        <span className="text-2xl font-bold text-gray-900">
-                          {formatPrice(row.morning)}
-                        </span>
+                        {loading ? (
+                          <span className="inline-block h-6 w-14 rounded bg-gray-200 animate-pulse" />
+                        ) : (
+                          <span className="text-2xl font-bold text-gray-900">
+                            {formatPrice(row.morning)}
+                          </span>
+                        )}
                       </td>
                       <td className="px-6 py-4 text-center">
-                        <span className="text-2xl font-bold text-gray-900">
-                          {formatPrice(row.afternoon)}
-                        </span>
+                        {loading ? (
+                          <span className="inline-block h-6 w-14 rounded bg-gray-200 animate-pulse" />
+                        ) : (
+                          <span className="text-2xl font-bold text-gray-900">
+                            {formatPrice(row.afternoon)}
+                          </span>
+                        )}
                       </td>
                       <td className="px-6 py-4 text-center">
                         <span className="text-lg text-gray-500">
