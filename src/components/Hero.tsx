@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ArrowRight, ChevronDown, Star, Users, Clock } from 'lucide-react';
+import { event as gaEvent } from '@/lib/analytics';
 
 const WhatsAppIcon = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
@@ -75,6 +76,7 @@ export default function Hero() {
           <div className="flex flex-col sm:flex-row gap-4 mb-10">
             <a
               href="/reservas"
+              onClick={() => gaEvent('cta_click', { cta_name: 'reserva_hero', location: 'Hero' })}
               className="inline-flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-500 text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-200 shadow-xl hover:scale-105 cursor-pointer"
             >
               Reserva tu fecha
@@ -84,6 +86,7 @@ export default function Hero() {
               href="https://wa.me/34624645517"
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => gaEvent('cta_click', { cta_name: 'whatsapp_hero', location: 'Hero' })}
               className="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white border border-white/30 px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-200 cursor-pointer"
             >
               <WhatsAppIcon className="w-5 h-5" />
@@ -119,6 +122,7 @@ export default function Hero() {
         href="https://wa.me/34624645517"
         target="_blank"
         rel="noopener noreferrer"
+        onClick={() => gaEvent('cta_click', { cta_name: 'whatsapp_flotante', location: 'Hero' })}
         className="absolute bottom-10 right-10 bg-white/95 backdrop-blur-sm p-4 rounded-2xl shadow-2xl hover:scale-105 transition-transform duration-200 cursor-pointer z-10 hidden md:flex items-center gap-3"
       >
         <div className="bg-gradient-to-br from-green-400 to-emerald-500 text-white p-2.5 rounded-xl">

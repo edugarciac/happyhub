@@ -6,6 +6,7 @@ import Hero from '@/components/Hero';
 import PhotoGallery from '@/components/PhotoGallery';
 import PricingTable from '@/components/PricingTable';
 import { fetchInstagramPosts, InstagramPost } from '@/lib/instagram';
+import { event as gaEvent, useSectionView } from '@/lib/analytics';
 import {
   Calendar, Users, Sparkles, Shield, Clock, Heart,
   ArrowRight, Gift, CheckCircle2, Instagram, Star
@@ -102,6 +103,12 @@ export default function Home({ instagramPosts }: HomeProps) {
     },
   ];
 
+  const galleryRef = useSectionView('galeria');
+  const featuresRef = useSectionView('features');
+  const eventsRef = useSectionView('tipos_evento');
+  const instagramRef = useSectionView('instagram');
+  const finalCtaRef = useSectionView('cta_final');
+
   const photos = [
     { src: '/images/gallery/gallery-1.jpg', alt: 'Brindis entre amigos', caption: 'Celebra con los tuyos en un ambiente único' },
     { src: '/images/gallery/gallery-2.jpg', alt: 'Cumpleaños en HappyHub', caption: 'Fiestas de cumpleaños con todos los detalles' },
@@ -124,13 +131,15 @@ export default function Home({ instagramPosts }: HomeProps) {
       <Hero />
 
       {/* Photo Gallery Section */}
-      <PhotoGallery photos={photos} title="Conoce Nuestro Espacio" />
+      <div ref={galleryRef as any}>
+        <PhotoGallery photos={photos} title="Conoce Nuestro Espacio" />
+      </div>
 
       {/* Pricing Table Section */}
       <PricingTable />
 
       {/* Features Section */}
-      <section id="features" className="py-24 bg-white relative overflow-hidden">
+      <section id="features" ref={featuresRef} className="py-24 bg-white relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-primary-50/30 to-transparent pointer-events-none"></div>
 
         <div className="container-custom relative z-10">
@@ -168,7 +177,7 @@ export default function Home({ instagramPosts }: HomeProps) {
 
       {/* Event Types Section */}
       {eventTypes.length > 0 && (
-        <section id="events" className="py-24 bg-gray-50">
+        <section id="events" ref={eventsRef} className="py-24 bg-gray-50">
           <div className="container-custom">
             <div className="text-center mb-16">
               <span className="section-tag">
@@ -211,7 +220,7 @@ export default function Home({ instagramPosts }: HomeProps) {
       )}
 
       {/* Instagram Feed Section */}
-      <section id="instagram" className="py-24 bg-gradient-to-br from-primary-50 via-white to-ocean-50">
+      <section id="instagram" ref={instagramRef} className="py-24 bg-gradient-to-br from-primary-50 via-white to-ocean-50">
         <div className="container-custom">
           <div className="text-center mb-16">
             <span className="section-tag">
@@ -261,6 +270,7 @@ export default function Home({ instagramPosts }: HomeProps) {
               href="https://instagram.com/happyhub.es"
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => gaEvent('cta_click', { cta_name: 'instagram_follow', location: 'Home' })}
               className="btn-primary group inline-flex items-center"
             >
               <Instagram className="mr-2 w-5 h-5" />
@@ -341,7 +351,7 @@ export default function Home({ instagramPosts }: HomeProps) {
       )}
 
       {/* Final CTA Section */}
-      <section className="py-24 bg-gradient-to-br from-primary-600 via-ocean-600 to-accent-600 relative overflow-hidden">
+      <section ref={finalCtaRef} className="py-24 bg-gradient-to-br from-primary-600 via-ocean-600 to-accent-600 relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-10 left-10 w-96 h-96 bg-white rounded-full blur-3xl animate-pulse"></div>
           <div className="absolute bottom-10 right-10 w-96 h-96 bg-white rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
@@ -358,6 +368,7 @@ export default function Home({ instagramPosts }: HomeProps) {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
                 href="/reservas"
+                onClick={() => gaEvent('cta_click', { cta_name: 'reserva_cta_final', location: 'Home' })}
                 className="bg-white text-primary-700 px-10 py-5 rounded-2xl font-bold hover:bg-gray-100 transition-all text-lg inline-flex items-center justify-center hover:scale-105 shadow-xl"
               >
                 Reservar ahora

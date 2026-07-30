@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Instagram, Mail, Phone, MapPin, Heart } from 'lucide-react';
+import { event as gaEvent } from '@/lib/analytics';
 
 export default function Footer() {
   return (
@@ -38,6 +39,7 @@ export default function Footer() {
                 href="https://instagram.com/happyhub.es"
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => gaEvent('cta_click', { cta_name: 'instagram_follow', location: 'Footer' })}
                 className="bg-white/10 hover:bg-primary-600 text-white p-3 rounded-xl transition-all hover:scale-110"
               >
                 <Instagram className="w-5 h-5" />
@@ -79,6 +81,7 @@ export default function Footer() {
               <li>
                 <a
                   href="/reservas"
+                  onClick={() => gaEvent('cta_click', { cta_name: 'reserva_footer', location: 'Footer' })}
                   className="text-gray-400 hover:text-primary-400 transition-colors flex items-center group"
                 >
                   <span className="mr-2 group-hover:mr-3 transition-all">→</span>
@@ -126,7 +129,13 @@ export default function Footer() {
               <li className="flex items-center space-x-3 group">
                 <Phone className="w-5 h-5 text-primary-400 flex-shrink-0 group-hover:scale-110 transition-transform" />
                 <span>
-                  <a href="https://wa.me/34624645517" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-primary-400 transition-colors">
+                  <a
+                    href="https://wa.me/34624645517"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => gaEvent('cta_click', { cta_name: 'whatsapp_footer', location: 'Footer' })}
+                    className="text-gray-400 hover:text-primary-400 transition-colors"
+                  >
                     +34 624 645 517
                   </a>
                   <span className="block text-xs text-gray-500">Solo WhatsApp</span>

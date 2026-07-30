@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { Menu, X, User, LogOut } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 import { isBookingAllowedEmail } from '@/utils/bookingAccess';
+import { event as gaEvent } from '@/lib/analytics';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -104,6 +105,7 @@ export default function Header() {
             {canRequestReservation ? (
               <Link
                 href="/reservas"
+                onClick={() => gaEvent('cta_click', { cta_name: 'solicitar_reserva_header', location: 'Header' })}
                 className="btn-primary ml-4 !py-2 !px-4 text-sm whitespace-nowrap"
               >
                 Solicitar Reserva
@@ -167,7 +169,7 @@ export default function Header() {
             {canRequestReservation ? (
               <Link
                 href="/reservas"
-                onClick={() => setIsMenuOpen(false)}
+                onClick={() => { setIsMenuOpen(false); gaEvent('cta_click', { cta_name: 'solicitar_reserva_header_movil', location: 'Header' }); }}
                 className="block btn-primary text-center mt-4"
               >
                 Solicitar Reserva

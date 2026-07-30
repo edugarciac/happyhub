@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Check, Info } from 'lucide-react';
+import { event as gaEvent, useSectionView } from '@/lib/analytics';
 
 interface PriceRow {
   day: string;
@@ -78,8 +79,10 @@ export default function PricingTable() {
     return `${price}€`;
   };
 
+  const sectionRef = useSectionView('tarifas');
+
   return (
-    <section className="py-16 bg-gradient-to-br from-primary-50 to-secondary-50">
+    <section ref={sectionRef} className="py-16 bg-gradient-to-br from-primary-50 to-secondary-50">
       <div className="container-custom">
         <h2 className="text-3xl font-bold text-gray-900 text-center mb-4">Tarifas</h2>
         <p className="text-gray-600 text-center mb-12 max-w-2xl mx-auto">
@@ -200,6 +203,7 @@ export default function PricingTable() {
           <div className="text-center">
             <Link
               href="/reservas"
+              onClick={() => gaEvent('cta_click', { cta_name: 'reserva_pricing', location: 'PricingTable' })}
               className="btn-primary text-lg px-8 py-4 inline-flex items-center gap-2"
             >
               Reserva tu fecha

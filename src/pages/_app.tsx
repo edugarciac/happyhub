@@ -8,11 +8,13 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import VerificationBanner from '@/components/VerificationBanner';
 import CookieConsent, { useCookieConsent } from '@/components/CookieConsent';
-import { GA_MEASUREMENT_ID, pageview } from '@/lib/analytics';
+import { GA_MEASUREMENT_ID, pageview, useScrollDepthTracking } from '@/lib/analytics';
 
 function AppContent({ Component, pageProps }: { Component: AppProps['Component']; pageProps: any }) {
   const router = useRouter();
   const { data: session } = useSession();
+
+  useScrollDepthTracking();
 
   useEffect(() => {
     if (!GA_MEASUREMENT_ID) return;
