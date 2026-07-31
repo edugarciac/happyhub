@@ -7,7 +7,6 @@ interface PriceRow {
   day: string;
   morning: number | 'consult' | undefined;
   afternoon: number | 'consult' | undefined;
-  night: 'consult';
   highlight?: boolean;
 }
 
@@ -48,27 +47,23 @@ export default function PricingTable() {
       day: 'Lunes a Jueves',
       morning: pricing.weekday_morning,
       afternoon: pricing.weekday_afternoon,
-      night: 'consult'
     },
     {
       day: 'Viernes',
       morning: pricing.weekday_morning,
       afternoon: pricing.friday_afternoon,
-      night: 'consult',
       highlight: true
     },
     {
       day: 'Sábados y Domingos',
       morning: pricing.weekend_morning,
       afternoon: pricing.weekend_afternoon,
-      night: 'consult',
       highlight: true
     },
     {
       day: 'Festivos',
       morning: pricing.holiday_morning,
       afternoon: pricing.holiday_afternoon,
-      night: 'consult',
       highlight: true
     },
   ];
@@ -105,10 +100,6 @@ export default function PricingTable() {
                       <div>Tarde</div>
                       <div className="text-xs font-normal opacity-80">16:30 - 20:30</div>
                     </th>
-                    <th className="px-6 py-4 text-center font-semibold">
-                      <div>Noche</div>
-                      <div className="text-xs font-normal opacity-80">22:00 - 02:00</div>
-                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -139,11 +130,6 @@ export default function PricingTable() {
                             {formatPrice(row.afternoon)}
                           </span>
                         )}
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <span className="text-lg text-gray-500">
-                          {formatPrice(row.night)}
-                        </span>
                       </td>
                     </tr>
                   ))}
