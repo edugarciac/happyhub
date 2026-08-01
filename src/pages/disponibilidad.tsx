@@ -64,7 +64,7 @@ export default function Disponibilidad() {
   const getTimeSlotLabel = (slot: TimeSlot): string => {
     switch (slot) {
       case 'morning':
-        return 'Mañana (11:00-14:30)';
+        return 'Mañana (10:00-14:00)';
       case 'afternoon':
         return 'Tarde (16:30-20:30)';
       case 'night':
@@ -186,8 +186,7 @@ export default function Disponibilidad() {
               <div className="border-l-4 border-primary-500 pl-4">
                 <h3 className="font-bold text-gray-900 mb-3 text-lg">⏰ Franjas Horarias</h3>
                 <div className="space-y-2 text-gray-600">
-                  <p><strong>Mañanas:</strong> 11:00 - 14:30h</p>
-                  <p className="text-sm">Apertura anticipada desde las 10:00h sin coste</p>
+                  <p><strong>Mañanas:</strong> 10:00 - 14:00h</p>
                   <p><strong>Tardes:</strong> 16:30 - 20:30h</p>
                   <p className="text-sm">Apertura anticipada desde las 15:30h sin coste</p>
                   <p><strong>Noches:</strong> 22:00 - 02:00h</p>
