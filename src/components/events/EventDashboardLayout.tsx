@@ -23,7 +23,7 @@ export default function EventDashboardLayout({
         <EventSidebar eventId={event.id} activeSection={activeSection} />
         <div className="flex-1 flex flex-col min-h-[calc(100vh-4rem)] overflow-hidden">
           <EventTopBar event={event} participants={participants} />
-          <main className="flex-1 overflow-auto p-6">
+          <main className="flex-1 overflow-auto p-6 pb-24 md:pb-6">
             {children}
           </main>
         </div>

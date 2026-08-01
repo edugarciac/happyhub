@@ -68,18 +68,28 @@ export default function Header() {
             </span>
           </Link>
 
-          <div className="hidden lg:flex items-center space-x-1">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`text-sm text-gray-700 hover:text-primary-600 font-medium transition-colors px-3 h-9 flex items-center rounded-xl whitespace-nowrap hover:bg-primary-50 ${
-                  router.pathname === item.href ? 'bg-primary-50 text-primary-600' : ''
-                }`}
-              >
-                {item.label}
-              </Link>
-            ))}
+          <div className="hidden lg:flex items-center">
+            <div className="flex items-center gap-0.5 bg-gray-100/80 rounded-full p-1">
+              {navItems.map((item) => {
+                const isActive = router.pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`relative text-sm font-semibold transition-all duration-200 px-4 h-9 flex items-center rounded-full whitespace-nowrap ${
+                      isActive
+                        ? 'bg-gradient-to-r from-primary-600 to-orange-500 text-white shadow-md shadow-primary-600/20'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-white/80'
+                    }`}
+                  >
+                    {item.label}
+                    {isActive && (
+                      <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
             {session?.user ? (
               <div className="flex items-center ml-2 space-x-2 bg-ocean-50 border border-ocean-200 rounded-xl px-3 py-1.5">
                 <span className="text-sm font-medium text-ocean-700 max-w-[160px] truncate" title={session.user.email || ''}>
