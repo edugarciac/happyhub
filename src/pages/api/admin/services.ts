@@ -27,12 +27,17 @@ async function handleCreate(req: NextApiRequest, res: NextApiResponse) {
   const { title, price, description, features, image_url, sort_order } = req.body;
   if (!title?.trim()) return res.status(400).json({ success: false, error: 'El título es obligatorio' });
 
+  const parsedPrice = price !== undefined && price !== '' ? parseFloat(price) : null;
+  if (parsedPrice !== null && !Number.isFinite(parsedPrice)) {
+    return res.status(400).json({ success: false, error: 'El precio no es válido' });
+  }
+
   const result = await query(
     `INSERT INTO service_catalog (title, price, description, features, image_url, sort_order)
      VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
     [
       title.trim(),
-      price !== undefined && price !== '' ? parseFloat(price) : null,
+      parsedPrice,
       description?.trim() || '',
       JSON.stringify(features || []),
       image_url || null,

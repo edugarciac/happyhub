@@ -26,7 +26,13 @@ async function handleUpdate(id: number, req: NextApiRequest, res: NextApiRespons
   let idx = 1;
 
   if (title !== undefined) { fields.push(`title = $${idx++}`); params.push(title.trim()); }
-  if (price !== undefined) { fields.push(`price = $${idx++}`); params.push(price !== '' && price !== null ? parseFloat(price) : null); }
+  if (price !== undefined) {
+    const parsedPrice = price !== '' && price !== null ? parseFloat(price) : null;
+    if (parsedPrice !== null && !Number.isFinite(parsedPrice)) {
+      return res.status(400).json({ success: false, error: 'El precio no es válido' });
+    }
+    fields.push(`price = $${idx++}`); params.push(parsedPrice);
+  }
   if (description !== undefined) { fields.push(`description = $${idx++}`); params.push(description.trim()); }
   if (features !== undefined) { fields.push(`features = $${idx++}`); params.push(JSON.stringify(features)); }
   if (image_url !== undefined) { fields.push(`image_url = $${idx++}`); params.push(image_url || null); }
