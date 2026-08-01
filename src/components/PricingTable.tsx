@@ -94,7 +94,7 @@ export default function PricingTable() {
                     <th className="px-6 py-4 text-left font-semibold">Día</th>
                     <th className="px-6 py-4 text-center font-semibold">
                       <div>Mañana</div>
-                      <div className="text-xs font-normal opacity-80">11:00 - 14:30</div>
+                      <div className="text-xs font-normal opacity-80">10:00 - 14:00</div>
                     </th>
                     <th className="px-6 py-4 text-center font-semibold">
                       <div>Tarde</div>

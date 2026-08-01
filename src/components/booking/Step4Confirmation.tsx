@@ -7,7 +7,7 @@ export default function Step4Confirmation() {
   const { state, calculateTotalPrice, calculateDepositAmount } = useBooking();
 
   const timeSlotLabels: Record<string, string> = {
-    morning: 'Mañana (11:00 - 14:30h)',
+    morning: 'Mañana (10:00 - 14:00h)',
     afternoon: 'Tarde (16:30 - 20:30h)',
     night: 'Noche (22:00 - 02:00h)',
   };

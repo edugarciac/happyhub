@@ -90,11 +90,11 @@ export default function Step3CustomerData() {
 
       // Map timeSlot to time string
       const timeMap: Record<string, string> = {
-        morning: '11:00',
+        morning: '10:00',
         afternoon: '16:30',
         night: '22:00'
       };
-      const timeStr = state.timeSlot ? timeMap[state.timeSlot] : '11:00';
+      const timeStr = state.timeSlot ? timeMap[state.timeSlot] : '10:00';
 
       // Send reservation to n8n (which will handle WhatsApp, DB, Calendar, etc.)
       const response = await fetch('/api/webhook-reserva', {
