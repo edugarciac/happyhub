@@ -25,6 +25,7 @@ export default function Servicios() {
           setServices(
             data.services.map((s: any) => ({
               ...s,
+              price: s.price !== null && s.price !== undefined ? parseFloat(s.price) : null,
               features: typeof s.features === 'string' ? JSON.parse(s.features) : (s.features || []),
             }))
           );
@@ -35,7 +36,7 @@ export default function Servicios() {
   }, []);
 
   const formatPrice = (price: number | null) => {
-    if (price === null || price === undefined) return 'Precio a consultar';
+    if (price === null || price === undefined || !Number.isFinite(price)) return 'Precio a consultar';
     return `${price.toFixed(2)} \u20AC`;
   };
 
