@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import axios from 'axios';
-import { queryOne } from '../../../../../lib/db';
-import { verifyAdminSession } from '../../../../../utils/adminAuth';
+import { queryOne } from '@/lib/db';
+import { verifyAdminSession } from '@/utils/adminAuth';
+import { parseIntParam, notifyN8n } from '@/lib/apiMiddleware';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -14,18 +14,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({ success: false, error: 'No autorizado' });
     }
 
-    const { id } = req.query;
     const { rejection_reason } = req.body;
 
-    if (!id || Array.isArray(id)) {
+    const reservationId = parseIntParam(req.query.id);
+    if (reservationId === null) {
       return res.status(400).json({ success: false, error: 'ID de reserva inválido' });
     }
 
     if (!rejection_reason || rejection_reason.trim() === '') {
       return res.status(400).json({ success: false, error: 'El motivo de rechazo es obligatorio' });
     }
-
-    const reservationId = parseInt(id);
 
     const reservation = await queryOne<{ id: number; status: string }>(
       'SELECT id, status FROM reservations WHERE id = $1',
@@ -51,22 +49,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       [rejection_reason.trim(), admin.email, reservationId]
     );
 
-    // Trigger n8n notification (non-blocking)
-    try {
-      const n8nUrl = process.env.N8N_WEBHOOK_URL;
-      if (n8nUrl) {
-        await axios.post(`${n8nUrl}/reservation-status-changed`, {
-          reservation_id: reservationId,
-          status: 'rejected',
-          customer_email: updated.user_email,
-          customer_phone: updated.user_phone,
-          customer_name: updated.user_name,
-          rejection_reason: rejection_reason.trim(),
-        }, { timeout: 5000 }).catch(err => console.error('n8n notification failed:', err.message));
-      }
-    } catch (err) {
-      console.error('n8n webhook failed:', err);
-    }
+    await notifyN8n('/reservation-status-changed', {
+      reservation_id: reservationId,
+      status: 'rejected',
+      customer_email: updated?.user_email,
+      customer_phone: updated?.user_phone,
+      customer_name: updated?.user_name,
+      rejection_reason: rejection_reason.trim(),
+    });
 
     return res.status(200).json({ success: true, reservation: updated });
   } catch (error) {

@@ -1,22 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { query } from '../../../lib/db';
-import { requireAdminSession } from '../../../utils/adminAuth';
+import { query } from '@/lib/db';
+import { withAdminHandler, methodNotAllowed } from '@/lib/apiMiddleware';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  try {
-    await requireAdminSession(req, res);
-
-    if (req.method === 'GET') return handleGetReviews(req, res);
-    if (req.method === 'DELETE') return handleDeleteReview(req, res);
-
-    return res.status(405).json({ success: false, error: 'Method not allowed' });
-  } catch (error: any) {
-    if (error.message === 'Unauthorized') {
-      return res.status(401).json({ success: false, error: 'No autorizado' });
-    }
-    return res.status(500).json({ success: false, error: 'Error interno' });
-  }
-}
+export default withAdminHandler(async (req, res) => {
+  if (req.method === 'GET') return handleGetReviews(req, res);
+  if (req.method === 'DELETE') return handleDeleteReview(req, res);
+  return methodNotAllowed(res);
+}, 'reviews');
 
 async function handleGetReviews(req: NextApiRequest, res: NextApiResponse) {
   try {

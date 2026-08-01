@@ -1,23 +1,13 @@
 // src/pages/api/events/collaborative/[id]/entertainment/spotify/connect.ts
 import crypto from 'crypto';
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { getCollaborativeEventById } from '@/utils/db/collaborative-events';
+import type { NextApiResponse } from 'next';
+import { withCollaborativeEventAuth } from '@/lib/apiMiddleware';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default withCollaborativeEventAuth(async (req, res, ctx) => {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
-  const session = await getServerSession(req, res, authOptions);
-  if (!session?.user) return res.status(401).json({ error: 'No autenticado' });
-
-  const userId = parseInt((session.user as any).id as string, 10);
-  const eventId = parseInt(req.query.id as string, 10);
-  if (isNaN(eventId)) return res.status(400).json({ error: 'ID inválido' });
-
-  const event = await getCollaborativeEventById(eventId);
-  if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
-  if (event.organizer_id !== userId) return res.status(403).json({ error: 'Solo el organizador puede conectar Spotify' });
+  const { eventId, userId, isOrganizer } = ctx;
+  if (!isOrganizer) return res.status(403).json({ error: 'Solo el organizador puede conectar Spotify' });
 
   const clientId = process.env.SPOTIFY_CLIENT_ID;
   const redirectUri = process.env.SPOTIFY_REDIRECT_URI;
@@ -38,4 +28,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   return res.redirect(`https://accounts.spotify.com/authorize?${params.toString()}`);
-}
+});
