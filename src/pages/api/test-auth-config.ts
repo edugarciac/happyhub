@@ -1,6 +1,17 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { requireAdminSession } from '../../utils/adminAuth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(404).json({ error: 'Not found' });
+  }
+
+  try {
+    await requireAdminSession(req, res);
+  } catch {
+    return res.status(401).json({ error: 'No autorizado' });
+  }
+
   try {
     // Test 1: Import authOptions
     const { authOptions } = await import('../../lib/auth');
@@ -42,8 +53,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(500).json({
       success: false,
       error: error.message,
-      stack: error.stack,
-      name: error.name,
     });
   }
 }

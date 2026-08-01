@@ -1,9 +1,16 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { stripe } from '@/lib/stripe';
+import { requireAdminSession } from '@/utils/adminAuth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    await requireAdminSession(req, res);
+  } catch {
+    return res.status(401).json({ error: 'No autorizado' });
   }
 
   try {

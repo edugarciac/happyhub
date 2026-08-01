@@ -3,7 +3,11 @@ import jwt from 'jsonwebtoken';
 import { verifyPassword, getUserById } from '../../utils/db/users';
 import { ensureUsersTable } from '../../lib/db';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error('JWT_SECRET environment variable is required');
+  return secret;
+}
 
 interface LoginRequest {
   email: string;
@@ -67,7 +71,7 @@ async function handleLogin(req: NextApiRequest, res: NextApiResponse<AuthRespons
         email: user.email,
         role: user.role,
       },
-      JWT_SECRET,
+      getJwtSecret(),
       { expiresIn: '30d' }
     );
 
@@ -118,7 +122,7 @@ async function handleVerifyToken(req: NextApiRequest, res: NextApiResponse<AuthR
 
     const token = authHeader.substring(7);
 
-    const decoded = jwt.verify(token, JWT_SECRET) as {
+    const decoded = jwt.verify(token, getJwtSecret()) as {
       userId: number;
       email: string;
       role: string;

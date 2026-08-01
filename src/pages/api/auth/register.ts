@@ -5,7 +5,11 @@ import jwt from 'jsonwebtoken';
 import { generateVerificationToken } from '../../../utils/emailVerification';
 import { sendVerificationEmail } from '../../../lib/email';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error('JWT_SECRET environment variable is required');
+  return secret;
+}
 
 const registerSchema = z.object({
   email: z.string().email('Por favor, introduce una dirección de email válida'),
@@ -62,7 +66,7 @@ export default async function handler(
     // Generate JWT with emailVerified: false
     const token = jwt.sign(
       { userId: user.id, email: user.email, role: user.role, emailVerified: false },
-      JWT_SECRET,
+      getJwtSecret(),
       { expiresIn: '30d' }
     );
 
