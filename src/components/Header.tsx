@@ -78,14 +78,11 @@ export default function Header() {
                     href={item.href}
                     className={`relative text-sm font-semibold transition-all duration-200 px-4 h-9 flex items-center rounded-full whitespace-nowrap ${
                       isActive
-                        ? 'bg-gradient-to-r from-primary-600 to-orange-500 text-white shadow-md shadow-primary-600/20'
+                        ? 'bg-primary-100 text-primary-700'
                         : 'text-gray-600 hover:text-gray-900 hover:bg-white/80'
                     }`}
                   >
                     {item.label}
-                    {isActive && (
-                      <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                    )}
                   </Link>
                 );
               })}
