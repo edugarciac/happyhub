@@ -32,7 +32,6 @@ async function handleUpdate(id: number, req: NextApiRequest, res: NextApiRespons
     active: active,
     sort_order: sort_order,
   });
-
   if (!upd) return res.status(400).json({ success: false, error: 'No hay campos para actualizar' });
 
   const setWithTimestamp = `${upd.setClauses}, updated_at = CURRENT_TIMESTAMP`;
