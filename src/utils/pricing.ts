@@ -18,10 +18,9 @@ export const TIME_SLOTS: TimeSlotInfo[] = [
   {
     id: 'morning',
     label: 'Mañana',
-    startTime: '11:00',
-    endTime: '14:30',
-    earlyOpenTime: '10:00',
-    description: 'Apertura a las 11:00h (10:00h sin coste adicional)',
+    startTime: '10:00',
+    endTime: '14:00',
+    description: 'Apertura a las 10:00h',
   },
   {
     id: 'afternoon',

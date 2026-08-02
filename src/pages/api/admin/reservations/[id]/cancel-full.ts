@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { queryOne, query } from '@/lib/db';
 import { google } from 'googleapis';
-import axios from 'axios';
-import { verifyAdminSession } from '../../../../../utils/adminAuth';
+import { verifyAdminSession } from '@/utils/adminAuth';
+import { parseIntParam, notifyN8n } from '@/lib/apiMiddleware';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'DELETE') {
@@ -14,10 +14,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ error: 'No autorizado' });
   }
 
-  const { id } = req.query;
-  const reservationId = parseInt(id as string);
-
-  if (!reservationId || isNaN(reservationId)) {
+  const reservationId = parseIntParam(req.query.id);
+  if (reservationId === null) {
     return res.status(400).json({ error: 'ID de reserva inválido' });
   }
 
@@ -71,18 +69,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     );
 
     // 3. Notify n8n (non-blocking)
-    if (process.env.N8N_WEBHOOK_URL) {
-      axios.post(process.env.N8N_WEBHOOK_URL, {
-        event: 'reservation_cancelled_by_admin',
-        reservationId,
-        customerName: reservation.name,
-        customerEmail: reservation.email,
-        customerPhone: reservation.phone,
-        eventDate: reservation.event_date,
-        timeSlot: reservation.time_slot,
-        timestamp: new Date().toISOString(),
-      }, { timeout: 5000 }).catch((e: any) => console.error('n8n notify failed:', e?.message));
-    }
+    await notifyN8n('', {
+      event: 'reservation_cancelled_by_admin',
+      reservationId,
+      customerName: reservation.name,
+      customerEmail: reservation.email,
+      customerPhone: reservation.phone,
+      eventDate: reservation.event_date,
+      timeSlot: reservation.time_slot,
+      timestamp: new Date().toISOString(),
+    });
 
     return res.status(200).json({ success: true, message: 'Reserva cancelada y eliminada del calendario' });
   } catch (error: unknown) {

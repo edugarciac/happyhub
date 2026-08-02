@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs';
 import path from 'path';
+import { requireAdminSession } from '@/utils/adminAuth';
 
 export const config = { api: { bodyParser: { sizeLimit: '5mb' } } };
 
@@ -8,6 +9,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     return res.status(405).end();
+  }
+
+  try {
+    await requireAdminSession(req, res);
+  } catch {
+    return res.status(401).json({ error: 'No autorizado' });
   }
 
   try {

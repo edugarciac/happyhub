@@ -1,20 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
-import { requireAdminSession } from '@/utils/adminAuth';
+import { withAdminHandler, methodNotAllowed } from '@/lib/apiMiddleware';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  try {
-    await requireAdminSession(req, res);
-
-    if (req.method === 'GET') return handleList(req, res);
-    if (req.method === 'POST') return handleCreate(req, res);
-    return res.status(405).json({ success: false, error: 'Method not allowed' });
-  } catch (error: any) {
-    if (error.message === 'Unauthorized') return res.status(401).json({ success: false, error: 'No autorizado' });
-    console.error('Error in event-types API:', error);
-    return res.status(500).json({ success: false, error: 'Error interno' });
-  }
-}
+export default withAdminHandler(async (req, res) => {
+  if (req.method === 'GET') return handleList(req, res);
+  if (req.method === 'POST') return handleCreate(req, res);
+  return methodNotAllowed(res);
+}, 'event-types');
 
 async function handleList(req: NextApiRequest, res: NextApiResponse) {
   const result = await query('SELECT * FROM event_types ORDER BY sort_order ASC, name ASC');

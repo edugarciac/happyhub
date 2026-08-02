@@ -1,9 +1,7 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import type { NextApiResponse } from 'next';
+import { withCollaborativeEventAuth, methodNotAllowed } from '@/lib/apiMiddleware';
 import { z } from 'zod';
 import { query } from '@/lib/db';
-import { getCollaborativeEventById, getParticipantByUserId } from '@/utils/db/collaborative-events';
 import { sendInvitationEmail } from '@/lib/email';
 import crypto from 'crypto';
 
@@ -12,20 +10,8 @@ const addGuestSchema = z.object({
   email: z.string().email().optional().nullable(),
 });
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const session = await getServerSession(req, res, authOptions);
-  if (!session?.user) return res.status(401).json({ error: 'No autenticado' });
-
-  const userId = parseInt((session.user as any).id as string, 10);
-  const eventId = parseInt(req.query.id as string, 10);
-  if (isNaN(eventId)) return res.status(400).json({ error: 'ID inválido' });
-
-  const event = await getCollaborativeEventById(eventId);
-  if (!event) return res.status(404).json({ error: 'Evento no encontrado' });
-
-  const participant = await getParticipantByUserId(eventId, userId);
-  const isOrganizer = event.organizer_id === userId;
-  if (!participant && !isOrganizer) return res.status(403).json({ error: 'Sin acceso' });
+export default withCollaborativeEventAuth(async (req, res, ctx) => {
+  const { eventId, event, isOrganizer } = ctx;
 
   if (req.method === 'GET') {
     const result = await query(
@@ -62,5 +48,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(201).json({ guest });
   }
 
-  return res.status(405).json({ error: 'Method not allowed' });
-}
+  return methodNotAllowed(res);
+});

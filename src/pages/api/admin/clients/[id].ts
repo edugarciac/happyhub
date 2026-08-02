@@ -1,32 +1,16 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { query } from '../../../../lib/db';
-import { requireAdminSession } from '../../../../utils/adminAuth';
+import { query } from '@/lib/db';
+import { withAdminHandler, parseIntParam, buildDynamicUpdate, methodNotAllowed } from '@/lib/apiMiddleware';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  try {
-    await requireAdminSession(req, res);
+export default withAdminHandler(async (req, res) => {
+  const id = parseIntParam(req.query.id);
+  if (!id) return res.status(400).json({ success: false, error: 'ID inválido' });
 
-    const id = parseInt(req.query.id as string);
-    if (!id) {
-      return res.status(400).json({ success: false, error: 'ID inválido' });
-    }
-
-    if (req.method === 'GET') {
-      return handleGet(id, res);
-    } else if (req.method === 'PATCH') {
-      return handleUpdate(id, req, res);
-    } else if (req.method === 'DELETE') {
-      return handleDelete(id, res);
-    }
-    return res.status(405).json({ success: false, error: 'Method not allowed' });
-  } catch (error: any) {
-    if (error.message === 'Unauthorized') {
-      return res.status(401).json({ success: false, error: 'No autorizado' });
-    }
-    console.error('Error in client API:', error);
-    return res.status(500).json({ success: false, error: 'Error interno' });
-  }
-}
+  if (req.method === 'GET') return handleGet(id, res);
+  if (req.method === 'PATCH') return handleUpdate(id, req, res);
+  if (req.method === 'DELETE') return handleDelete(id, res);
+  return methodNotAllowed(res);
+}, 'client');
 
 async function handleGet(id: number, res: NextApiResponse) {
   const result = await query(
@@ -46,49 +30,30 @@ async function handleGet(id: number, res: NextApiResponse) {
 async function handleUpdate(id: number, req: NextApiRequest, res: NextApiResponse) {
   const { name, phone, role } = req.body;
 
-  // Check client exists
   const existing = await query('SELECT id FROM users WHERE id = $1', [id]);
   if (existing.rows.length === 0) {
     return res.status(404).json({ success: false, error: 'Cliente no encontrado' });
   }
 
-  const fields: string[] = [];
-  const params: any[] = [];
-  let paramCount = 0;
+  const upd = buildDynamicUpdate({
+    name: name !== undefined ? name.trim() : undefined,
+    phone: phone !== undefined ? phone.trim() : undefined,
+    role: role !== undefined && ['admin', 'client'].includes(role) ? role : undefined,
+  });
 
-  if (name !== undefined) {
-    paramCount++;
-    fields.push(`name = $${paramCount}`);
-    params.push(name.trim());
-  }
-  if (phone !== undefined) {
-    paramCount++;
-    fields.push(`phone = $${paramCount}`);
-    params.push(phone.trim());
-  }
-  if (role !== undefined && ['admin', 'client'].includes(role)) {
-    paramCount++;
-    fields.push(`role = $${paramCount}`);
-    params.push(role);
-  }
+  if (!upd) return res.status(400).json({ success: false, error: 'No hay campos para actualizar' });
 
-  if (fields.length === 0) {
-    return res.status(400).json({ success: false, error: 'No hay campos para actualizar' });
-  }
-
-  paramCount++;
-  params.push(id);
+  upd.params.push(id);
   const result = await query(
-    `UPDATE users SET ${fields.join(', ')} WHERE id = $${paramCount}
+    `UPDATE users SET ${upd.setClauses} WHERE id = $${upd.nextIndex}
      RETURNING id, name, email, phone, role, email_verified, created_at`,
-    params
+    upd.params as any[]
   );
 
   return res.status(200).json({ success: true, client: result.rows[0] });
 }
 
 async function handleDelete(id: number, res: NextApiResponse) {
-  // Check if client has reservations
   const reservations = await query('SELECT COUNT(*) as count FROM reservations WHERE user_id = $1', [id]);
   if (parseInt(reservations.rows[0].count) > 0) {
     return res.status(409).json({

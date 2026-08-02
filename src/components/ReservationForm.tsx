@@ -155,7 +155,7 @@ export default function ReservationForm({
   const getTimeSlotLabel = (slot: TimeSlot): string => {
     switch (slot) {
       case 'morning':
-        return 'Mañana (11:00-14:30)';
+        return 'Mañana (10:00-14:00)';
       case 'afternoon':
         return 'Tarde (16:30-20:30)';
       case 'night':

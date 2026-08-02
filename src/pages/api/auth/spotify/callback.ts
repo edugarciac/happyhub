@@ -19,7 +19,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (isNaN(eventId) || isNaN(userId)) return res.redirect('/mis-eventos?error=spotify_invalid');
 
   // Verificar firma HMAC
-  const hmacSecret = process.env.NEXTAUTH_SECRET || 'fallback-secret';
+  const hmacSecret = process.env.NEXTAUTH_SECRET;
+  if (!hmacSecret) return res.redirect('/mis-eventos?error=spotify_config');
   const expectedSig = crypto.createHmac('sha256', hmacSecret)
     .update(`${eventIdStr}:${userIdStr}`).digest('hex');
   if (sig !== expectedSig) return res.redirect('/mis-eventos?error=spotify_invalid');
