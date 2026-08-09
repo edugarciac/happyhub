@@ -12,3 +12,8 @@
 
 - [x] 3.1 Confirm `public/favicon.ico` is a valid multi-icon `.ico` file (`file public/favicon.ico`)
 - [ ] 3.2 Visually confirm the browser tab icon after deploy
+
+## 4. Swap in official logo (user-provided)
+
+- [x] 4.1 Merge `origin/main` to bring in `public/HappyHub_logo.ico`, uploaded directly by the user
+- [x] 4.2 Replace `public/favicon.ico` with a copy of `public/HappyHub_logo.ico` (identical bytes), superseding the auto-generated version from task 1.2
