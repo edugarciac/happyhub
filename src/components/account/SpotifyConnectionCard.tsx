@@ -1,12 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import toast from 'react-hot-toast';
-import { Music, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Music, CheckCircle2 } from 'lucide-react';
 
 interface Status {
   connected: boolean;
   displayName?: string | null;
-  product?: 'premium' | 'free';
 }
 
 export default function SpotifyConnectionCard() {
@@ -69,18 +68,9 @@ export default function SpotifyConnectionCard() {
               Conectado como <strong>{status.displayName || 'tu cuenta de Spotify'}</strong>
             </span>
           </div>
-          {status.product === 'premium' ? (
-            <p className="text-xs text-green-700 bg-green-50 border border-green-100 rounded-lg px-3 py-2 inline-block">
-              ✓ Cuenta Premium — puedes activar Música en tus eventos
-            </p>
-          ) : (
-            <div className="flex items-start gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
-              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-              <span>
-                Tu cuenta no tiene Spotify Premium. La música colaborativa requiere Premium — actualiza tu cuenta en Spotify y reconecta.
-              </span>
-            </div>
-          )}
+          <p className="text-xs text-green-700 bg-green-50 border border-green-100 rounded-lg px-3 py-2 inline-block">
+            ✓ Puedes activar Música en tus eventos
+          </p>
           <div className="pt-1">
             <button
               onClick={handleDisconnect}
@@ -94,7 +84,7 @@ export default function SpotifyConnectionCard() {
       ) : (
         <div>
           <p className="text-sm text-gray-500 mb-3">
-            Conecta tu cuenta de Spotify Premium para compartir una playlist colaborativa en tus eventos: tus invitados podrán sugerir canciones.
+            Conecta tu cuenta de Spotify para compartir una playlist colaborativa en tus eventos: tus invitados podrán sugerir canciones.
           </p>
           <a
             href="/api/account/spotify/connect"

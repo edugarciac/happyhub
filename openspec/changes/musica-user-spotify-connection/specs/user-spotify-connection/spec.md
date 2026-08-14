@@ -11,16 +11,12 @@ The system SHALL let a logged-in user connect their personal Spotify account onc
 - **WHEN** a user who already has a Spotify connection completes the OAuth flow again
 - **THEN** the system updates the existing connection's tokens rather than creating a duplicate
 
-### Requirement: System verifies Spotify Premium status
-The system SHALL check the connected Spotify account's subscription tier via the Spotify API and record it, gating playlist setup on it being Premium.
+### Requirement: System records Spotify subscription tier, without gating on it
+The system SHALL record the connected Spotify account's subscription tier via the Spotify API, for informational purposes only. Playlist creation/modification via the Spotify Web API does not require Premium, so Música setup is available to any connected account regardless of tier — this reverses the original decision to gate on Premium (see design.md for context).
 
-#### Scenario: Premium account connects
-- **WHEN** a user connects a Spotify account with `product: "premium"`
-- **THEN** the system stores `product = 'premium'` and allows the user to set up Música for their events
-
-#### Scenario: Free account connects
-- **WHEN** a user connects a Spotify account with `product: "free"`
-- **THEN** the system stores `product = 'free'` and blocks Música setup with a message explaining Premium is required
+#### Scenario: Any account connects
+- **WHEN** a user connects a Spotify account, Premium or Free
+- **THEN** the system stores the reported `product` value and allows the user to set up Música for their events either way
 
 ### Requirement: Users can disconnect their Spotify account
 The system SHALL let a user remove their Spotify connection, detaching it from any events that referenced it.

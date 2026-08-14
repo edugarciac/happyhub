@@ -13,7 +13,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const connection = await getUserSpotifyConnection(userId);
   if (!connection) return res.status(403).json({ error: 'spotify_not_connected' });
-  if (connection.product !== 'premium') return res.status(403).json({ error: 'spotify_not_premium' });
 
   try {
     const token = await getValidAccessToken(connection.id);
