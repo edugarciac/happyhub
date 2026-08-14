@@ -154,21 +154,25 @@ export default function UnirseEventoPage() {
             {!session?.user && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email <span className="text-gray-400 font-normal">(opcional)</span>
+                  Tu email *
                 </label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Para recibir notificaciones"
+                  placeholder="Para poder acceder al evento con tu cuenta"
+                  required
                   className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
+                <p className="text-xs text-gray-400 mt-1">
+                  Si más tarde creas una cuenta con este email, se vinculará automáticamente a este evento.
+                </p>
               </div>
             )}
 
             <button
               type="submit"
-              disabled={joining || !name}
+              disabled={joining || !name || (!session?.user && !email)}
               className="w-full flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 rounded-xl transition-colors disabled:opacity-50"
             >
               {joining && <Loader2 className="w-4 h-4 animate-spin" />}

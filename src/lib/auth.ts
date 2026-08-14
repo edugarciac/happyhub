@@ -3,6 +3,7 @@ import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { verifyPassword, getUserByEmail, createUser } from '../utils/db/users';
 import { ensureUsersTable } from './db';
+import { linkParticipantsToUser } from '../utils/db/collaborative-events';
 
 const providers: AuthOptions['providers'] = [
   CredentialsProvider({
@@ -109,6 +110,17 @@ export const authOptions: NextAuthOptions = {
           token.emailVerified = (user as any).emailVerified ?? false;
         }
         token.authMethod = account?.provider === 'google' ? 'google' : 'password';
+
+        // Link any pre-existing anonymous/RSVP-only guest rows to this account.
+        // `user` is only present on the sign-in request, so this runs once per login.
+        const userId = parseInt(token.id as string, 10);
+        if (!isNaN(userId) && user.email) {
+          try {
+            await linkParticipantsToUser(userId, user.email);
+          } catch (err) {
+            console.error('[AUTH] Failed to link participants on login:', err);
+          }
+        }
       }
       return token;
     },

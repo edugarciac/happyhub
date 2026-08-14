@@ -97,6 +97,7 @@ export default function MisEventosDashboard({ event, participants, milestones, i
             eventId={event.id}
             isOrganizer={isOrganizer}
             inviteCode={event.invite_code}
+            eventTitle={event.title}
           />
         );
       case 'regalo':
