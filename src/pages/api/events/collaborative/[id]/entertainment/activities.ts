@@ -15,12 +15,14 @@ export default withCollaborativeEventAuth(async (req, res, ctx) => {
   if (req.method === 'GET') {
     const result = await query(
       `SELECT a.*,
-         COUNT(v.id)::int AS votes_count,
+         COUNT(DISTINCT v.id)::int AS votes_count,
          BOOL_OR(v.participant_id = $2) AS user_voted,
-         p.name AS proposed_by_name
+         p.name AS proposed_by_name,
+         BOOL_OR(cp.id IS NOT NULL) AS has_pending_proposal
        FROM event_activities a
        LEFT JOIN event_activity_votes v ON v.activity_id = a.id
        LEFT JOIN collaborative_event_participants p ON p.id = a.proposed_by_participant_id
+       LEFT JOIN activity_catalog_proposals cp ON cp.event_activity_id = a.id AND cp.status = 'pending'
        WHERE a.event_id = $1
        GROUP BY a.id, p.name
        ORDER BY a.created_at ASC`,

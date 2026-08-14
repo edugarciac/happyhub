@@ -1,13 +1,15 @@
-// src/pages/api/events/collaborative/[id]/entertainment/spotify/connect.ts
 import crypto from 'crypto';
-import type { NextApiResponse } from 'next';
-import { withCollaborativeEventAuth } from '@/lib/apiMiddleware';
+import type { NextApiRequest, NextApiResponse } from 'next';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
-export default withCollaborativeEventAuth(async (req, res, ctx) => {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { eventId, userId, isOrganizer } = ctx;
-  if (!isOrganizer) return res.status(403).json({ error: 'Solo el organizador puede conectar Spotify' });
+  const session = await getServerSession(req, res, authOptions);
+  if (!session?.user) return res.status(401).json({ error: 'No autenticado' });
+  const userId = parseInt((session.user as any).id as string, 10);
+  if (isNaN(userId)) return res.status(401).json({ error: 'No autenticado' });
 
   const clientId = process.env.SPOTIFY_CLIENT_ID;
   const redirectUri = process.env.SPOTIFY_REDIRECT_URI;
@@ -16,10 +18,11 @@ export default withCollaborativeEventAuth(async (req, res, ctx) => {
   const hmacSecret = process.env.NEXTAUTH_SECRET;
   if (!hmacSecret) return res.status(500).json({ error: 'NEXTAUTH_SECRET no configurado' });
   const hmac = crypto.createHmac('sha256', hmacSecret);
-  hmac.update(`${eventId}:${userId}`);
+  hmac.update(`${userId}`);
   const sig = hmac.digest('hex');
-  const state = `${eventId}:${userId}:${sig}`;
-  const scopes = 'playlist-modify-public playlist-modify-private';
+  const state = `${userId}:${sig}`;
+
+  const scopes = 'playlist-modify-public playlist-modify-private user-read-private';
   const params = new URLSearchParams({
     client_id: clientId,
     response_type: 'code',
@@ -29,4 +32,4 @@ export default withCollaborativeEventAuth(async (req, res, ctx) => {
   });
 
   return res.redirect(`https://accounts.spotify.com/authorize?${params.toString()}`);
-});
+}

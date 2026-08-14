@@ -178,7 +178,27 @@ export default function RsvpPage({ participant, event, token, invalid }: Props) 
             )}
           </div>
 
-          <div className="border-t border-gray-100 px-6 py-3 text-center">
+          <div className="border-t border-gray-100 px-6 py-4 text-center bg-gray-50">
+            <p className="text-sm text-gray-600 mb-3">
+              ¿Quieres ver los detalles del evento, la lista de música y más?
+            </p>
+            <div className="flex gap-2">
+              <a
+                href={`/register?redirect=${encodeURIComponent(`/mis-eventos/${event.id}`)}`}
+                className="flex-1 bg-violet-600 hover:bg-violet-700 text-white text-sm font-semibold py-2.5 rounded-lg transition-colors"
+              >
+                Crear cuenta
+              </a>
+              <a
+                href={`/login?redirect=${encodeURIComponent(`/mis-eventos/${event.id}`)}`}
+                className="flex-1 border border-violet-200 text-violet-700 text-sm font-semibold py-2.5 rounded-lg hover:bg-violet-50 transition-colors"
+              >
+                Iniciar sesión
+              </a>
+            </div>
+          </div>
+
+          <div className="px-6 py-3 text-center">
             <p className="text-xs text-gray-400">HappyHub — Tu espacio para celebrar</p>
           </div>
         </div>

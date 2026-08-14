@@ -14,27 +14,15 @@ export default withCollaborativeEventAuth(async (req, res, ctx) => {
   const { eventId, participant } = ctx;
 
   if (req.method === 'GET') {
-    const [songsResult, spotifyResult] = await Promise.all([
-      query(
-        `SELECT s.*, p.name as suggested_by_name
-         FROM event_entertainment_songs s
-         LEFT JOIN collaborative_event_participants p ON p.id = s.suggested_by_participant_id
-         WHERE s.event_id = $1 ORDER BY s.created_at ASC`,
-        [eventId]
-      ),
-      query(
-        `SELECT playlist_url, playlist_id FROM event_spotify_connections WHERE event_id = $1`,
-        [eventId]
-      ),
-    ]);
+    const songsResult = await query(
+      `SELECT s.*, p.name as suggested_by_name
+       FROM event_entertainment_songs s
+       LEFT JOIN collaborative_event_participants p ON p.id = s.suggested_by_participant_id
+       WHERE s.event_id = $1 ORDER BY s.created_at ASC`,
+      [eventId]
+    );
 
-    const spotifyConn = spotifyResult.rows[0] || null;
-    return res.status(200).json({
-      songs: songsResult.rows,
-      spotify: spotifyConn
-        ? { connected: true, playlistUrl: spotifyConn.playlist_url }
-        : { connected: false, playlistUrl: null },
-    });
+    return res.status(200).json({ songs: songsResult.rows });
   }
 
   if (req.method === 'POST') {

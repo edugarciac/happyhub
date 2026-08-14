@@ -1,7 +1,7 @@
 // src/components/events/SpotifyPlaylistTab.tsx
 import { useState, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
-import { Music, Check, X, Trash2, RefreshCw, ExternalLink, PlusCircle } from 'lucide-react';
+import { Music, Check, X, Trash2, RefreshCw, ExternalLink, PlusCircle, AlertCircle } from 'lucide-react';
 
 interface Song {
   id: number;
@@ -14,9 +14,18 @@ interface Song {
   status: 'pending' | 'approved' | 'rejected';
 }
 
-interface SpotifyStatus {
-  connected: boolean;
-  playlistUrl: string | null;
+type ConnectionStatus =
+  | { status: 'not_connected' }
+  | { status: 'not_premium'; displayName: string | null }
+  | { status: 'needs_playlist_choice' }
+  | { status: 'not_active' }
+  | { status: 'ready'; playlistUrl: string | null; playlistName: string | null; isNewPlaylist: boolean; displayName: string | null };
+
+interface Playlist {
+  id: string;
+  name: string;
+  imageUrl: string | null;
+  trackCount: number;
 }
 
 interface Props {
@@ -27,7 +36,7 @@ interface Props {
 
 export default function SpotifyPlaylistTab({ eventId, isOrganizer, currentParticipantId }: Props) {
   const [songs, setSongs] = useState<Song[]>([]);
-  const [spotify, setSpotify] = useState<SpotifyStatus>({ connected: false, playlistUrl: null });
+  const [connection, setConnection] = useState<ConnectionStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [actionId, setActionId] = useState<number | null>(null);
@@ -37,17 +46,17 @@ export default function SpotifyPlaylistTab({ eventId, isOrganizer, currentPartic
   const [newArtist, setNewArtist] = useState('');
   const [adding, setAdding] = useState(false);
 
-  const fetchSongs = useCallback(async () => {
-    const res = await fetch(`/api/events/collaborative/${eventId}/entertainment/songs`);
-    if (res.ok) {
-      const data = await res.json();
-      setSongs(data.songs);
-      setSpotify(data.spotify);
-    }
+  const fetchAll = useCallback(async () => {
+    const [songsRes, connRes] = await Promise.all([
+      fetch(`/api/events/collaborative/${eventId}/entertainment/songs`),
+      fetch(`/api/events/collaborative/${eventId}/entertainment/spotify/connection`),
+    ]);
+    if (songsRes.ok) setSongs((await songsRes.json()).songs);
+    if (connRes.ok) setConnection(await connRes.json());
     setLoading(false);
   }, [eventId]);
 
-  useEffect(() => { fetchSongs(); }, [fetchSongs]);
+  useEffect(() => { fetchAll(); }, [fetchAll]);
 
   const handleAddSong = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,7 +72,7 @@ export default function SpotifyPlaylistTab({ eventId, isOrganizer, currentPartic
         toast.success('Canción añadida');
         setNewTitle('');
         setNewArtist('');
-        fetchSongs();
+        fetchAll();
       } else {
         toast.error('Error añadiendo canción');
       }
@@ -110,7 +119,7 @@ export default function SpotifyPlaylistTab({ eventId, isOrganizer, currentPartic
     setSyncing(false);
     if (res.ok) {
       toast.success(`Playlist sincronizada (${data.tracksAdded} canciones)`);
-      fetchSongs();
+      fetchAll();
     } else {
       toast.error(data.error || 'Error sincronizando');
     }
@@ -120,24 +129,39 @@ export default function SpotifyPlaylistTab({ eventId, isOrganizer, currentPartic
   const pending = songs.filter(s => s.status === 'pending');
   const rejected = songs.filter(s => s.status === 'rejected');
 
-  if (loading) return <div className="p-6 text-gray-400 text-center">Cargando canciones...</div>;
+  if (loading || !connection) return <div className="p-6 text-gray-400 text-center">Cargando música...</div>;
+
+  if (connection.status !== 'ready') {
+    return (
+      <div className="p-4">
+        <ConnectionSetup
+          eventId={eventId}
+          isOrganizer={isOrganizer}
+          connection={connection}
+          onConnected={fetchAll}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 space-y-4">
-      {/* Banner conectar Spotify */}
-      {isOrganizer && !spotify.connected && (
-        <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg p-3">
-          <span className="text-sm text-green-800">
-            <strong>🎧 Conecta Spotify</strong> para sincronizar la playlist con tu cuenta
-          </span>
+      <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg p-3 text-sm">
+        <span className="text-green-800">
+          🎧 Playlist: <strong>{connection.playlistName}</strong>
+          {connection.displayName && <span className="text-green-600"> · conectado como {connection.displayName}</span>}
+        </span>
+        {connection.playlistUrl && (
           <a
-            href={`/api/events/collaborative/${eventId}/entertainment/spotify/connect`}
-            className="bg-green-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-green-700"
+            href={connection.playlistUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 text-green-700 hover:underline whitespace-nowrap"
           >
-            Conectar Spotify
+            Ver en Spotify <ExternalLink className="h-3 w-3" />
           </a>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Formulario añadir canción */}
       <form onSubmit={handleAddSong} className="flex flex-col sm:flex-row gap-2">
@@ -226,8 +250,8 @@ export default function SpotifyPlaylistTab({ eventId, isOrganizer, currentPartic
         </div>
       )}
 
-      {/* Sync y enlace playlist */}
-      {isOrganizer && spotify.connected && (
+      {/* Sync */}
+      {isOrganizer && (
         <div className="flex items-center justify-between pt-2 border-t gap-3">
           <button
             onClick={handleSync}
@@ -237,16 +261,201 @@ export default function SpotifyPlaylistTab({ eventId, isOrganizer, currentPartic
             <RefreshCw className={`h-4 w-4 ${syncing ? 'animate-spin' : ''}`} />
             {syncing ? 'Sincronizando...' : 'Sync a Spotify'}
           </button>
-          {spotify.playlistUrl && (
-            <a
-              href={spotify.playlistUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 text-sm text-green-700 hover:underline"
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ConnectionSetup({ eventId, isOrganizer, connection, onConnected }: {
+  eventId: number;
+  isOrganizer: boolean;
+  connection: ConnectionStatus;
+  onConnected: () => void;
+}) {
+  if (!isOrganizer || connection.status === 'not_active') {
+    return (
+      <div className="text-center py-10">
+        <Music className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+        <p className="text-gray-500 text-sm">
+          El organizador todavía no ha activado la música colaborativa para este evento.
+        </p>
+      </div>
+    );
+  }
+
+  if (connection.status === 'not_connected') {
+    return (
+      <div className="text-center py-10 max-w-sm mx-auto">
+        <Music className="w-10 h-10 text-green-500 mx-auto mb-3" />
+        <p className="text-gray-700 font-medium mb-1">Activa la música colaborativa</p>
+        <p className="text-gray-500 text-sm mb-4">
+          Conecta tu cuenta de Spotify Premium para compartir una playlist en la que tus invitados podrán sugerir canciones.
+        </p>
+        <a
+          href="/api/account/spotify/connect"
+          className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors"
+        >
+          <Music className="w-4 h-4" />
+          Conectar Spotify
+        </a>
+      </div>
+    );
+  }
+
+  if (connection.status === 'not_premium') {
+    return (
+      <div className="text-center py-10 max-w-sm mx-auto">
+        <AlertCircle className="w-10 h-10 text-amber-500 mx-auto mb-3" />
+        <p className="text-gray-700 font-medium mb-1">Se requiere Spotify Premium</p>
+        <p className="text-gray-500 text-sm">
+          Tu cuenta de Spotify (<strong>{connection.displayName || 'conectada'}</strong>) no tiene Premium.
+          La música colaborativa necesita una cuenta Premium para crear y gestionar la playlist.
+        </p>
+      </div>
+    );
+  }
+
+  // needs_playlist_choice
+  return <PlaylistChoiceForm eventId={eventId} onConnected={onConnected} />;
+}
+
+function PlaylistChoiceForm({ eventId, onConnected }: { eventId: number; onConnected: () => void }) {
+  const [mode, setMode] = useState<'new' | 'existing' | null>(null);
+  const [playlistName, setPlaylistName] = useState('');
+  const [playlists, setPlaylists] = useState<Playlist[]>([]);
+  const [loadingPlaylists, setLoadingPlaylists] = useState(false);
+  const [selectedPlaylistId, setSelectedPlaylistId] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const loadPlaylists = async () => {
+    setLoadingPlaylists(true);
+    try {
+      const res = await fetch('/api/account/spotify/playlists');
+      if (res.ok) setPlaylists((await res.json()).playlists);
+      else toast.error('Error cargando tus playlists de Spotify');
+    } finally {
+      setLoadingPlaylists(false);
+    }
+  };
+
+  const handleChooseExisting = () => {
+    setMode('existing');
+    if (playlists.length === 0) loadPlaylists();
+  };
+
+  const handleSubmit = async () => {
+    setSaving(true);
+    try {
+      const body = mode === 'new'
+        ? { mode: 'new', playlistName: playlistName.trim() }
+        : { mode: 'existing', playlistId: selectedPlaylistId };
+      const res = await fetch(`/api/events/collaborative/${eventId}/entertainment/spotify/connection`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) {
+        toast.success('Música activada para el evento');
+        onConnected();
+      } else {
+        const data = await res.json();
+        toast.error(data.error || 'Error activando la música');
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="max-w-md mx-auto py-6">
+      <div className="text-center mb-6">
+        <Music className="w-10 h-10 text-green-500 mx-auto mb-3" />
+        <p className="text-gray-700 font-medium">Elige la playlist para este evento</p>
+      </div>
+
+      {!mode && (
+        <div className="space-y-2">
+          <button
+            onClick={() => setMode('new')}
+            className="w-full text-left border border-gray-200 hover:border-green-400 rounded-xl p-4 transition-colors"
+          >
+            <p className="font-medium text-gray-900 text-sm">🆕 Crear una playlist nueva</p>
+            <p className="text-xs text-gray-500 mt-0.5">Se creará en tu cuenta de Spotify, nombrada como el evento.</p>
+          </button>
+          <button
+            onClick={handleChooseExisting}
+            className="w-full text-left border border-gray-200 hover:border-green-400 rounded-xl p-4 transition-colors"
+          >
+            <p className="font-medium text-gray-900 text-sm">📂 Usar una playlist existente</p>
+            <p className="text-xs text-gray-500 mt-0.5">Elige una de tus playlists ya creadas en Spotify.</p>
+          </button>
+        </div>
+      )}
+
+      {mode === 'new' && (
+        <div className="space-y-3">
+          <input
+            className="w-full border rounded-lg px-3 py-2 text-sm"
+            placeholder="Nombre de la playlist"
+            value={playlistName}
+            onChange={(e) => setPlaylistName(e.target.value)}
+          />
+          <div className="flex gap-2">
+            <button onClick={() => setMode(null)} className="text-sm text-gray-500 px-3 py-2">Atrás</button>
+            <button
+              onClick={handleSubmit}
+              disabled={saving || !playlistName.trim()}
+              className="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2 rounded-lg disabled:opacity-50"
             >
-              Ver playlist <ExternalLink className="h-3 w-3" />
-            </a>
+              {saving ? 'Creando...' : 'Crear y activar'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {mode === 'existing' && (
+        <div className="space-y-3">
+          {loadingPlaylists ? (
+            <p className="text-center text-sm text-gray-400 py-4">Cargando tus playlists...</p>
+          ) : playlists.length === 0 ? (
+            <p className="text-center text-sm text-gray-400 py-4">No se encontraron playlists en tu cuenta.</p>
+          ) : (
+            <div className="max-h-64 overflow-y-auto space-y-1.5">
+              {playlists.map((p) => (
+                <label
+                  key={p.id}
+                  className={`flex items-center gap-3 border rounded-lg p-2.5 cursor-pointer transition-colors ${
+                    selectedPlaylistId === p.id ? 'border-green-400 bg-green-50' : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="playlist"
+                    value={p.id}
+                    checked={selectedPlaylistId === p.id}
+                    onChange={() => setSelectedPlaylistId(p.id)}
+                    className="flex-shrink-0"
+                  />
+                  {p.imageUrl && <img src={p.imageUrl} alt="" className="w-8 h-8 rounded object-cover flex-shrink-0" />}
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">{p.name}</p>
+                    <p className="text-xs text-gray-400">{p.trackCount} canciones</p>
+                  </div>
+                </label>
+              ))}
+            </div>
           )}
+          <div className="flex gap-2">
+            <button onClick={() => setMode(null)} className="text-sm text-gray-500 px-3 py-2">Atrás</button>
+            <button
+              onClick={handleSubmit}
+              disabled={saving || !selectedPlaylistId}
+              className="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2 rounded-lg disabled:opacity-50"
+            >
+              {saving ? 'Activando...' : 'Usar esta playlist'}
+            </button>
+          </div>
         </div>
       )}
     </div>

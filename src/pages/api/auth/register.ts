@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { z } from 'zod';
 import { createUser, getUserByEmail } from '../../../utils/db/users';
+import { linkParticipantsToUser } from '../../../utils/db/collaborative-events';
 import jwt from 'jsonwebtoken';
 import { generateVerificationToken } from '../../../utils/emailVerification';
 import { sendVerificationEmail } from '../../../lib/email';
@@ -58,6 +59,14 @@ export default async function handler(
 
     // Create user (email_verified = false by default)
     const user = await createUser(data);
+
+    // Link any pre-existing anonymous/RSVP-only guest rows to this new account.
+    // Best-effort: must not fail registration if it errors.
+    try {
+      await linkParticipantsToUser(user.id, user.email);
+    } catch (linkError) {
+      console.error('Failed to link participants on registration:', linkError);
+    }
 
     // Generate verification token and send email
     const verificationToken = await generateVerificationToken(user.id);
