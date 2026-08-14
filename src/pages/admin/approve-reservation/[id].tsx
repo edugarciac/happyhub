@@ -220,6 +220,13 @@ export default function ApproveReservationPage() {
                 </p>
               </div>
             </div>
+            {reservation.needs_kids_furniture && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <span className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 px-3 py-1.5 rounded-lg text-sm font-semibold">
+                  🪑 Requiere mesas y sillas para niños — sacarlas del trastero antes del evento
+                </span>
+              </div>
+            )}
             {reservation.notes && (
               <div className="mt-4 pt-4 border-t border-gray-200">
                 <p className="text-sm text-gray-600 mb-1">Notas adicionales</p>

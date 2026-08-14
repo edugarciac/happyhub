@@ -24,6 +24,7 @@ const customerSchema = z.object({
     errorMap: () => ({ message: 'Selecciona un método de pago' }),
   }),
   message: z.string().optional(),
+  needsKidsFurniture: z.boolean().optional(),
   acceptTerms: z.boolean().refine(val => val === true, {
     message: 'Debes aceptar los términos y condiciones',
   }),
@@ -52,6 +53,7 @@ export default function Step3CustomerData() {
       eventType: state.eventType || undefined,
       paymentMethod: state.paymentMethod || undefined,
       message: state.message,
+      needsKidsFurniture: state.needsKidsFurniture,
       acceptTerms: state.acceptTerms,
     },
   });
@@ -71,6 +73,7 @@ export default function Step3CustomerData() {
           eventType: data.eventType as EventType,
           paymentMethod: data.paymentMethod as PaymentMethod,
           message: data.message || '',
+          needsKidsFurniture: data.needsKidsFurniture || false,
           acceptTerms: data.acceptTerms,
         },
       });
@@ -108,6 +111,7 @@ export default function Step3CustomerData() {
           eventType: data.eventType,
           paymentMethod: data.paymentMethod,
           message: data.message || '',
+          needsKidsFurniture: data.needsKidsFurniture || false,
           // Booking data
           date: dateStr,
           time: timeStr,
@@ -367,6 +371,21 @@ export default function Step3CustomerData() {
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none"
                     placeholder="Cuéntanos cualquier detalle especial sobre tu evento..."
                   />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="flex items-start gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      {...register('needsKidsFurniture')}
+                      className="mt-1 w-5 h-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                    />
+                    <span className="text-sm text-gray-700">
+                      <span className="font-medium">¿Necesitas mesas y sillas para niños?</span>
+                      <br />
+                      <span className="text-gray-500">No tiene coste adicional ni afecta al aforo — solo nos ayuda a prepararlo todo antes de tu evento.</span>
+                    </span>
+                  </label>
                 </div>
               </div>
             </div>

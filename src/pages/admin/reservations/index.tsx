@@ -31,6 +31,7 @@ interface Reservation {
   notes: string;
   rejectionReason: string;
   cancellationReason: string;
+  needsKidsFurniture: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -68,7 +69,7 @@ export default function AdminReservations() {
 
   // Edit modal
   const [editReservation, setEditReservation] = useState<Reservation | null>(null);
-  const [editForm, setEditForm] = useState({ eventDate: '', timeSlot: '', eventType: '', guests: 0, totalPrice: 0, depositAmount: 0, notes: '' });
+  const [editForm, setEditForm] = useState({ eventDate: '', timeSlot: '', eventType: '', guests: 0, totalPrice: 0, depositAmount: 0, notes: '', needsKidsFurniture: false });
   const [editError, setEditError] = useState('');
   const [editSaving, setEditSaving] = useState(false);
 
@@ -144,6 +145,7 @@ export default function AdminReservations() {
       eventDate: r.eventDate ? r.eventDate.split('T')[0] : '',
       timeSlot: r.timeSlot, eventType: r.eventType, guests: r.guests,
       totalPrice: r.totalPrice, depositAmount: r.depositAmount, notes: r.notes,
+      needsKidsFurniture: r.needsKidsFurniture,
     });
     setEditError('');
   };
@@ -327,6 +329,11 @@ export default function AdminReservations() {
                               <Users className="w-4 h-4 text-gray-400" />{r.guests} personas
                             </div>
                             <div className="text-xs text-gray-500">{r.eventType}</div>
+                            {r.needsKidsFurniture && (
+                              <div className="text-xs mt-1 inline-flex items-center gap-1 bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full font-medium">
+                                🪑 Mesas/sillas niños
+                              </div>
+                            )}
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
                             <div className="text-sm font-medium text-gray-900">{r.totalPrice} EUR</div>
@@ -510,6 +517,12 @@ export default function AdminReservations() {
                   <textarea value={editForm.notes} onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })} rows={3}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
                 </div>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={editForm.needsKidsFurniture}
+                    onChange={(e) => setEditForm({ ...editForm, needsKidsFurniture: e.target.checked })}
+                    className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500" />
+                  <span className="text-sm text-gray-700">🪑 Necesita mesas/sillas para niños</span>
+                </label>
                 <div className="flex gap-3 pt-2">
                   <button onClick={() => setEditReservation(null)} className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg transition-colors">Cancelar</button>
                   <button onClick={handleEditSave} disabled={editSaving}
