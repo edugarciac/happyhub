@@ -134,7 +134,7 @@ interface ReservationConfirmationParams {
   contractUrl?: string;
 }
 
-const TIME_SLOT_LABELS: Record<string, string> = {
+export const TIME_SLOT_LABELS: Record<string, string> = {
   morning: 'Mañana (10:00-14:00)',
   afternoon: 'Tarde (16:30-20:30)',
   night: 'Noche (22:00-02:00)',
@@ -255,6 +255,43 @@ export async function notifyAdminNewReservation({
 👥 *Invitados:* ${guests}
 💰 *Total:* ${totalPrice}€
 ✅ *Señal:* ${depositAmount}€`;
+
+  return sendAdminNotification(message);
+}
+
+// Sent right when a reservation request comes in (before payment/approval) —
+// distinct wording from notifyAdminNewReservation (which fires on payment
+// success) so the admin isn't told twice that something is "confirmed".
+export async function notifyAdminReservationRequest({
+  name,
+  date,
+  timeSlot,
+  guests,
+  totalPrice,
+  depositAmount,
+  reservationId,
+  needsKidsFurniture,
+}: Omit<ReservationConfirmationParams, 'phone' | 'contractUrl'> & { needsKidsFurniture?: boolean }): Promise<boolean> {
+  const eventDate = new Date(date);
+  const formattedDate = eventDate.toLocaleDateString('es-ES', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  });
+
+  const kidsFurnitureLine = needsKidsFurniture ? '\n🪑 *Mesas/sillas niños:* Sí' : '';
+
+  const message = `🆕 *Nueva solicitud de reserva*
+
+📝 *Nº:* ${reservationId}
+👤 *Cliente:* ${name}
+📅 *Fecha:* ${formattedDate}
+⏰ *Horario:* ${TIME_SLOT_LABELS[timeSlot] || timeSlot}
+👥 *Invitados:* ${guests}
+💰 *Total:* ${totalPrice}€
+🔖 *Señal:* ${depositAmount}€${kidsFurnitureLine}
+
+Revísala en el panel de administración.`;
 
   return sendAdminNotification(message);
 }

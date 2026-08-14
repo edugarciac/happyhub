@@ -23,17 +23,22 @@
 - [ ] Update `songs.ts` / `sync.ts` to use `getValidAccessToken` via `user_connection_id`
 
 ## T5 — Frontend: SpotifyPlaylistTab states
-- [ ] `not_connected` state
-- [ ] `not_premium` state
-- [ ] `needs_playlist_choice` state (new/existing picker)
-- [ ] `ready` state header addition (playlist name/link, connected-as)
+- [x] `not_connected` state
+- [x] ~~`not_premium` state~~ (removed, see T7)
+- [x] `needs_playlist_choice` state (new/existing picker)
+- [x] `ready` state header addition (playlist name/link, connected-as)
 
 ## T6 — Cleanup
-- [ ] Delete `EntertainmentSection.tsx` (unused)
+- [x] Delete `EntertainmentSection.tsx` (unused)
+
+## T7 — Remove Premium gate (2026-08-14)
+- [x] `connection.ts` GET/PUT: drop `product !== 'premium'` checks
+- [x] `playlists.ts`: drop the same check
+- [x] `SpotifyPlaylistTab.tsx`: remove `not_premium` status/branch
+- [x] `SpotifyConnectionCard.tsx`: remove Premium-gated messaging, update connect copy
 
 ## Verification
-- [ ] Connect Spotify from profile → Premium account → status shows connected + Premium
-- [ ] Connect with a non-Premium account → blocked with clear message, no playlist step offered
+- [ ] Connect Spotify from profile (any account, Premium or Free) → status shows connected, playlist setup available either way
 - [ ] Enable Música for an event → choose "new playlist" → playlist created on Spotify, songs sync
 - [ ] Enable Música for a second event with the same connection → choose "existing playlist" → correct playlist linked, no re-auth required
 - [ ] Disconnect from profile → both events show `not_connected` again, past synced songs unaffected on Spotify's side

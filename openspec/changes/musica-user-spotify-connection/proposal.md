@@ -7,7 +7,7 @@ The product intent is different: the playlist should be driven by **the logged-i
 ## What Changes
 
 - New profile-level Spotify connection: connect once from the account/profile area, reused across all of the user's events (replaces the current "reconnect per event" model)
-- On connect, call Spotify's `GET /v1/me` and store `product` (`premium`/`free`); block enabling Música for an event if the connected account isn't Premium
+- On connect, call Spotify's `GET /v1/me` and store `product` (`premium`/`free`) for informational purposes. **Update 2026-08-14: no longer gates anything** — Spotify's Web API doesn't require Premium for playlist-modify scopes, so any connected account (Premium or Free) can set up Música.
 - When a user (with a Premium connection) sets up Música for one of their events, they choose: **create a new playlist** for this event, or **pick one of their existing Spotify playlists** (`GET /v1/me/playlists`) to use as the event's shared list
 - `event_spotify_connections` stops storing tokens; it becomes a pointer from `event_id` to the organizer's `user_spotify_connections` row plus the chosen `playlist_id`/`playlist_url`/`is_new_playlist` for that event
 - Song suggestion, approval, and sync logic (`songs.ts`, `sync.ts`) unchanged in behavior — they now read the access token via the linked `user_spotify_connections` row instead of a per-event token
@@ -18,7 +18,7 @@ The product intent is different: the playlist should be driven by **the logged-i
 
 ### New Capabilities
 - `user-level-spotify-connection`: profile-scoped Spotify OAuth, one connection per user, reusable across events
-- `spotify-premium-verification`: checks `product: "premium"` via Spotify API and gates Música setup on it
+- ~~`spotify-premium-verification`: checks `product: "premium"` via Spotify API and gates Música setup on it~~ — removed 2026-08-14, see design.md
 - `event-playlist-selection`: choice between a new playlist or an existing one when enabling Música for an event
 
 ### Modified Capabilities
@@ -33,5 +33,5 @@ The product intent is different: the playlist should be driven by **the logged-i
 
 - **Database**: new `user_spotify_connections` table (`UNIQUE(user_id)`, holds tokens + `spotify_user_id`, `display_name`, `product`); migration alters `event_spotify_connections` to drop token columns and add `user_connection_id` FK + `is_new_playlist`
 - **API routes**: new `GET /api/account/spotify/connect`, `GET /api/auth/spotify/callback` (rewritten for user-level state), `POST /api/account/spotify/disconnect`, `GET /api/account/spotify/playlists`; modify `src/pages/api/events/collaborative/[id]/entertainment/spotify/connect.ts` → becomes a "link existing connection + choose playlist" endpoint rather than an OAuth redirect; `songs.ts`/`sync.ts` read tokens via the join
-- **Frontend**: new Spotify section in the account/profile area (`/area-privada` or a new `/mi-cuenta` page — confirm placement at implementation time against current profile page structure); `SpotifyPlaylistTab.tsx` gains a setup step (connect-prompt if not connected, Premium-required message if not Premium, new/existing playlist picker if connected)
+- **Frontend**: new Spotify section in `/area-privada`; `SpotifyPlaylistTab.tsx` gains a setup step (connect-prompt if not connected, new/existing playlist picker if connected — no Premium check)
 - **Cleanup**: delete `EntertainmentSection.tsx`

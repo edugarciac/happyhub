@@ -72,7 +72,7 @@ async function handleList(req: NextApiRequest, res: NextApiResponse) {
               r.payment_status,
               r.status, r.notes, r.created_at, r.updated_at,
               r.rejection_reason, r.cancellation_reason,
-              r.admin_approved_by, r.approved_at,
+              r.admin_approved_by, r.approved_at, r.needs_kids_furniture,
               u.name, u.email, u.phone
        FROM reservations r
        LEFT JOIN users u ON r.user_id = u.id
@@ -99,6 +99,7 @@ async function handleList(req: NextApiRequest, res: NextApiResponse) {
       notes: r.notes || '',
       rejectionReason: r.rejection_reason || '',
       cancellationReason: r.cancellation_reason || '',
+      needsKidsFurniture: !!r.needs_kids_furniture,
       createdAt: r.created_at,
       updatedAt: r.updated_at,
     }));

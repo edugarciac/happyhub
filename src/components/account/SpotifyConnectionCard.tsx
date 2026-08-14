@@ -1,12 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import toast from 'react-hot-toast';
-import { Music, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Music, CheckCircle2 } from 'lucide-react';
 
 interface Status {
   connected: boolean;
   displayName?: string | null;
-  product?: 'premium' | 'free';
 }
 
 export default function SpotifyConnectionCard() {
@@ -23,13 +22,22 @@ export default function SpotifyConnectionCard() {
 
   useEffect(() => { fetchStatus(); }, [fetchStatus]);
 
+  const ERROR_MESSAGES: Record<string, string> = {
+    spotify_denied: 'Has cancelado la conexión con Spotify, o Spotify la ha rechazado (revisa que tu cuenta esté añadida como usuario de prueba en el dashboard de Spotify).',
+    spotify_invalid: 'El enlace de conexión con Spotify no es válido. Inténtalo de nuevo desde el botón "Conectar Spotify".',
+    spotify_config: 'Spotify no está bien configurado en el servidor. Contacta con soporte.',
+    spotify_token: 'Spotify rechazó el intercambio de credenciales. Puede ser un problema de configuración del servidor.',
+    spotify_profile: 'No se pudo leer tu perfil de Spotify tras conectar.',
+    spotify_error: 'Ha ocurrido un error inesperado al conectar con Spotify.',
+  };
+
   useEffect(() => {
     if (!router.isReady) return;
     if (router.query.spotify === 'connected') {
       toast.success('Cuenta de Spotify conectada');
       router.replace('/area-privada', undefined, { shallow: true });
-    } else if (router.query.error?.toString().startsWith('spotify_')) {
-      toast.error('No se pudo conectar Spotify. Inténtalo de nuevo.');
+    } else if (typeof router.query.error === 'string' && router.query.error.startsWith('spotify_')) {
+      toast.error(ERROR_MESSAGES[router.query.error] || 'No se pudo conectar Spotify. Inténtalo de nuevo.', { duration: 8000 });
       router.replace('/area-privada', undefined, { shallow: true });
     }
   }, [router]);
@@ -69,18 +77,9 @@ export default function SpotifyConnectionCard() {
               Conectado como <strong>{status.displayName || 'tu cuenta de Spotify'}</strong>
             </span>
           </div>
-          {status.product === 'premium' ? (
-            <p className="text-xs text-green-700 bg-green-50 border border-green-100 rounded-lg px-3 py-2 inline-block">
-              ✓ Cuenta Premium — puedes activar Música en tus eventos
-            </p>
-          ) : (
-            <div className="flex items-start gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
-              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-              <span>
-                Tu cuenta no tiene Spotify Premium. La música colaborativa requiere Premium — actualiza tu cuenta en Spotify y reconecta.
-              </span>
-            </div>
-          )}
+          <p className="text-xs text-green-700 bg-green-50 border border-green-100 rounded-lg px-3 py-2 inline-block">
+            ✓ Puedes activar Música en tus eventos
+          </p>
           <div className="pt-1">
             <button
               onClick={handleDisconnect}
@@ -94,7 +93,7 @@ export default function SpotifyConnectionCard() {
       ) : (
         <div>
           <p className="text-sm text-gray-500 mb-3">
-            Conecta tu cuenta de Spotify Premium para compartir una playlist colaborativa en tus eventos: tus invitados podrán sugerir canciones.
+            Conecta tu cuenta de Spotify para compartir una playlist colaborativa en tus eventos: tus invitados podrán sugerir canciones.
           </p>
           <a
             href="/api/account/spotify/connect"

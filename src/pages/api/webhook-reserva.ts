@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import axios from 'axios';
+import { notifyAdminReservationRequest } from '@/lib/whatsapp';
 
 interface ReservationData {
   name: string;
@@ -14,6 +15,7 @@ interface ReservationData {
   extras?: string[];
   paymentMethod: string;
   message?: string;
+  needsKidsFurniture?: boolean;
   basePrice: number;
   totalPrice: number;
   depositAmount: number;
@@ -73,6 +75,16 @@ export default async function handler(
         timeout: 10000,
       });
       const reservationId = mockResponse.data?.reservationId || `RES-${Date.now()}`;
+      notifyAdminReservationRequest({
+        name: reservationData.name,
+        date: reservationData.date,
+        timeSlot: reservationData.timeSlot,
+        guests: reservationData.guests,
+        totalPrice: reservationData.totalPrice,
+        depositAmount: reservationData.depositAmount,
+        reservationId,
+        needsKidsFurniture: reservationData.needsKidsFurniture,
+      }).catch((err) => console.error('Error sending admin WhatsApp notification:', err));
       return res.status(200).json({
         success: true,
         message: 'Reserva creada exitosamente (MOCK)',
@@ -103,6 +115,17 @@ export default async function handler(
     }
 
     const reservationId = n8nData?.reservationId || `RES-${Date.now()}`;
+
+    notifyAdminReservationRequest({
+      name: reservationData.name,
+      date: reservationData.date,
+      timeSlot: reservationData.timeSlot,
+      guests: reservationData.guests,
+      totalPrice: reservationData.totalPrice,
+      depositAmount: reservationData.depositAmount,
+      reservationId,
+      needsKidsFurniture: reservationData.needsKidsFurniture,
+    }).catch((err) => console.error('Error sending admin WhatsApp notification:', err));
 
     return res.status(200).json({
       success: true,

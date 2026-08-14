@@ -6,7 +6,6 @@ import { getUserSpotifyConnection, getValidAccessToken } from '@/lib/spotify';
 
 type StatusResponse =
   | { status: 'not_connected' }
-  | { status: 'not_premium'; displayName: string | null }
   | { status: 'needs_playlist_choice' }
   | { status: 'not_active' }
   | { status: 'ready'; playlistUrl: string | null; playlistName: string | null; isNewPlaylist: boolean; displayName: string | null };
@@ -50,9 +49,6 @@ export default withCollaborativeEventAuth(async (req, res, ctx) => {
 
     const userConn = await getUserSpotifyConnection(userId);
     if (!userConn) return res.status(200).json({ status: 'not_connected' } as StatusResponse);
-    if (userConn.product !== 'premium') {
-      return res.status(200).json({ status: 'not_premium', displayName: userConn.display_name } as StatusResponse);
-    }
 
     return res.status(200).json({ status: 'needs_playlist_choice' } as StatusResponse);
   }
@@ -62,7 +58,6 @@ export default withCollaborativeEventAuth(async (req, res, ctx) => {
 
     const userConn = await getUserSpotifyConnection(userId);
     if (!userConn) return res.status(403).json({ error: 'spotify_not_connected' });
-    if (userConn.product !== 'premium') return res.status(403).json({ error: 'spotify_not_premium' });
 
     const parsed = putSchema.safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });

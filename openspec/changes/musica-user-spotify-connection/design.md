@@ -14,9 +14,11 @@ No `premium`/`subscription` concept exists anywhere in the schema. NextAuth uses
 
 **Goals:**
 - One Spotify connection per HappyHub user, reusable across every event they organize.
-- Verify Premium status via Spotify's own API (`GET /v1/me` → `product` field) and gate the feature on it.
+- Record subscription tier via Spotify's own API (`GET /v1/me` → `product` field) for informational purposes.
 - Let the connected user choose a brand-new playlist or an existing one, per event.
 - Preserve the existing suggest → approve/reject → sync UX for participants unchanged.
+
+**Reversed decision (2026-08-14):** the original goal here was "gate the feature on Premium," per the initial product ask. That gate has been removed — Spotify's Web API doesn't actually require Premium for playlist creation/modification (Premium is only required for things like the Web Playback SDK), so the Premium check was a business rule layered on top of no real technical need, and it was blocking real usage (the person testing the feature didn't have Premium themselves). `product` is still fetched and stored, but purely informational now — nothing in the app reads it to block anything.
 
 **Non-Goals:**
 - Per-participant Spotify logins (search stays on Client Credentials — no change).
@@ -62,11 +64,11 @@ ALTER TABLE event_spotify_connections
 
 **Rationale**: Minimal change to the existing, already-correct HMAC anti-CSRF pattern — just drop `eventId` from the signed payload since the connection is no longer event-specific.
 
-### 3. Premium check happens once, at connect time, cached on the row
+### 3. `product` recorded at connect time, not enforced (reversed)
 
-**Decision**: In the callback, after exchanging the code, call `GET https://api.spotify.com/v1/me` and store `product`. Música setup (choosing a playlist for an event) reads the cached `product` rather than calling Spotify again on every page load. A "Reconectar" action on the profile page re-runs the check (covers the rare case someone upgrades/downgrades Premium after connecting).
+**Decision**: In the callback, after exchanging the code, call `GET https://api.spotify.com/v1/me` and store `product`. ~~Música setup (choosing a playlist for an event) reads the cached `product`~~ — **removed**: Música setup no longer checks `product` at all; any connected account can proceed straight to the new/existing playlist choice.
 
-**Rationale**: Avoids an extra Spotify API round-trip on every dashboard load; Premium status changing mid-session is an edge case, not a real-time requirement here.
+**Rationale**: Spotify's Web API doesn't require Premium for playlist-modify scopes — the original gate was a business rule, not a technical constraint, and it was blocking real usage. `product` is kept in storage as informational metadata only.
 
 ### 4. New-vs-existing playlist choice is a one-time, per-event setup step
 

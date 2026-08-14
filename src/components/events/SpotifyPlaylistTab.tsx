@@ -1,7 +1,7 @@
 // src/components/events/SpotifyPlaylistTab.tsx
 import { useState, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
-import { Music, Check, X, Trash2, RefreshCw, ExternalLink, PlusCircle, AlertCircle } from 'lucide-react';
+import { Music, Check, X, Trash2, RefreshCw, ExternalLink, PlusCircle } from 'lucide-react';
 
 interface Song {
   id: number;
@@ -16,7 +16,6 @@ interface Song {
 
 type ConnectionStatus =
   | { status: 'not_connected' }
-  | { status: 'not_premium'; displayName: string | null }
   | { status: 'needs_playlist_choice' }
   | { status: 'not_active' }
   | { status: 'ready'; playlistUrl: string | null; playlistName: string | null; isNewPlaylist: boolean; displayName: string | null };
@@ -290,7 +289,7 @@ function ConnectionSetup({ eventId, isOrganizer, connection, onConnected }: {
         <Music className="w-10 h-10 text-green-500 mx-auto mb-3" />
         <p className="text-gray-700 font-medium mb-1">Activa la música colaborativa</p>
         <p className="text-gray-500 text-sm mb-4">
-          Conecta tu cuenta de Spotify Premium para compartir una playlist en la que tus invitados podrán sugerir canciones.
+          Conecta tu cuenta de Spotify para compartir una playlist en la que tus invitados podrán sugerir canciones.
         </p>
         <a
           href="/api/account/spotify/connect"
@@ -299,19 +298,6 @@ function ConnectionSetup({ eventId, isOrganizer, connection, onConnected }: {
           <Music className="w-4 h-4" />
           Conectar Spotify
         </a>
-      </div>
-    );
-  }
-
-  if (connection.status === 'not_premium') {
-    return (
-      <div className="text-center py-10 max-w-sm mx-auto">
-        <AlertCircle className="w-10 h-10 text-amber-500 mx-auto mb-3" />
-        <p className="text-gray-700 font-medium mb-1">Se requiere Spotify Premium</p>
-        <p className="text-gray-500 text-sm">
-          Tu cuenta de Spotify (<strong>{connection.displayName || 'conectada'}</strong>) no tiene Premium.
-          La música colaborativa necesita una cuenta Premium para crear y gestionar la playlist.
-        </p>
       </div>
     );
   }

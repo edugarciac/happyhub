@@ -1,0 +1,2 @@
+ALTER TABLE reservations
+  ADD COLUMN IF NOT EXISTS needs_kids_furniture BOOLEAN NOT NULL DEFAULT FALSE;
