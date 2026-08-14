@@ -6,7 +6,8 @@ The admin doesn't receive a WhatsApp message when a customer creates a new reser
 
 - `src/pages/api/webhook-reserva.ts` sends an admin WhatsApp notification immediately after a reservation is successfully created (both the real n8n path and the mock path), covering every payment method — not just card/Stripe.
 - New `notifyAdminReservationRequest()` in `src/lib/whatsapp.ts`, distinct from the existing `notifyAdminNewReservation()` (which now exclusively represents the payment-success moment). Wording is "Nueva solicitud de reserva" rather than "Nueva Reserva Confirmada", so the admin isn't told twice that something is "confirmed" when a card reservation later triggers the existing payment-success message too.
-- No changes to n8n workflows — the fix lives entirely in code Vercel already deploys, avoiding a dependency on manually re-importing n8n workflow JSON into the live n8n instance.
+- No changes to n8n workflows for the WhatsApp piece — that fix lives entirely in code Vercel already deploys, avoiding a dependency on manually re-importing n8n workflow JSON into the live n8n instance.
+- Addendum: the admin confirmation *email* sent on reservation creation (`GmailAdmin` node in `n8n/n8n-nodes/n8n-reserva-neon-whatsapp.json`) now also goes to `happyhub.rovellat@gmail.com`, in addition to the existing `hola@happyhub.es` — this one does require re-importing that workflow into n8n, same as any other n8n JSON change in this project.
 
 ## Capabilities
 
