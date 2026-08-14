@@ -9,6 +9,7 @@ import Footer from '@/components/Footer';
 import VerificationBanner from '@/components/VerificationBanner';
 import CookieConsent, { useCookieConsent } from '@/components/CookieConsent';
 import FeedbackWidget from '@/components/FeedbackWidget';
+import { Toaster } from 'react-hot-toast';
 import { GA_MEASUREMENT_ID, pageview, useScrollDepthTracking } from '@/lib/analytics';
 
 function AppContent({ Component, pageProps }: { Component: AppProps['Component']; pageProps: any }) {
@@ -39,6 +40,7 @@ function AppContent({ Component, pageProps }: { Component: AppProps['Component']
   return (
     <>
       {showBanner && <VerificationBanner />}
+      <Toaster position="top-center" />
       <Header />
       <main className="min-h-screen">
         <Component {...pageProps} />
