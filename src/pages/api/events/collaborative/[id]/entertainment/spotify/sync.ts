@@ -1,74 +1,24 @@
 import type { NextApiResponse } from 'next';
 import { withCollaborativeEventAuth } from '@/lib/apiMiddleware';
-import { query } from '@/lib/db';
-
-async function getValidToken(conn: any): Promise<string> {
-  if (conn.token_expires_at && new Date(conn.token_expires_at) > new Date()) {
-    return conn.access_token;
-  }
-  const credentials = Buffer.from(
-    `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`
-  ).toString('base64');
-  const res = await fetch('https://accounts.spotify.com/api/token', {
-    method: 'POST',
-    headers: { Authorization: `Basic ${credentials}`, 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: `grant_type=refresh_token&refresh_token=${conn.refresh_token}`,
-  });
-  if (!res.ok) throw new Error('Error refrescando token de Spotify');
-  const data = await res.json();
-  const expiresAt = new Date(Date.now() + data.expires_in * 1000);
-  await query(
-    `UPDATE event_spotify_connections SET access_token = $1, token_expires_at = $2, updated_at = NOW() WHERE event_id = $3`,
-    [data.access_token, expiresAt, conn.event_id]
-  );
-  return data.access_token;
-}
+import { query, queryOne } from '@/lib/db';
+import { getValidAccessToken } from '@/lib/spotify';
 
 export default withCollaborativeEventAuth(async (req, res, ctx) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { eventId, event, isOrganizer } = ctx;
+  const { eventId, isOrganizer } = ctx;
   if (!isOrganizer) return res.status(403).json({ error: 'Solo el organizador' });
 
-  const connResult = await query(
-    `SELECT * FROM event_spotify_connections WHERE event_id = $1`,
+  const conn = await queryOne<{ playlist_id: string | null; playlist_url: string | null; user_connection_id: number | null }>(
+    `SELECT playlist_id, playlist_url, user_connection_id FROM event_spotify_connections WHERE event_id = $1`,
     [eventId]
   );
-  if (connResult.rows.length === 0) return res.status(400).json({ error: 'Spotify no conectado' });
-  const conn = connResult.rows[0];
+  if (!conn || !conn.user_connection_id || !conn.playlist_id) {
+    return res.status(400).json({ error: 'Música no configurada para este evento todavía' });
+  }
 
   try {
-    const token = await getValidToken(conn);
-
-    const meRes = await fetch('https://api.spotify.com/v1/me', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!meRes.ok) return res.status(502).json({ error: 'Error obteniendo perfil Spotify' });
-    const me = await meRes.json();
-
-    let playlistId = conn.playlist_id;
-    let playlistUrl = conn.playlist_url;
-
-    if (!playlistId) {
-      const createRes = await fetch(`https://api.spotify.com/v1/users/${me.id}/playlists`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: event.title,
-          description: `Playlist colaborativa de ${event.title} - HappyHub`,
-          public: true,
-        }),
-      });
-      if (!createRes.ok) return res.status(502).json({ error: 'Error creando playlist' });
-      const playlist = await createRes.json();
-      playlistId = playlist.id;
-      playlistUrl = playlist.external_urls?.spotify || null;
-
-      await query(
-        `UPDATE event_spotify_connections SET playlist_id = $1, playlist_url = $2, updated_at = NOW() WHERE event_id = $3`,
-        [playlistId, playlistUrl, eventId]
-      );
-    }
+    const token = await getValidAccessToken(conn.user_connection_id);
 
     const songsResult = await query(
       `SELECT spotify_track_uri FROM event_entertainment_songs
@@ -78,7 +28,7 @@ export default withCollaborativeEventAuth(async (req, res, ctx) => {
 
     if (songsResult.rows.length > 0) {
       const uris = songsResult.rows.map((r: any) => r.spotify_track_uri);
-      const addRes = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
+      const addRes = await fetch(`https://api.spotify.com/v1/playlists/${conn.playlist_id}/tracks`, {
         method: 'PUT',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ uris }),
@@ -86,7 +36,7 @@ export default withCollaborativeEventAuth(async (req, res, ctx) => {
       if (!addRes.ok) return res.status(502).json({ error: 'Error añadiendo canciones a playlist' });
     }
 
-    return res.status(200).json({ ok: true, playlistUrl, tracksAdded: songsResult.rows.length });
+    return res.status(200).json({ ok: true, playlistUrl: conn.playlist_url, tracksAdded: songsResult.rows.length });
   } catch (err: any) {
     return res.status(500).json({ error: err.message });
   }
