@@ -90,6 +90,7 @@ export default function Step2Configuration() {
   };
 
   const getExtraPrice = (extra: Extra): string => {
+    if (extra.basePrice === 0) return 'A consultar';
     if (extra.priceType === 'per_person') {
       return `${extra.basePrice}€/persona`;
     }
@@ -210,10 +211,16 @@ export default function Step2Configuration() {
                         <p className="text-sm text-gray-500 mb-2">{extra.description}</p>
                       )}
                       <div className="flex items-baseline gap-2">
-                        <span className="text-lg font-bold text-primary-600">{totalPrice}€</span>
-                        <span className="text-xs text-gray-400">
-                          {getExtraPrice(extra)}
-                        </span>
+                        {extra.basePrice === 0 ? (
+                          <span className="text-lg font-bold text-primary-600">A consultar</span>
+                        ) : (
+                          <>
+                            <span className="text-lg font-bold text-primary-600">{totalPrice}€</span>
+                            <span className="text-xs text-gray-400">
+                              {getExtraPrice(extra)}
+                            </span>
+                          </>
+                        )}
                       </div>
                     </div>
                   </button>

@@ -89,11 +89,11 @@ export default function PriceSummary({ showDeposit = true, compact = false }: Pr
               <div key={extraId} className="flex justify-between items-center text-sm mb-1">
                 <span className="text-gray-600">
                   {extra.name}
-                  {extra.priceType === 'per_person' && (
+                  {extra.basePrice !== 0 && extra.priceType === 'per_person' && (
                     <span className="text-gray-400"> ({extra.basePrice}€ x {state.guests})</span>
                   )}
                 </span>
-                <span className="font-medium">{price}€</span>
+                <span className="font-medium">{extra.basePrice === 0 ? 'A consultar' : `${price}€`}</span>
               </div>
             );
           })}
