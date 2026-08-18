@@ -32,7 +32,7 @@ const categories: FaqCategory[] = [
       {
         question: '¿Cuáles son las franjas horarias disponibles?',
         answer:
-          'Ofrecemos tres franjas: Mañanas (10:00–14:00h), Tardes (16:30–20:30h) y Noches (22:00–02:00h). Las franjas de tarde y noche incluyen 30 minutos de acceso anticipado sin coste adicional.',
+          'Ofrecemos tres franjas: Mañanas (10:00–14:00h), Tardes (16:00–20:00h) y Noches (22:00–02:00h). La franja de noche incluye 30 minutos de acceso anticipado sin coste adicional.',
       },
       {
         question: '¿Qué pasa si quiero ampliar el horario?',

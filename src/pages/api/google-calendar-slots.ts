@@ -63,7 +63,7 @@ export default async function handler(
         if (startHour >= 10 && startHour < 15) {
           timeSlot = 'morning';
         }
-        // Afternoon: 16:30-20:30
+        // Afternoon: 16:00-20:00
         else if (startHour >= 15 && startHour < 21) {
           timeSlot = 'afternoon';
         }

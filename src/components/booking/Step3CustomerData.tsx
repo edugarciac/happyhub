@@ -94,7 +94,7 @@ export default function Step3CustomerData() {
       // Map timeSlot to time string
       const timeMap: Record<string, string> = {
         morning: '10:00',
-        afternoon: '16:30',
+        afternoon: '16:00',
         night: '22:00'
       };
       const timeStr = state.timeSlot ? timeMap[state.timeSlot] : '10:00';

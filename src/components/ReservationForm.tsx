@@ -157,7 +157,7 @@ export default function ReservationForm({
       case 'morning':
         return 'Mañana (10:00-14:00)';
       case 'afternoon':
-        return 'Tarde (16:30-20:30)';
+        return 'Tarde (16:00-20:00)';
       case 'night':
         return 'Noche (22:00-02:00)';
     }

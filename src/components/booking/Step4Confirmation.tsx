@@ -8,7 +8,7 @@ export default function Step4Confirmation() {
 
   const timeSlotLabels: Record<string, string> = {
     morning: 'Mañana (10:00 - 14:00h)',
-    afternoon: 'Tarde (16:30 - 20:30h)',
+    afternoon: 'Tarde (16:00 - 20:00h)',
     night: 'Noche (22:00 - 02:00h)',
   };
 
