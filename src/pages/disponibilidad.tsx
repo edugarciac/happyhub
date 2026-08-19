@@ -66,7 +66,7 @@ export default function Disponibilidad() {
       case 'morning':
         return 'Mañana (10:00-14:00)';
       case 'afternoon':
-        return 'Tarde (16:30-20:30)';
+        return 'Tarde (16:00-20:00)';
       case 'night':
         return 'Noche (22:00-02:00)';
     }
@@ -187,8 +187,7 @@ export default function Disponibilidad() {
                 <h3 className="font-bold text-gray-900 mb-3 text-lg">⏰ Franjas Horarias</h3>
                 <div className="space-y-2 text-gray-600">
                   <p><strong>Mañanas:</strong> 10:00 - 14:00h</p>
-                  <p><strong>Tardes:</strong> 16:30 - 20:30h</p>
-                  <p className="text-sm">Apertura anticipada desde las 15:30h sin coste</p>
+                  <p><strong>Tardes:</strong> 16:00 - 20:00h</p>
                   <p><strong>Noches:</strong> 22:00 - 02:00h</p>
                   <p className="text-sm">Apertura anticipada desde las 21:30h sin coste</p>
                 </div>

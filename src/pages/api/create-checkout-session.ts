@@ -25,7 +25,7 @@ interface CheckoutRequestBody {
 
 const TIME_SLOT_LABELS: Record<string, string> = {
   morning: 'Mañana (10:00-14:00)',
-  afternoon: 'Tarde (16:30-20:30)',
+  afternoon: 'Tarde (16:00-20:00)',
   night: 'Noche (22:00-02:00)',
 };
 

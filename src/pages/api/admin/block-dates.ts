@@ -7,7 +7,7 @@ type TimeSlot = 'morning' | 'afternoon' | 'night';
 
 const TIME_SLOT_HOURS: Record<TimeSlot, { start: string; end: string }> = {
   morning: { start: '10:00', end: '14:00' },
-  afternoon: { start: '15:30', end: '20:30' },
+  afternoon: { start: '16:00', end: '20:00' },
   night: { start: '21:30', end: '02:00' },
 };
 
