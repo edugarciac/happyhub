@@ -217,7 +217,7 @@ export default function Disponibilidad() {
                   Se requiere un <strong>depósito del 30%</strong> para confirmar la reserva.
                 </p>
                 <p className="text-gray-600 mt-2">
-                  El resto se abona el día del evento.
+                  El resto se abona antes de comenzar el evento.
                 </p>
               </div>
 

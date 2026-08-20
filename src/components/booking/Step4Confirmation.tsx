@@ -193,7 +193,7 @@ export default function Step4Confirmation() {
           </span>
         </div>
         <p className="text-xs text-gray-600 mt-4">
-          * El resto ({totalPrice !== 'consult' ? totalPrice - depositAmount : 0}€) se abonará el día del evento
+          * El resto ({totalPrice !== 'consult' ? totalPrice - depositAmount : 0}€) se abonará antes de comenzar el evento
         </p>
       </div>
 

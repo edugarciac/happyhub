@@ -171,7 +171,7 @@ export default function PricingTable() {
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-primary-500 font-bold">•</span>
-                  <span>Resto el día del evento</span>
+                  <span>Resto antes de comenzar el evento</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-primary-500 font-bold">•</span>

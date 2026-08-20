@@ -120,7 +120,7 @@ export default function PriceSummary({ showDeposit = true, compact = false }: Pr
           <div className="flex justify-between items-center">
             <div>
               <p className="font-semibold text-gray-900">Señal a pagar ahora (30%)</p>
-              <p className="text-xs text-gray-500">Resto: {totalPrice - depositAmount}€ el día del evento</p>
+              <p className="text-xs text-gray-500">Resto: {totalPrice - depositAmount}€ antes de comenzar el evento</p>
             </div>
             <span className="text-2xl font-bold text-green-600">{depositAmount}€</span>
           </div>

@@ -4,8 +4,7 @@ The booking terms and conditions text states "El resto del pago se realizará el
 
 ## What Changes
 
-- Update the terms and conditions copy shown in Step 3 of the booking flow so it reads "El resto del pago se realizará antes de comenzar el evento." instead of "...el día del evento."
-- Update the equivalent line in the generated contract PDF terms and conditions ("El resto del importe debe abonarse antes de comenzar el evento.")
+- Update every screen and message that states the remaining balance is paid "el día del evento" so it says "antes de comenzar el evento" instead — not just the contract PDF, but every client-facing surface: the booking flow's terms and conditions, `/terminos`, `/como-funciona`, `/disponibilidad`, `/mi-reserva/[id]`, the pricing table, the price summary and confirmation steps of the booking wizard, and the WhatsApp confirmation message
 
 ## Capabilities
 
@@ -15,10 +14,11 @@ The booking terms and conditions text states "El resto del pago se realizará el
 
 ### Modified Capabilities
 
-- `booking-terms`: The displayed terms and conditions text for the remaining balance payment timing is corrected.
+- `booking-terms`: The displayed terms and conditions text for the remaining balance payment timing is corrected, consistently across every screen and message where it appears (not only the contract).
 
 ## Impact
 
-- **Frontend**: `src/components/booking/Step3CustomerData.tsx` — terms and conditions list item copy
+- **Frontend**: `src/components/booking/Step3CustomerData.tsx`, `src/components/PricingTable.tsx`, `src/components/booking/PriceSummary.tsx`, `src/components/booking/Step4Confirmation.tsx`, `src/pages/terminos.tsx`, `src/pages/como-funciona.tsx`, `src/pages/disponibilidad.tsx`, `src/pages/mi-reserva/[id].tsx` — remaining-balance copy
 - **Contract PDF**: `src/lib/pdf.ts` (`generateContractPDF`) — terms and conditions list item copy
+- **WhatsApp**: `src/lib/whatsapp.ts` — reservation confirmation message copy
 - No API, DB, or workflow changes needed

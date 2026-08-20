@@ -171,7 +171,7 @@ Hola ${name}, tu reserva en HappyHub ha sido confirmada.
 
 ${contractUrl ? `📄 Contrato: ${contractUrl}` : ''}
 
-Resto pendiente: ${totalPrice - depositAmount}€ (a pagar el día del evento)
+Resto pendiente: ${totalPrice - depositAmount}€ (a pagar antes de comenzar el evento)
 
 ¿Tienes preguntas? Responde a este mensaje o escríbenos por WhatsApp al 624 645 517.
 
