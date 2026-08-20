@@ -5,6 +5,7 @@ The booking terms and conditions text states "El resto del pago se realizará el
 ## What Changes
 
 - Update the terms and conditions copy shown in Step 3 of the booking flow so it reads "El resto del pago se realizará antes de comenzar el evento." instead of "...el día del evento."
+- Update the equivalent line in the generated contract PDF terms and conditions ("El resto del importe debe abonarse antes de comenzar el evento.")
 
 ## Capabilities
 
@@ -19,4 +20,5 @@ The booking terms and conditions text states "El resto del pago se realizará el
 ## Impact
 
 - **Frontend**: `src/components/booking/Step3CustomerData.tsx` — terms and conditions list item copy
+- **Contract PDF**: `src/lib/pdf.ts` (`generateContractPDF`) — terms and conditions list item copy
 - No API, DB, or workflow changes needed

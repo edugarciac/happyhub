@@ -194,7 +194,7 @@ export function generateContractPDF(reservation: ReservationData): Buffer {
   const terms = [
     '1. El depósito del 30% no es reembolsable en caso de cancelación con menos de 15 días de antelación.',
     '2. El cambio de fecha es gratuito hasta 30 días antes del evento, sujeto a disponibilidad.',
-    '3. El resto del importe debe abonarse el día del evento.',
+    '3. El resto del importe debe abonarse antes de comenzar el evento.',
     '4. El aforo máximo permitido es de 150 personas.',
     '5. El cliente se compromete a dejar el espacio en condiciones razonables de limpieza.',
     '6. HappyHub no se hace responsable de objetos olvidados en las instalaciones.',
