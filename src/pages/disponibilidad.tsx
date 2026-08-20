@@ -7,7 +7,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import FullCalendar from '@/components/FullCalendar';
 import { formatDate } from '@/utils/formatters';
-import { isWeekend, isFriday, isHoliday, isHolidayEve, type TimeSlot } from '@/utils/pricing';
+import { isWeekend, isFriday, isHoliday, isHolidayEve, loadHolidaysFromApi, type TimeSlot } from '@/utils/pricing';
 
 export default function Disponibilidad() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -20,6 +20,9 @@ export default function Disponibilidad() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Fetch holiday dates (used by isHoliday() below)
+        await loadHolidaysFromApi();
+
         // Fetch pricing from database
         const pricingRes = await fetch('/api/pricing/current');
         if (pricingRes.ok) {
@@ -214,7 +217,7 @@ export default function Disponibilidad() {
                   Se requiere un <strong>depósito del 30%</strong> para confirmar la reserva.
                 </p>
                 <p className="text-gray-600 mt-2">
-                  El resto se abona el día del evento.
+                  El resto se abona antes de comenzar el evento.
                 </p>
               </div>
 

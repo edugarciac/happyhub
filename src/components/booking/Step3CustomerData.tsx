@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useBooking, EventType, PaymentMethod } from './BookingContext';
 import PriceSummary from './PriceSummary';
+import { isHoliday } from '@/utils/pricing';
 import { ChevronLeft, ChevronRight, User, AlertCircle, FileText, Loader2, CreditCard } from 'lucide-react';
 
 const customerSchema = z.object({
@@ -178,8 +179,14 @@ export default function Step3CustomerData() {
         });
       }
 
-      // If card payment: redirect to Stripe for deposit
-      if (data.paymentMethod === 'card') {
+      // Los días festivos requieren confirmación explícita de HappyHub caso a caso:
+      // no se redirige a Stripe automáticamente, se avanza a la pantalla de
+      // "solicitud enviada" igual que con bizum/efectivo, y el admin envía el
+      // enlace de pago manualmente tras confirmar.
+      const dateIsHoliday = state.date ? isHoliday(state.date) : false;
+
+      // If card payment on a non-holiday date: redirect to Stripe for deposit
+      if (data.paymentMethod === 'card' && !dateIsHoliday) {
         try {
           const checkoutRes = await fetch('/api/create-checkout-session', {
             method: 'POST',
@@ -219,7 +226,7 @@ export default function Step3CustomerData() {
         }
       }
 
-      // Non-card payment: advance to confirmation step
+      // Non-card payment, or a holiday date pending manual confirmation: advance to confirmation step
       nextStep();
     } catch (error: any) {
       console.error('Error submitting reservation:', error);
@@ -401,7 +408,7 @@ export default function Step3CustomerData() {
                 <h4 className="font-semibold mb-2">Política de reservas HappyHub</h4>
                 <ul className="space-y-2 list-disc list-inside">
                   <li>Se requiere un depósito del 30% para confirmar la reserva.</li>
-                  <li>El resto del pago se realizará el día del evento.</li>
+                  <li>El resto del pago se realizará antes de comenzar el evento.</li>
                   <li>Cancelación gratuita hasta 15 días antes del evento.</li>
                   <li>Cancelaciones con menos de 15 días: se retiene el depósito.</li>
                   <li>Cambio de fecha gratuito hasta 30 días antes, sujeto a disponibilidad.</li>

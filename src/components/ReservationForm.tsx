@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { reservationSchema, ReservationFormData } from '@/utils/validators';
-import { isWeekend, isFriday, isHoliday, isHolidayEve, type TimeSlot } from '@/utils/pricing';
+import { isWeekend, isFriday, isHoliday, isHolidayEve, loadHolidaysFromApi, type TimeSlot } from '@/utils/pricing';
 import { createReservation } from '@/lib/apiClient';
 import { Loader2 } from 'lucide-react';
 
@@ -55,6 +55,7 @@ export default function ReservationForm({
     };
 
     fetchPricing();
+    loadHolidaysFromApi();
 
     if (preselectedTimeSlot) {
       setValue('timeSlot', preselectedTimeSlot);

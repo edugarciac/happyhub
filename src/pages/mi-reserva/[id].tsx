@@ -186,7 +186,7 @@ export default function MiReserva() {
                         </span>
                       </div>
                       <p className="text-xs text-gray-600 mt-1">
-                        A pagar el día del evento
+                        A pagar antes de comenzar el evento
                       </p>
                     </div>
                   </div>

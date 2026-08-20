@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useBooking } from './BookingContext';
 import FullCalendar from '@/components/FullCalendar';
-import { isWeekend, isFriday, isHoliday, isHolidayEve, TIME_SLOTS, type TimeSlot } from '@/utils/pricing';
+import { isWeekend, isFriday, isHoliday, isHolidayEve, loadHolidaysFromApi, TIME_SLOTS, type TimeSlot } from '@/utils/pricing';
 import { formatDate } from '@/utils/formatters';
 import { ChevronRight, Calendar, Clock, AlertCircle } from 'lucide-react';
 
@@ -24,6 +24,9 @@ export default function Step1Calendar() {
     setCalendarError(null);
 
     try {
+      // Fetch holiday dates (used by isHoliday() below)
+      await loadHolidaysFromApi();
+
       // Fetch pricing
       const pricingRes = await fetch('/api/pricing/current');
       if (pricingRes.ok) {

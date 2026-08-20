@@ -171,7 +171,7 @@ Hola ${name}, tu reserva en HappyHub ha sido confirmada.
 
 ${contractUrl ? `📄 Contrato: ${contractUrl}` : ''}
 
-Resto pendiente: ${totalPrice - depositAmount}€ (a pagar el día del evento)
+Resto pendiente: ${totalPrice - depositAmount}€ (a pagar antes de comenzar el evento)
 
 ¿Tienes preguntas? Responde a este mensaje o escríbenos por WhatsApp al 624 645 517.
 
@@ -271,7 +271,8 @@ export async function notifyAdminReservationRequest({
   depositAmount,
   reservationId,
   needsKidsFurniture,
-}: Omit<ReservationConfirmationParams, 'phone' | 'contractUrl'> & { needsKidsFurniture?: boolean }): Promise<boolean> {
+  isHoliday,
+}: Omit<ReservationConfirmationParams, 'phone' | 'contractUrl'> & { needsKidsFurniture?: boolean; isHoliday?: boolean }): Promise<boolean> {
   const eventDate = new Date(date);
   const formattedDate = eventDate.toLocaleDateString('es-ES', {
     weekday: 'long',
@@ -280,8 +281,11 @@ export async function notifyAdminReservationRequest({
   });
 
   const kidsFurnitureLine = needsKidsFurniture ? '\n🪑 *Mesas/sillas niños:* Sí' : '';
+  const holidayHeader = isHoliday
+    ? '🎉 *FESTIVO — requiere confirmación caso a caso, no se ha cobrado ninguna señal*\n\n'
+    : '';
 
-  const message = `🆕 *Nueva solicitud de reserva*
+  const message = `${holidayHeader}🆕 *Nueva solicitud de reserva*
 
 📝 *Nº:* ${reservationId}
 👤 *Cliente:* ${name}

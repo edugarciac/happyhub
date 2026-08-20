@@ -47,7 +47,7 @@ const categories: FaqCategory[] = [
       {
         question: '¿Cómo funciona el pago?',
         answer:
-          'Una vez confirmada tu solicitud, te enviamos un enlace de pago seguro vía Stripe. Se requiere un depósito del 30% para formalizar la reserva. El importe restante se abona el día del evento.',
+          'Una vez confirmada tu solicitud, te enviamos un enlace de pago seguro vía Stripe. Se requiere un depósito del 30% para formalizar la reserva. El importe restante se abona antes de comenzar el evento.',
       },
     ],
   },
