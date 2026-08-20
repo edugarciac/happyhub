@@ -401,7 +401,7 @@ export default function Step3CustomerData() {
                 <h4 className="font-semibold mb-2">Política de reservas HappyHub</h4>
                 <ul className="space-y-2 list-disc list-inside">
                   <li>Se requiere un depósito del 30% para confirmar la reserva.</li>
-                  <li>El resto del pago se realizará el día del evento.</li>
+                  <li>El resto del pago se realizará antes de comenzar el evento.</li>
                   <li>Cancelación gratuita hasta 15 días antes del evento.</li>
                   <li>Cancelaciones con menos de 15 días: se retiene el depósito.</li>
                   <li>Cambio de fecha gratuito hasta 30 días antes, sujeto a disponibilidad.</li>
