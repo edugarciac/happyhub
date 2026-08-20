@@ -55,25 +55,69 @@ export function isFriday(date: Date): boolean {
 }
 
 /**
- * Verifica si una fecha es festivo
- * TODO: Integrar con API de festivos o mantener lista actualizada
+ * Lista de festivos usada como fallback si no se ha podido cargar
+ * la lista real desde /api/holidays (p.ej. fallo de red). Se mantiene
+ * sincronizada a mano con la semilla de la migración 021_create_holidays.sql.
+ */
+const DEFAULT_HOLIDAYS = [
+  '2026-01-01', '2026-01-06', '2026-04-03', '2026-04-06', '2026-05-01',
+  '2026-05-25', '2026-06-24', '2026-08-15', '2026-09-11', '2026-09-21',
+  '2026-10-12', '2026-12-08', '2026-12-25', '2026-12-26',
+];
+
+let holidayDates: Set<string> | null = null;
+let holidayFetchPromise: Promise<void> | null = null;
+let holidayFetchTimestamp = 0;
+const HOLIDAY_CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
+
+/**
+ * Sustituye el conjunto de fechas festivas usado por isHoliday().
+ */
+export function setHolidayDates(dates: string[]): void {
+  holidayDates = new Set(dates);
+}
+
+/**
+ * Carga los festivos desde /api/holidays y los deja disponibles para
+ * isHoliday(). Cachea el resultado 5 minutos; si la llamada falla y no
+ * había festivos cargados todavía, usa DEFAULT_HOLIDAYS como resiliencia.
+ */
+export async function loadHolidaysFromApi(): Promise<void> {
+  const now = Date.now();
+  if (holidayDates && now - holidayFetchTimestamp < HOLIDAY_CACHE_DURATION) return;
+  if (holidayFetchPromise) return holidayFetchPromise;
+
+  holidayFetchPromise = (async () => {
+    try {
+      const res = await fetch('/api/holidays');
+      if (!res.ok) throw new Error('Failed to fetch holidays');
+      const data = await res.json();
+      if (data.success && Array.isArray(data.holidays)) {
+        setHolidayDates(data.holidays);
+        holidayFetchTimestamp = Date.now();
+      } else {
+        throw new Error('Invalid holidays response');
+      }
+    } catch (error) {
+      console.error('Error loading holidays, using fallback list:', error);
+      if (!holidayDates) setHolidayDates(DEFAULT_HOLIDAYS);
+    } finally {
+      holidayFetchPromise = null;
+    }
+  })();
+
+  return holidayFetchPromise;
+}
+
+/**
+ * Verifica si una fecha es festivo, según los festivos cargados desde
+ * /api/holidays (ver loadHolidaysFromApi). Antes de la primera carga,
+ * usa DEFAULT_HOLIDAYS como resiliencia.
  */
 export function isHoliday(date: Date): boolean {
-  const holidays2025 = [
-    '2025-01-01', // Año Nuevo
-    '2025-01-06', // Reyes
-    '2025-04-18', // Viernes Santo
-    '2025-05-01', // Día del Trabajo
-    '2025-08-15', // Asunción
-    '2025-10-12', // Fiesta Nacional
-    '2025-11-01', // Todos los Santos
-    '2025-12-06', // Constitución
-    '2025-12-08', // Inmaculada
-    '2025-12-25', // Navidad
-  ];
-
   const dateStr = date.toISOString().split('T')[0];
-  return holidays2025.includes(dateStr);
+  const dates = holidayDates ?? new Set(DEFAULT_HOLIDAYS);
+  return dates.has(dateStr);
 }
 
 /**

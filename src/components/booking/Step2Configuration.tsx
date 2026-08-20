@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useBooking, Extra } from './BookingContext';
 import PriceSummary from './PriceSummary';
-import { isWeekend, isFriday, isHoliday, isHolidayEve, type TimeSlot } from '@/utils/pricing';
+import { isWeekend, isFriday, isHoliday, isHolidayEve, loadHolidaysFromApi, type TimeSlot } from '@/utils/pricing';
 import { ChevronLeft, ChevronRight, Users, Package, Check, AlertCircle } from 'lucide-react';
 
 export default function Step2Configuration() {
@@ -33,6 +33,7 @@ export default function Step2Configuration() {
 
     const fetchAndSetPrice = async () => {
       try {
+        await loadHolidaysFromApi();
         const res = await fetch('/api/pricing/current');
         if (!res.ok) return;
         const data = await res.json();
