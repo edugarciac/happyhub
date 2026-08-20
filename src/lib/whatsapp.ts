@@ -271,7 +271,8 @@ export async function notifyAdminReservationRequest({
   depositAmount,
   reservationId,
   needsKidsFurniture,
-}: Omit<ReservationConfirmationParams, 'phone' | 'contractUrl'> & { needsKidsFurniture?: boolean }): Promise<boolean> {
+  isHoliday,
+}: Omit<ReservationConfirmationParams, 'phone' | 'contractUrl'> & { needsKidsFurniture?: boolean; isHoliday?: boolean }): Promise<boolean> {
   const eventDate = new Date(date);
   const formattedDate = eventDate.toLocaleDateString('es-ES', {
     weekday: 'long',
@@ -280,8 +281,11 @@ export async function notifyAdminReservationRequest({
   });
 
   const kidsFurnitureLine = needsKidsFurniture ? '\n🪑 *Mesas/sillas niños:* Sí' : '';
+  const holidayHeader = isHoliday
+    ? '🎉 *FESTIVO — requiere confirmación caso a caso, no se ha cobrado ninguna señal*\n\n'
+    : '';
 
-  const message = `🆕 *Nueva solicitud de reserva*
+  const message = `${holidayHeader}🆕 *Nueva solicitud de reserva*
 
 📝 *Nº:* ${reservationId}
 👤 *Cliente:* ${name}

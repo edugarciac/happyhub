@@ -13,6 +13,7 @@ Researched via web search (network egress to primary sources like gencat.cat/esp
 - Seed data admin can review/correct (since it wasn't fetched from a primary source, accuracy depends on admin review — this is explicitly why edit/add/remove is a hard requirement, not a nice-to-have)
 - Per-holiday choice: apply holiday pricing (default) OR block the date entirely
 - Minimal-diff integration with the 4 existing pricing call sites and the existing blocked-slots mechanism
+- No holiday date is ever auto-charged: confirmed via `AskUserQuestion` with the project owner that card payments on a holiday date must fall back to a pending request awaiting explicit human confirmation, not instant Stripe checkout
 
 **Non-Goals:**
 - Rewriting the duplicated `ruleKey` resolution logic across the 4 call sites into a shared function (pre-existing duplication, out of scope)
@@ -51,8 +52,21 @@ The old hardcoded `holidays2025` array becomes the resilience fallback (renamed,
 
 Reservation creation does not currently re-derive price server-side from date/slot (client computes and submits `totalPrice`). This change doesn't alter that trust boundary — flagged as a pre-existing gap, not introduced or worsened here.
 
+### 5. Holiday bookings reuse the existing pending/approve flow instead of a new one
+
+The booking wizard already has two paths after Step 3: card payment redirects straight to Stripe checkout; bizum/cash instead advances to `Step4Confirmation` with a "we'll be in touch within 24h and send you the payment link" message, leaving the reservation in `pending` status for an admin to review via the existing `/admin/approve-reservation/[id]` page (`POST /api/admin/reservations/[id]/approve`).
+
+**Decision**: For a holiday date, force the card-payment path to behave like the bizum/cash path — skip the `/api/create-checkout-session` call and go straight to `Step4Confirmation`, with an added banner explaining the date is a holiday and requires HappyHub's explicit confirmation. `Step3CustomerData.tsx` computes `isHoliday(state.date)` (the same client-side cache already used for pricing) to decide.
+
+**Rationale**: This reuses 100% existing infrastructure — the pending-request state, the admin approval page, and the n8n `/reservation-status-changed` notification on approval — instead of inventing a parallel "holiday request" concept. Confirmed with the project owner (via `AskUserQuestion`) that no payment should happen at submission time for holidays, only after explicit confirmation.
+
+**Admin visibility**: `notifyAdminReservationRequest` (the WhatsApp message sent to the admin the moment any reservation request comes in, card or not) gets a `isHoliday` flag. `webhook-reserva.ts` looks it up with a direct `holidays` table query (not the client-side `isHoliday()` cache, since this runs server-side and a cold serverless invocation can't rely on a previously-populated in-memory cache) and prefixes the WhatsApp message with a "FESTIVO — requiere confirmación caso a caso" marker when true.
+
+**Alternative considered**: A dedicated "holiday requests" queue/page in the admin — rejected as unnecessary; the existing pending-reservations list already surfaces these, and the WhatsApp marker makes them easy to spot without new UI.
+
 ## Risks / Trade-offs
 
 - **[Risk] Seed data accuracy** — sourced via web search cross-referencing multiple secondary sites, not fetched directly from an official primary source (DOGC/gencat.cat/esplugues.cat were unreachable from this environment). Mitigation: `source = 'seed'` is visibly badged in the admin UI so the admin knows to double check it against the ajuntament's published calendar; the whole point of this feature is that it's editable.
 - **[Risk] Holiday-driven block and a reservation collide** — same pre-existing gap as manual `blocked_slots` (`blocked-dates` change's own risk log): no guard against blocking a date that already has a confirmed reservation. Admin must check manually, same as today.
 - **[Trade-off] No GCal event for holiday blocks** — if the admin wants the block visible on the shared Google Calendar, they'd need to also create a manual block via the existing `/admin/reservations/blocked-dates` flow. Acceptable for a first version; can be added later by reusing the same GCal helper functions used for manual blocks.
+- **[Risk] Server-side holiday lookup can drift from the client-side cache** — `webhook-reserva.ts` queries `holidays` directly (fresh on every request), while `Step3CustomerData.tsx`/`Step4Confirmation.tsx` use the client-side cache populated once per session (5-minute TTL). A holiday added mid-session could make the server flag a request as holiday while the client never showed the holiday banner (or vice versa, within the cache window). Low impact: worst case is a slightly inconsistent WhatsApp marker for a few minutes around an admin edit; the actual "skip Stripe" decision and the reservation's `pending` status are unaffected either way since bizum/cash already always lands in `pending`.

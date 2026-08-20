@@ -30,3 +30,12 @@
 - [ ] 6.2 Confirm blocking a holiday makes all 3 slots unavailable in the public booking calendar, and unblocking restores holiday pricing (MANUAL)
 - [ ] 6.3 Confirm a date newly added as a holiday shows `holiday_morning`/`holiday_afternoon` pricing in the booking flow after reload (MANUAL)
 - [x] 6.4 Run `npm run build` / `tsc` to confirm no type errors introduced — both pass cleanly
+
+## 7. Holiday booking confirmation (no auto-charge)
+
+- [x] 7.1 `Step3CustomerData.tsx` — compute `isHoliday(state.date)`; skip the `/api/create-checkout-session` redirect for card payments on a holiday date and fall through to `nextStep()` like the bizum/cash path
+- [x] 7.2 `Step4Confirmation.tsx` — add a holiday notice banner explaining the date requires HappyHub's explicit case-by-case confirmation before any payment link is sent
+- [x] 7.3 `src/lib/whatsapp.ts` — add an `isHoliday` flag to `notifyAdminReservationRequest` that prefixes the admin WhatsApp message with a "FESTIVO — requiere confirmación caso a caso" marker
+- [x] 7.4 `src/pages/api/webhook-reserva.ts` — query `holidays` for the submitted date and pass the result through to `notifyAdminReservationRequest`
+- [ ] 7.5 Confirm booking a holiday date with card payment does NOT redirect to Stripe and lands on the holiday-notice confirmation screen (MANUAL — needs a DB with the migration applied)
+- [ ] 7.6 Confirm booking a non-holiday date with card payment is unaffected (still redirects to Stripe instantly) (MANUAL)

@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import axios from 'axios';
 import { notifyAdminReservationRequest } from '@/lib/whatsapp';
+import { queryOne } from '@/lib/db';
 
 interface ReservationData {
   name: string;
@@ -49,6 +50,11 @@ export default async function handler(
       });
     }
 
+    const holidayRow = await queryOne('SELECT 1 FROM holidays WHERE holiday_date = $1', [reservationData.date]).catch(
+      () => null
+    );
+    const isHolidayDate = !!holidayRow;
+
     const n8nWebhookUrl = process.env.N8N_WEBHOOK_URL;
 
     if (!n8nWebhookUrl) {
@@ -84,6 +90,7 @@ export default async function handler(
         depositAmount: reservationData.depositAmount,
         reservationId,
         needsKidsFurniture: reservationData.needsKidsFurniture,
+        isHoliday: isHolidayDate,
       }).catch((err) => console.error('Error sending admin WhatsApp notification:', err));
       return res.status(200).json({
         success: true,
@@ -125,6 +132,7 @@ export default async function handler(
       depositAmount: reservationData.depositAmount,
       reservationId,
       needsKidsFurniture: reservationData.needsKidsFurniture,
+      isHoliday: isHolidayDate,
     }).catch((err) => console.error('Error sending admin WhatsApp notification:', err));
 
     return res.status(200).json({
