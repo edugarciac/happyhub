@@ -49,9 +49,9 @@ describe('isFriday', () => {
 
 describe('isHoliday', () => {
   it('returns true for known holidays', () => {
-    expect(isHoliday(new Date('2025-01-01'))).toBe(true); // Año Nuevo
-    expect(isHoliday(new Date('2025-01-06'))).toBe(true); // Reyes
-    expect(isHoliday(new Date('2025-12-25'))).toBe(true); // Navidad
+    expect(isHoliday(new Date('2026-01-01'))).toBe(true); // Año Nuevo
+    expect(isHoliday(new Date('2026-01-06'))).toBe(true); // Reyes
+    expect(isHoliday(new Date('2026-12-25'))).toBe(true); // Navidad
   });
 
   it('returns false for regular weekdays', () => {
@@ -64,7 +64,7 @@ describe('isHolidayEve', () => {
   it('returns true for the day before a holiday', () => {
     // Dec 31 is eve of Jan 1 (Año Nuevo) — but crosses year boundary.
     // Jan 5 is eve of Jan 6 (Reyes)
-    expect(isHolidayEve(new Date('2025-01-05'))).toBe(true);
+    expect(isHolidayEve(new Date('2026-01-05'))).toBe(true);
   });
 
   it('returns false for a day not before a holiday', () => {
@@ -87,11 +87,11 @@ describe('calculateBasePrice', () => {
   });
 
   it('returns 130 for holiday morning', () => {
-    expect(calculateBasePrice(new Date('2025-05-01'), 'morning')).toBe(130); // Día del Trabajo (Thursday)
+    expect(calculateBasePrice(new Date('2026-05-01'), 'morning')).toBe(130); // Día del Trabajo (Friday)
   });
 
   it('returns 170 for holiday afternoon', () => {
-    expect(calculateBasePrice(new Date('2025-05-01'), 'afternoon')).toBe(170);
+    expect(calculateBasePrice(new Date('2026-05-01'), 'afternoon')).toBe(170);
   });
 
   it('returns 140 for Friday afternoon', () => {
@@ -103,9 +103,9 @@ describe('calculateBasePrice', () => {
   });
 
   it('returns 140 for holiday eve afternoon', () => {
-    // Jan 5 (Sunday) is holiday eve of Reyes, but it's also weekend
-    // Use Apr 17 (Thursday, eve of Viernes Santo Apr 18)
-    expect(calculateBasePrice(new Date('2025-04-17'), 'afternoon')).toBe(140);
+    // Jan 5 (Monday) is holiday eve of Reyes, but it's also within a holiday week
+    // Use Jun 23 (Tuesday, eve of Jun 24 holiday)
+    expect(calculateBasePrice(new Date('2026-06-23'), 'afternoon')).toBe(140);
   });
 
   it('returns 110 for regular weekday morning', () => {
@@ -137,7 +137,7 @@ describe('getDayTypeDescription', () => {
   });
 
   it('returns "Festivo" for a holiday', () => {
-    expect(getDayTypeDescription(new Date('2025-05-01'))).toBe('Festivo');
+    expect(getDayTypeDescription(new Date('2026-05-01'))).toBe('Festivo');
   });
 
   it('returns "Víspera de festivo" for Friday', () => {
@@ -145,7 +145,7 @@ describe('getDayTypeDescription', () => {
   });
 
   it('returns "Víspera de festivo" for day before a holiday', () => {
-    expect(getDayTypeDescription(new Date('2025-04-17'))).toBe('Víspera de festivo');
+    expect(getDayTypeDescription(new Date('2026-06-23'))).toBe('Víspera de festivo');
   });
 
   it('returns "Día laborable" for regular weekday', () => {
