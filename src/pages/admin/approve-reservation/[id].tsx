@@ -203,8 +203,8 @@ export default function ApproveReservationPage() {
                 <p className="text-sm text-gray-600 mb-1">Horario</p>
                 <p className="font-semibold text-gray-900 text-lg flex items-center">
                   <Clock className="w-5 h-5 mr-2 text-primary-600" />
-                  {reservation.time_slot === 'morning' && 'Mañana (11:00-14:30)'}
-                  {reservation.time_slot === 'afternoon' && 'Tarde (16:30-20:30)'}
+                  {reservation.time_slot === 'morning' && 'Mañana (10:00-14:00)'}
+                  {reservation.time_slot === 'afternoon' && 'Tarde (16:00-20:00)'}
                   {reservation.time_slot === 'night' && 'Noche (22:00-02:00)'}
                 </p>
               </div>
@@ -220,6 +220,13 @@ export default function ApproveReservationPage() {
                 </p>
               </div>
             </div>
+            {reservation.needs_kids_furniture && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <span className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 px-3 py-1.5 rounded-lg text-sm font-semibold">
+                  🪑 Requiere mesas y sillas para niños — sacarlas del trastero antes del evento
+                </span>
+              </div>
+            )}
             {reservation.notes && (
               <div className="mt-4 pt-4 border-t border-gray-200">
                 <p className="text-sm text-gray-600 mb-1">Notas adicionales</p>

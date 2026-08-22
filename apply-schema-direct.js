@@ -5,12 +5,14 @@
 const { Client } = require('pg');
 const fs = require('fs');
 
+require('dotenv').config({ path: '.env.local' });
+
 const client = new Client({
-  host: 'happyhub-db-cluster.cluster-c8y9z8y1degk.eu-west-1.rds.amazonaws.com',
-  port: 5432,
-  database: 'happyhub',
-  user: 'dbadmin',
-  password: 'c0MAkvDuZ6yWhfUUzgMh',
+  host: process.env.DB_HOST,
+  port: parseInt(process.env.DB_PORT || '5432'),
+  database: process.env.DB_NAME || 'happyhub',
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
   ssl: { rejectUnauthorized: false },
   connectionTimeoutMillis: 10000,
 });

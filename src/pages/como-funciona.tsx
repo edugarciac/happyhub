@@ -32,7 +32,7 @@ const categories: FaqCategory[] = [
       {
         question: '¿Cuáles son las franjas horarias disponibles?',
         answer:
-          'Ofrecemos tres franjas: Mañanas (11:00–14:30h), Tardes (16:30–20:30h) y Noches (22:00–02:00h). Cada franja incluye 30 minutos de acceso anticipado sin coste adicional.',
+          'Ofrecemos tres franjas: Mañanas (10:00–14:00h), Tardes (16:00–20:00h) y Noches (22:00–02:00h). La franja de noche incluye 30 minutos de acceso anticipado sin coste adicional.',
       },
       {
         question: '¿Qué pasa si quiero ampliar el horario?',
@@ -47,7 +47,7 @@ const categories: FaqCategory[] = [
       {
         question: '¿Cómo funciona el pago?',
         answer:
-          'Una vez confirmada tu solicitud, te enviamos un enlace de pago seguro vía Stripe. Se requiere un depósito del 30% para formalizar la reserva. El importe restante se abona el día del evento.',
+          'Una vez confirmada tu solicitud, te enviamos un enlace de pago seguro vía Stripe. Se requiere un depósito del 30% para formalizar la reserva. El importe restante se abona antes de comenzar el evento.',
       },
     ],
   },
@@ -209,11 +209,13 @@ export default function ComoFunciona() {
                           />
                         </button>
 
-                        {isOpen && (
-                          <div className="px-6 pb-5 text-gray-600 leading-relaxed border-t border-gray-200 pt-4">
-                            {faq.answer}
-                          </div>
-                        )}
+                        <div
+                          className={`px-6 pb-5 text-gray-600 leading-relaxed border-t border-gray-200 pt-4 ${
+                            isOpen ? 'block' : 'hidden'
+                          }`}
+                        >
+                          {faq.answer}
+                        </div>
                       </div>
                     );
                   })}

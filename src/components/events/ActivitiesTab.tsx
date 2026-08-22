@@ -1,7 +1,7 @@
 // src/components/events/ActivitiesTab.tsx
 import { useState, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
-import { ThumbsUp, Check, X, Trash2, Sparkles, Plus } from 'lucide-react';
+import { ThumbsUp, Check, X, Trash2, Plus, BookOpen, Send } from 'lucide-react';
 import ActivityAdvisor from './ActivityAdvisor';
 
 interface Activity {
@@ -10,9 +10,18 @@ interface Activity {
   description: string | null;
   proposed_by_name: string | null;
   proposed_by_participant_id: number | null;
+  source_template_id: number | null;
   status: 'pending' | 'approved' | 'rejected';
   votes_count: number;
   user_voted: boolean;
+  has_pending_proposal: boolean;
+}
+
+interface CatalogActivity {
+  id: number;
+  title: string;
+  description: string | null;
+  tags: string[];
 }
 
 interface Props {
@@ -31,6 +40,12 @@ export default function ActivitiesTab({ eventId, isOrganizer, currentParticipant
   const [addingActivity, setAddingActivity] = useState(false);
   const [actionId, setActionId] = useState<number | null>(null);
 
+  const [catalog, setCatalog] = useState<CatalogActivity[]>([]);
+  const [catalogFiltered, setCatalogFiltered] = useState(true);
+  const [loadingCatalog, setLoadingCatalog] = useState(true);
+  const [addingFromCatalog, setAddingFromCatalog] = useState<number | null>(null);
+  const [showCatalog, setShowCatalog] = useState(true);
+
   const fetchActivities = useCallback(async () => {
     const res = await fetch(`/api/events/collaborative/${eventId}/entertainment/activities`);
     if (res.ok) {
@@ -40,7 +55,17 @@ export default function ActivitiesTab({ eventId, isOrganizer, currentParticipant
     setLoading(false);
   }, [eventId]);
 
-  useEffect(() => { fetchActivities(); }, [fetchActivities]);
+  const fetchCatalog = useCallback(async () => {
+    const res = await fetch(`/api/events/collaborative/${eventId}/entertainment/activities/catalog`);
+    if (res.ok) {
+      const data = await res.json();
+      setCatalog(data.activities);
+      setCatalogFiltered(data.filtered);
+    }
+    setLoadingCatalog(false);
+  }, [eventId]);
+
+  useEffect(() => { fetchActivities(); fetchCatalog(); }, [fetchActivities, fetchCatalog]);
 
   const handleAddActivity = async (title: string, description: string) => {
     const res = await fetch(`/api/events/collaborative/${eventId}/entertainment/activities`, {
@@ -63,6 +88,47 @@ export default function ActivitiesTab({ eventId, isOrganizer, currentParticipant
     setAddForm({ title: '', description: '' });
     setShowAddForm(false);
     setAddingActivity(false);
+  };
+
+  const handleAddFromCatalog = async (templateId: number) => {
+    setAddingFromCatalog(templateId);
+    try {
+      const res = await fetch(
+        `/api/events/collaborative/${eventId}/entertainment/activities/from-catalog/${templateId}`,
+        { method: 'POST' }
+      );
+      if (res.ok) {
+        toast.success('Actividad añadida al evento');
+        fetchActivities();
+      } else {
+        toast.error('Error añadiendo actividad');
+      }
+    } finally {
+      setAddingFromCatalog(null);
+    }
+  };
+
+  const handlePropose = async (activityId: number) => {
+    setActionId(activityId);
+    try {
+      const res = await fetch(
+        `/api/events/collaborative/${eventId}/entertainment/activities/${activityId}/propose-catalog`,
+        { method: 'POST' }
+      );
+      if (res.ok) {
+        toast.success('Propuesta enviada al equipo de HappyHub');
+        setActivities(prev => prev.map(a => a.id === activityId ? { ...a, has_pending_proposal: true } : a));
+      } else {
+        const data = await res.json();
+        if (data.error === 'already_proposed') {
+          setActivities(prev => prev.map(a => a.id === activityId ? { ...a, has_pending_proposal: true } : a));
+        } else {
+          toast.error(data.error || 'Error enviando la propuesta');
+        }
+      }
+    } finally {
+      setActionId(null);
+    }
   };
 
   const handleVote = async (activityId: number) => {
@@ -125,9 +191,53 @@ export default function ActivitiesTab({ eventId, isOrganizer, currentParticipant
   const approved = activities.filter(a => a.status === 'approved');
   const pending = activities.filter(a => a.status === 'pending');
   const rejected = activities.filter(a => a.status === 'rejected');
+  const addedTitles = new Set(activities.map(a => a.title.trim().toLowerCase()));
 
   return (
     <div className="p-4 space-y-4">
+      {/* Catálogo de actividades */}
+      {!loadingCatalog && catalog.length > 0 && (
+        <div className="border border-indigo-100 rounded-lg overflow-hidden">
+          <button
+            onClick={() => setShowCatalog(!showCatalog)}
+            className="w-full flex items-center justify-between bg-indigo-50 px-3 py-2.5 text-left"
+          >
+            <span className="flex items-center gap-2 text-sm font-semibold text-indigo-800">
+              <BookOpen className="h-4 w-4" />
+              {catalogFiltered ? `Actividades para ${eventType}` : 'Catálogo de actividades'}
+            </span>
+            <span className="text-xs text-indigo-500">{showCatalog ? 'Ocultar' : 'Mostrar'}</span>
+          </button>
+          {showCatalog && (
+            <div className="p-3">
+              {!catalogFiltered && (
+                <p className="text-xs text-gray-400 mb-2">Mostrando todas las actividades del catálogo</p>
+              )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {catalog.map(c => {
+                  const alreadyAdded = addedTitles.has(c.title.trim().toLowerCase());
+                  return (
+                    <div key={c.id} className="border border-gray-100 rounded-lg p-2.5 flex items-start justify-between gap-2 bg-white">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-gray-900">{c.title}</p>
+                        {c.description && <p className="text-xs text-gray-400 line-clamp-2">{c.description}</p>}
+                      </div>
+                      <button
+                        onClick={() => handleAddFromCatalog(c.id)}
+                        disabled={alreadyAdded || addingFromCatalog === c.id}
+                        className="flex-shrink-0 text-xs font-semibold text-indigo-600 hover:text-indigo-800 disabled:text-gray-300 whitespace-nowrap"
+                      >
+                        {alreadyAdded ? 'Añadida' : addingFromCatalog === c.id ? '...' : '+ Añadir'}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Banner IA */}
       <div className="flex items-center justify-between bg-purple-50 border border-purple-200 rounded-lg p-3">
         <span className="text-sm text-purple-800">
@@ -177,13 +287,13 @@ export default function ActivitiesTab({ eventId, isOrganizer, currentParticipant
           onClick={() => setShowAddForm(true)}
           className="flex items-center gap-2 text-sm text-indigo-600 hover:text-indigo-800 font-medium"
         >
-          <Plus className="h-4 w-4" /> Proponer actividad
+          <Plus className="h-4 w-4" /> Proponer actividad propia
         </button>
       )}
 
       {/* Lista de actividades */}
       {activities.length === 0 ? (
-        <p className="text-gray-400 text-center py-8 text-sm">Sin actividades todavía. ¡Propón la primera!</p>
+        <p className="text-gray-400 text-center py-8 text-sm">Sin actividades todavía. ¡Elige una del catálogo o propón la primera!</p>
       ) : (
         <div className="space-y-3">
           {approved.length > 0 && (
@@ -194,7 +304,8 @@ export default function ActivitiesTab({ eventId, isOrganizer, currentParticipant
               {approved.map(a => (
                 <ActivityRow key={a.id} activity={a} isOrganizer={isOrganizer}
                   currentParticipantId={currentParticipantId}
-                  actionId={actionId} onVote={handleVote} onStatus={handleStatus} onDelete={handleDelete} />
+                  actionId={actionId} onVote={handleVote} onStatus={handleStatus} onDelete={handleDelete}
+                  onPropose={handlePropose} />
               ))}
             </div>
           )}
@@ -206,7 +317,8 @@ export default function ActivitiesTab({ eventId, isOrganizer, currentParticipant
               {pending.map(a => (
                 <ActivityRow key={a.id} activity={a} isOrganizer={isOrganizer}
                   currentParticipantId={currentParticipantId}
-                  actionId={actionId} onVote={handleVote} onStatus={handleStatus} onDelete={handleDelete} />
+                  actionId={actionId} onVote={handleVote} onStatus={handleStatus} onDelete={handleDelete}
+                  onPropose={handlePropose} />
               ))}
             </div>
           )}
@@ -218,7 +330,8 @@ export default function ActivitiesTab({ eventId, isOrganizer, currentParticipant
               {rejected.map(a => (
                 <ActivityRow key={a.id} activity={a} isOrganizer={isOrganizer}
                   currentParticipantId={currentParticipantId}
-                  actionId={actionId} onVote={handleVote} onStatus={handleStatus} onDelete={handleDelete} />
+                  actionId={actionId} onVote={handleVote} onStatus={handleStatus} onDelete={handleDelete}
+                  onPropose={handlePropose} />
               ))}
             </div>
           )}
@@ -236,7 +349,7 @@ export default function ActivitiesTab({ eventId, isOrganizer, currentParticipant
   );
 }
 
-function ActivityRow({ activity, isOrganizer, currentParticipantId, actionId, onVote, onStatus, onDelete }: {
+function ActivityRow({ activity, isOrganizer, currentParticipantId, actionId, onVote, onStatus, onDelete, onPropose }: {
   activity: Activity;
   isOrganizer: boolean;
   currentParticipantId: number | null;
@@ -244,10 +357,13 @@ function ActivityRow({ activity, isOrganizer, currentParticipantId, actionId, on
   onVote: (id: number) => void;
   onStatus: (id: number, status: 'approved' | 'rejected') => void;
   onDelete: (id: number) => void;
+  onPropose: (id: number) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const busy = actionId === activity.id;
-  const canDelete = isOrganizer || activity.proposed_by_participant_id === currentParticipantId;
+  const isOwnerOrOrganizer = isOrganizer || activity.proposed_by_participant_id === currentParticipantId;
+  const canDelete = isOwnerOrOrganizer;
+  const canPropose = isOwnerOrOrganizer && !activity.source_template_id;
 
   return (
     <div className={`border rounded-lg p-3 mb-1 ${
@@ -271,6 +387,19 @@ function ActivityRow({ activity, isOrganizer, currentParticipantId, actionId, on
             >
               {expanded ? 'Menos' : 'Ver descripción'}
             </button>
+          )}
+          {canPropose && (
+            activity.has_pending_proposal ? (
+              <span className="inline-block text-xs text-amber-600 mt-1">Propuesta enviada al catálogo</span>
+            ) : (
+              <button
+                onClick={() => onPropose(activity.id)}
+                disabled={busy}
+                className="flex items-center gap-1 text-xs text-indigo-500 hover:text-indigo-700 mt-1"
+              >
+                <Send className="h-3 w-3" /> Proponer para el catálogo
+              </button>
+            )
           )}
         </div>
         <div className="flex items-center gap-1.5 flex-shrink-0">

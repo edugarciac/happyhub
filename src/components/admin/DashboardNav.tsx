@@ -10,6 +10,9 @@ import {
   Wrench,
   Briefcase,
   Euro,
+  PartyPopper,
+  MessageSquare,
+  CalendarDays,
 } from 'lucide-react';
 
 interface DashboardNavProps {
@@ -25,10 +28,13 @@ export default function DashboardNav({ onNavigate }: DashboardNavProps) {
     { href: '/admin/clients', icon: Users, label: 'Usuarios' },
     { href: '/admin/reservations', icon: Calendar, label: 'Reservas' },
     { href: '/admin/event-types', icon: Tag, label: 'Tipos de Eventos' },
+    { href: '/admin/actividades-catalogo', icon: PartyPopper, label: 'Catálogo de Actividades' },
     { href: '/admin/partners', icon: Building2, label: 'Partners' },
     { href: '/admin/reservation-services', icon: Wrench, label: 'Servicios Reservas' },
     { href: '/admin/services', icon: Briefcase, label: 'Servicios' },
     { href: '/admin/pricing', icon: Euro, label: 'Precios' },
+    { href: '/admin/holidays', icon: CalendarDays, label: 'Festivos' },
+    { href: '/admin/feedback', icon: MessageSquare, label: 'Feedback' },
   ];
 
   const isActive = (href: string) => {

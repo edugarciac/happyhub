@@ -246,6 +246,23 @@ export async function addParticipant(data: {
   return participant;
 }
 
+export async function linkParticipantsToUser(userId: number, email: string): Promise<void> {
+  // Skips rows whose event already has this user_id on a different row
+  // (e.g. the user is already the organizer) to avoid violating the
+  // UNIQUE(event_id, user_id) constraint on collaborative_event_participants.
+  await query(
+    `UPDATE collaborative_event_participants p
+     SET user_id = $1
+     WHERE p.user_id IS NULL
+       AND lower(p.email) = lower($2)
+       AND NOT EXISTS (
+         SELECT 1 FROM collaborative_event_participants p2
+         WHERE p2.event_id = p.event_id AND p2.user_id = $1
+       )`,
+    [userId, email]
+  );
+}
+
 export async function updateParticipant(
   participantId: number,
   data: Partial<Pick<CollaborativeEventParticipant, 'rsvp_status' | 'role'>>

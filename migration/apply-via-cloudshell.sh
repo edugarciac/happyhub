@@ -8,25 +8,31 @@
 echo "📦 Installing PostgreSQL client..."
 sudo yum install -y postgresql
 
+# Set DB credentials via environment variables before running this script
+: "${DB_HOST:?Set DB_HOST}"
+: "${DB_USER:?Set DB_USER}"
+: "${DB_PASSWORD:?Set DB_PASSWORD}"
+DB_NAME="${DB_NAME:-happyhub}"
+
 echo "🔌 Connecting to Aurora..."
-export PGPASSWORD='c0MAkvDuZ6yWhfUUzgMh'
+export PGPASSWORD="$DB_PASSWORD"
 
 echo "📝 Applying schema..."
-psql -h happyhub-db-cluster.cluster-c8y9z8y1degk.eu-west-1.rds.amazonaws.com \
-  -U dbadmin \
-  -d happyhub \
+psql -h "$DB_HOST" \
+  -U "$DB_USER" \
+  -d "$DB_NAME" \
   -f schema-simple.sql
 
 echo "🌱 Applying seed data..."
-psql -h happyhub-db-cluster.cluster-c8y9z8y1degk.eu-west-1.rds.amazonaws.com \
-  -U dbadmin \
-  -d happyhub \
+psql -h "$DB_HOST" \
+  -U "$DB_USER" \
+  -d "$DB_NAME" \
   -f seed-data.sql
 
 echo "✅ Verifying..."
-psql -h happyhub-db-cluster.cluster-c8y9z8y1degk.eu-west-1.rds.amazonaws.com \
-  -U dbadmin \
-  -d happyhub \
+psql -h "$DB_HOST" \
+  -U "$DB_USER" \
+  -d "$DB_NAME" \
   -c "SELECT COUNT(*) as users FROM users; SELECT COUNT(*) as event_types FROM event_types; SELECT COUNT(*) as providers FROM providers;"
 
 echo ""

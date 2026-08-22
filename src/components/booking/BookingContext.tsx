@@ -34,6 +34,7 @@ export interface BookingState {
   message: string;
   acceptTerms: boolean;
   paymentMethod: PaymentMethod | null;
+  needsKidsFurniture: boolean;
   // Step 4: Payment
   stripeSessionId: string | null;
   // Pricing
@@ -50,7 +51,7 @@ type BookingAction =
   | { type: 'SET_GUESTS'; guests: number }
   | { type: 'SET_SERVICES'; services: Extra[] }
   | { type: 'TOGGLE_EXTRA'; extraId: string }
-  | { type: 'SET_CUSTOMER_DATA'; data: Partial<Pick<BookingState, 'name' | 'email' | 'phone' | 'eventType' | 'message' | 'acceptTerms' | 'paymentMethod'>> }
+  | { type: 'SET_CUSTOMER_DATA'; data: Partial<Pick<BookingState, 'name' | 'email' | 'phone' | 'eventType' | 'message' | 'acceptTerms' | 'paymentMethod' | 'needsKidsFurniture'>> }
   | { type: 'SET_BASE_PRICE'; price: number | 'consult' }
   | { type: 'SET_STRIPE_SESSION'; sessionId: string }
   | { type: 'SET_RESERVATION_ID'; id: string }
@@ -71,6 +72,7 @@ const initialState: BookingState = {
   message: '',
   acceptTerms: false,
   paymentMethod: null,
+  needsKidsFurniture: false,
   stripeSessionId: null,
   basePrice: 0,
   reservationId: null,

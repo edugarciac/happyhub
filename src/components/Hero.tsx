@@ -1,4 +1,6 @@
+import { useEffect, useState } from 'react';
 import { ArrowRight, ChevronDown, Star, Users, Clock } from 'lucide-react';
+import { event as gaEvent } from '@/lib/analytics';
 
 const WhatsAppIcon = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
@@ -7,6 +9,28 @@ const WhatsAppIcon = ({ className }: { className?: string }) => (
 );
 
 export default function Hero() {
+  const [reviewStats, setReviewStats] = useState<{ average: number | null; count: number } | null>(null);
+
+  useEffect(() => {
+    const fetchReviewStats = async () => {
+      try {
+        const response = await fetch('/api/reviews/stats');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            setReviewStats(data.stats);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching review stats:', error);
+      }
+    };
+
+    fetchReviewStats();
+  }, []);
+
+  const hasReviews = !!reviewStats && reviewStats.count > 0 && reviewStats.average !== null;
+
   const scrollToFeatures = () => {
     const element = document.getElementById('features');
     if (element) element.scrollIntoView({ behavior: 'smooth' });
@@ -36,9 +60,9 @@ export default function Hero() {
       <div className="container-custom relative z-10 w-full">
         <div className="max-w-xl animate-slide-up">
 
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-white/90 px-4 py-2 rounded-full text-sm font-semibold mb-8 border border-white/20">
-            <span className="w-2 h-2 rounded-full bg-primary-400 animate-pulse" />
-            Espacio disponible · Apertura Julio 2026
+          <div className="inline-flex items-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-full text-sm font-bold mb-8 border border-orange-300 shadow-lg shadow-orange-500/30">
+            <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+            Abrimos a partir de Septiembre de 2026
           </div>
 
           <h1 className="text-5xl md:text-6xl xl:text-7xl font-bold text-white leading-[1.05] tracking-tight mb-6">
@@ -52,6 +76,7 @@ export default function Hero() {
           <div className="flex flex-col sm:flex-row gap-4 mb-10">
             <a
               href="/reservas"
+              onClick={() => gaEvent('cta_click', { cta_name: 'reserva_hero', location: 'Hero' })}
               className="inline-flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-500 text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-200 shadow-xl hover:scale-105 cursor-pointer"
             >
               Reserva tu fecha
@@ -61,6 +86,7 @@ export default function Hero() {
               href="https://wa.me/34624645517"
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => gaEvent('cta_click', { cta_name: 'whatsapp_hero', location: 'Hero' })}
               className="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white border border-white/30 px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-200 cursor-pointer"
             >
               <WhatsAppIcon className="w-5 h-5" />
@@ -69,11 +95,15 @@ export default function Hero() {
           </div>
 
           <div className="flex flex-wrap gap-5 text-sm text-white/70">
-            <div className="flex items-center gap-1.5">
-              <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-              <span className="font-semibold text-white">4.9/5</span> valoración
-            </div>
-            <span className="text-white/30">·</span>
+            {hasReviews && (
+              <>
+                <div className="flex items-center gap-1.5">
+                  <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+                  <span className="font-semibold text-white">{reviewStats!.average}/5</span> valoración ({reviewStats!.count})
+                </div>
+                <span className="text-white/30">·</span>
+              </>
+            )}
             <div className="flex items-center gap-1.5">
               <Users className="w-4 h-4 text-primary-300" />
               Hasta <span className="font-semibold text-white mx-1">50 personas</span>
@@ -92,6 +122,7 @@ export default function Hero() {
         href="https://wa.me/34624645517"
         target="_blank"
         rel="noopener noreferrer"
+        onClick={() => gaEvent('cta_click', { cta_name: 'whatsapp_flotante', location: 'Hero' })}
         className="absolute bottom-10 right-10 bg-white/95 backdrop-blur-sm p-4 rounded-2xl shadow-2xl hover:scale-105 transition-transform duration-200 cursor-pointer z-10 hidden md:flex items-center gap-3"
       >
         <div className="bg-gradient-to-br from-green-400 to-emerald-500 text-white p-2.5 rounded-xl">

@@ -3,12 +3,12 @@
 # Script para aplicar schema SQL desde EC2 n8n
 # Este script se ejecuta EN el servidor EC2, no en tu Mac
 
-# Configuración
-DB_HOST="happyhub-db-cluster.cluster-c8y9z8y1degk.eu-west-1.rds.amazonaws.com"
-DB_PORT="5432"
-DB_NAME="happyhub"
-DB_USER="dbadmin"
-DB_PASSWORD="c0MAkvDuZ6yWhfUUzgMh"
+# Configuración — set these via environment variables or a .env file
+DB_HOST="${DB_HOST:?Set DB_HOST}"
+DB_PORT="${DB_PORT:-5432}"
+DB_NAME="${DB_NAME:-happyhub}"
+DB_USER="${DB_USER:?Set DB_USER}"
+DB_PASSWORD="${DB_PASSWORD:?Set DB_PASSWORD}"
 
 echo "════════════════════════════════════════════════════════════"
 echo "  Aplicando Schema SQL a Aurora desde EC2"

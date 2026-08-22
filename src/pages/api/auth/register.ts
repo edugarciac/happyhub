@@ -1,11 +1,16 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { z } from 'zod';
 import { createUser, getUserByEmail } from '../../../utils/db/users';
+import { linkParticipantsToUser } from '../../../utils/db/collaborative-events';
 import jwt from 'jsonwebtoken';
 import { generateVerificationToken } from '../../../utils/emailVerification';
 import { sendVerificationEmail } from '../../../lib/email';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error('JWT_SECRET environment variable is required');
+  return secret;
+}
 
 const registerSchema = z.object({
   email: z.string().email('Por favor, introduce una dirección de email válida'),
@@ -55,6 +60,14 @@ export default async function handler(
     // Create user (email_verified = false by default)
     const user = await createUser(data);
 
+    // Link any pre-existing anonymous/RSVP-only guest rows to this new account.
+    // Best-effort: must not fail registration if it errors.
+    try {
+      await linkParticipantsToUser(user.id, user.email);
+    } catch (linkError) {
+      console.error('Failed to link participants on registration:', linkError);
+    }
+
     // Generate verification token and send email
     const verificationToken = await generateVerificationToken(user.id);
     await sendVerificationEmail(user.email, user.name, verificationToken);
@@ -62,7 +75,7 @@ export default async function handler(
     // Generate JWT with emailVerified: false
     const token = jwt.sign(
       { userId: user.id, email: user.email, role: user.role, emailVerified: false },
-      JWT_SECRET,
+      getJwtSecret(),
       { expiresIn: '30d' }
     );
 

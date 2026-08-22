@@ -7,8 +7,8 @@ import { ArrowLeft, Lock, Trash2, Pencil, Check, X, CalendarX } from 'lucide-rea
 type TimeSlot = 'morning' | 'afternoon' | 'night';
 
 const TIME_SLOT_LABELS: Record<TimeSlot, string> = {
-  morning: 'Mañana (11:00-14:30)',
-  afternoon: 'Tarde (16:30-20:30)',
+  morning: 'Mañana (10:00-14:00)',
+  afternoon: 'Tarde (16:00-20:00)',
   night: 'Noche (22:00-02:00)',
 };
 

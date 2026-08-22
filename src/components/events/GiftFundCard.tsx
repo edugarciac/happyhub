@@ -70,20 +70,9 @@ export default function GiftFundCard({ eventId, fund, isOrganizer, onUpdated }: 
     if (res.ok) onUpdated(null);
   };
 
-  if (!fund && !isOrganizer) return null;
+  if (!fund) return null;
 
-  if (!fund && isOrganizer) {
-    return (
-      <button
-        onClick={() => setEditing(true)}
-        className="w-full border-2 border-dashed border-green-300 rounded-xl p-4 text-center text-green-600 hover:bg-green-50 transition-colors text-sm font-semibold mb-5"
-      >
-        + Crear colecta grupal
-      </button>
-    );
-  }
-
-  if (editing || (!fund && isOrganizer)) {
+  if (editing) {
     return (
       <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-5">
         <h3 className="font-bold text-green-800 text-sm mb-3">💰 {fund ? 'Editar colecta' : 'Nueva colecta'}</h3>
