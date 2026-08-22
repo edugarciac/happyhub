@@ -18,6 +18,7 @@ import GuestList from '@/components/events/GuestList';
 import GiftSection from '@/components/events/GiftSection';
 import SpotifyPlaylistTab from '@/components/events/SpotifyPlaylistTab';
 import ActivitiesTab from '@/components/events/ActivitiesTab';
+import CustomDetailsTab from '@/components/events/CustomDetailsTab';
 
 interface Props {
   event: CollaborativeEvent;
@@ -55,7 +56,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async (context) => 
     getTimeline(eventId),
   ]);
 
-  const section = (context.query.section as string) || 'timeline';
+  const section = (context.query.section as string) || 'invitados';
 
   return {
     props: {
@@ -126,7 +127,8 @@ export default function MisEventosDashboard({ event, participants, milestones, i
             eventType={event.category}
           />
         );
-      case 'detalles': return <SectionPlaceholder label="Detalles" />;
+      case 'detalles':
+        return <CustomDetailsTab eventId={event.id} isOrganizer={isOrganizer} />;
       default: return <SectionPlaceholder label={section} />;
     }
   };

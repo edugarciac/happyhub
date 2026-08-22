@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Clock, Users, Gift, Music, Gamepad2, Sparkles, type LucideIcon } from 'lucide-react';
+import { Users, Gift, Music, Gamepad2, Sparkles, type LucideIcon } from 'lucide-react';
 
 interface Section {
   id: string;
@@ -9,12 +9,11 @@ interface Section {
 }
 
 const SECTIONS: Section[] = [
-  { id: 'timeline', label: 'Timeline', icon: Clock, color: 'primary' },
   { id: 'invitados', label: 'Invitados', icon: Users, color: 'ocean' },
   { id: 'regalo', label: 'Regalo', icon: Gift, color: 'rose' },
   { id: 'musica', label: 'Música', icon: Music, color: 'violet' },
   { id: 'actividades', label: 'Actividades', icon: Gamepad2, color: 'amber' },
-  { id: 'detalles', label: 'Detalles', icon: Sparkles, color: 'orange' },
+  { id: 'detalles', label: 'Detalles personalizados', icon: Sparkles, color: 'orange' },
 ];
 
 const ACTIVE_CLASSES: Record<string, string> = {
