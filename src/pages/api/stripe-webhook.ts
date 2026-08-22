@@ -167,8 +167,11 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session, host?: s
       }
       console.log(`✅ DB updated for ${paymentType} payment, reservation ${reservationId}`);
     } catch (dbError) {
-      console.error('Error updating DB after payment:', dbError);
-      // Don't fail the webhook — Stripe needs 200
+      console.error(
+        `CRITICAL: Failed to update DB after ${paymentType} payment for reservation ${reservationId}. ` +
+        `Stripe session ${session.id}, amount ${amount}. Manual reconciliation required.`,
+        dbError
+      );
     }
   }
 

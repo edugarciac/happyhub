@@ -15,7 +15,9 @@ export default function BookingCancel() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ reservationId: reservation_id }),
-    }).catch(() => {});
+    }).catch((err) => {
+      console.error('Failed to cancel pending reservation:', err);
+    });
   }, [reservation_id]);
 
   return (

@@ -22,6 +22,7 @@ export default function AdminCalendar() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [slots, setSlots] = useState<Slot[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   const fetchData = async () => {
     setLoading(true);
@@ -31,6 +32,7 @@ export default function AdminCalendar() {
       setSlots(data.slots || []);
     } catch (err) {
       console.error('Error fetching calendar data:', err);
+      setError('Error al cargar el calendario. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -110,6 +112,9 @@ export default function AdminCalendar() {
         </header>
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 text-red-700 text-sm">{error}</div>
+          )}
           {/* Legend */}
           <div className="bg-white rounded-xl shadow p-4 mb-6">
             <div className="flex flex-wrap items-center justify-center gap-6 text-sm">

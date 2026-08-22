@@ -51,7 +51,7 @@ async function handleDelete(id: number, res: NextApiResponse) {
   if (existing.rows.length === 0) return res.status(404).json({ success: false, error: 'No encontrado' });
 
   if (existing.rows[0].image_url) {
-    try { await deleteFromS3(existing.rows[0].image_url); } catch { /* ignore S3 errors */ }
+    try { await deleteFromS3(existing.rows[0].image_url); } catch (err) { console.warn('Non-fatal: S3 image delete failed:', err); }
   }
 
   await query('DELETE FROM service_catalog WHERE id = $1', [id]);

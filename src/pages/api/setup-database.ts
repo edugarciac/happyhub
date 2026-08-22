@@ -101,12 +101,13 @@ export default async function handler(
       }
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Setup error:', error);
+    const message = error instanceof Error ? error.message : String(error);
 
     res.status(500).json({
       success: false,
-      error: error.message,
+      error: process.env.NODE_ENV === 'development' ? message : 'Error al configurar la base de datos',
       hint: 'Verifica que las variables de entorno DB_* estén configuradas correctamente en .env.local'
     });
   }
