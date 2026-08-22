@@ -19,6 +19,7 @@ export default function AdminDashboard() {
     pendingReservations: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     fetchStats();
@@ -42,8 +43,9 @@ export default function AdminDashboard() {
           pendingReservations: data.stats.pendingReservations,
         });
       }
-    } catch (error) {
-      console.error('Error fetching stats:', error);
+    } catch (err) {
+      console.error('Error fetching stats:', err);
+      setError('Error al cargar las estadísticas');
     } finally {
       setLoading(false);
     }
@@ -113,6 +115,9 @@ export default function AdminDashboard() {
 
       <AdminLayout>
         <div className="max-w-7xl mx-auto">
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 text-red-700 text-sm">{error}</div>
+          )}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard de Administración</h1>
             <p className="text-gray-600">Gestiona todos los aspectos de HappyHub desde aquí</p>

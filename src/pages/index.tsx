@@ -55,7 +55,7 @@ export default function Home({ instagramPosts }: HomeProps) {
           setReviewsTotal(data.total || 0);
         }
       })
-      .catch(() => {});
+      .catch((err) => console.warn('Failed to load reviews:', err));
 
     fetch('/api/event-types')
       .then((res) => res.ok ? res.json() : null)
@@ -67,7 +67,7 @@ export default function Home({ instagramPosts }: HomeProps) {
           })));
         }
       })
-      .catch(() => {});
+      .catch((err) => console.warn('Failed to load event types:', err));
   }, []);
 
   const features = [

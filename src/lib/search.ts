@@ -22,7 +22,10 @@ export async function searchWeb(query: string, maxResults = 5): Promise<TavilyRe
       }),
     });
 
-    if (!response.ok) return [];
+    if (!response.ok) {
+      console.warn(`Tavily search failed with status ${response.status}`);
+      return [];
+    }
     const data = await response.json();
     return (data.results || []).map((r: any) => ({
       title: r.title,
@@ -30,7 +33,8 @@ export async function searchWeb(query: string, maxResults = 5): Promise<TavilyRe
       content: r.content,
       score: r.score,
     }));
-  } catch {
+  } catch (err) {
+    console.error('Tavily search error:', err);
     return [];
   }
 }

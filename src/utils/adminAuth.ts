@@ -36,6 +36,7 @@ export function verifyAdminToken(req: NextApiRequest): DecodedToken | null {
 
     return decoded;
   } catch (error) {
+    console.warn('Admin token verification failed:', error instanceof Error ? error.message : error);
     return null;
   }
 }

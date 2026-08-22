@@ -16,6 +16,7 @@ interface Service {
 export default function Servicios() {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
 
   useEffect(() => {
     fetch('/api/services-catalog')
@@ -31,7 +32,10 @@ export default function Servicios() {
           );
         }
       })
-      .catch(() => {})
+      .catch((err) => {
+        console.error('Error loading services catalog:', err);
+        setFetchError(true);
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -66,6 +70,8 @@ export default function Servicios() {
             <div className="flex items-center justify-center h-40">
               <div className="w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full animate-spin" />
             </div>
+          ) : fetchError ? (
+            <div className="text-center py-12 text-red-500">No se pudieron cargar los servicios. Inténtalo de nuevo más tarde.</div>
           ) : services.length === 0 ? (
             <div className="text-center py-12 text-gray-500">No hay servicios disponibles</div>
           ) : (
