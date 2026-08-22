@@ -3,7 +3,11 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '../lib/auth';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error('JWT_SECRET environment variable is required');
+  return secret;
+}
 
 export interface DecodedToken {
   userId: number;
@@ -24,7 +28,7 @@ export function verifyAdminToken(req: NextApiRequest): DecodedToken | null {
     const token = authHeader.substring(7);
     if (!token) return null;
 
-    const decoded = jwt.verify(token, JWT_SECRET) as DecodedToken;
+    const decoded = jwt.verify(token, getJwtSecret()) as DecodedToken;
 
     if (decoded.role !== 'admin') {
       return null;

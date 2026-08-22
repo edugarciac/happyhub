@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Check, Info } from 'lucide-react';
+import { event as gaEvent, useSectionView } from '@/lib/analytics';
 
 interface PriceRow {
   day: string;
-  morning: number | 'consult';
-  afternoon: number | 'consult';
-  night: 'consult';
+  morning: number | 'consult' | undefined;
+  afternoon: number | 'consult' | undefined;
   highlight?: boolean;
 }
 
@@ -15,7 +15,6 @@ const INCLUDED = [
   'Mobiliario básico (mesas y sillas)',
   'Sistema de sonido',
   'Microondas y nevera',
-  'Limpieza final',
   'Apertura anticipada sin coste extra',
 ];
 
@@ -46,40 +45,39 @@ export default function PricingTable() {
   const pricingRows: PriceRow[] = [
     {
       day: 'Lunes a Jueves',
-      morning: pricing.weekday_morning || 110,
-      afternoon: pricing.weekday_afternoon || 110,
-      night: 'consult'
+      morning: pricing.weekday_morning,
+      afternoon: pricing.weekday_afternoon,
     },
     {
       day: 'Viernes',
-      morning: pricing.weekday_morning || 110,
-      afternoon: pricing.friday_afternoon || 155,
-      night: 'consult',
+      morning: pricing.weekday_morning,
+      afternoon: pricing.friday_afternoon,
       highlight: true
     },
     {
       day: 'Sábados y Domingos',
-      morning: pricing.weekend_morning || 145,
-      afternoon: pricing.weekend_afternoon || 185,
-      night: 'consult',
+      morning: pricing.weekend_morning,
+      afternoon: pricing.weekend_afternoon,
       highlight: true
     },
     {
       day: 'Festivos',
-      morning: pricing.holiday_morning || 145,
-      afternoon: pricing.holiday_afternoon || 185,
-      night: 'consult',
+      morning: pricing.holiday_morning,
+      afternoon: pricing.holiday_afternoon,
       highlight: true
     },
   ];
 
-  const formatPrice = (price: number | 'consult') => {
-    if (price === 'consult') return 'Consultar';
+  const formatPrice = (price: number | 'consult' | undefined) => {
+    if (price === 'consult' || price === 0) return 'A consultar';
+    if (price === undefined) return '—';
     return `${price}€`;
   };
 
+  const sectionRef = useSectionView('tarifas');
+
   return (
-    <section className="py-16 bg-gradient-to-br from-primary-50 to-secondary-50">
+    <section ref={sectionRef} className="py-16 bg-gradient-to-br from-primary-50 to-secondary-50">
       <div className="container-custom">
         <h2 className="text-3xl font-bold text-gray-900 text-center mb-4">Tarifas</h2>
         <p className="text-gray-600 text-center mb-12 max-w-2xl mx-auto">
@@ -96,15 +94,11 @@ export default function PricingTable() {
                     <th className="px-6 py-4 text-left font-semibold">Día</th>
                     <th className="px-6 py-4 text-center font-semibold">
                       <div>Mañana</div>
-                      <div className="text-xs font-normal opacity-80">11:00 - 14:30</div>
+                      <div className="text-xs font-normal opacity-80">10:00 - 14:00</div>
                     </th>
                     <th className="px-6 py-4 text-center font-semibold">
                       <div>Tarde</div>
-                      <div className="text-xs font-normal opacity-80">16:30 - 20:30</div>
-                    </th>
-                    <th className="px-6 py-4 text-center font-semibold">
-                      <div>Noche</div>
-                      <div className="text-xs font-normal opacity-80">22:00 - 02:00</div>
+                      <div className="text-xs font-normal opacity-80">16:00 - 20:00</div>
                     </th>
                   </tr>
                 </thead>
@@ -120,24 +114,31 @@ export default function PricingTable() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-center">
-                        <span className="text-2xl font-bold text-gray-900">
-                          {formatPrice(row.morning)}
-                        </span>
+                        {loading ? (
+                          <span className="inline-block h-6 w-14 rounded bg-gray-200 animate-pulse" />
+                        ) : (
+                          <span className="text-2xl font-bold text-gray-900">
+                            {formatPrice(row.morning)}
+                          </span>
+                        )}
                       </td>
                       <td className="px-6 py-4 text-center">
-                        <span className="text-2xl font-bold text-gray-900">
-                          {formatPrice(row.afternoon)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <span className="text-lg text-gray-500">
-                          {formatPrice(row.night)}
-                        </span>
+                        {loading ? (
+                          <span className="inline-block h-6 w-14 rounded bg-gray-200 animate-pulse" />
+                        ) : (
+                          <span className="text-2xl font-bold text-gray-900">
+                            {formatPrice(row.afternoon)}
+                          </span>
+                        )}
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+            </div>
+            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-start gap-2 text-sm text-gray-600">
+              <Info className="w-4 h-4 text-primary-500 flex-shrink-0 mt-0.5" />
+              <span>¿Necesitas más tiempo? Puedes ampliar tu franja horaria según disponibilidad — consúltanos para conocer la tarifa adicional.</span>
             </div>
           </div>
 
@@ -170,7 +171,7 @@ export default function PricingTable() {
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-primary-500 font-bold">•</span>
-                  <span>Resto el día del evento</span>
+                  <span>Resto antes de comenzar el evento</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-primary-500 font-bold">•</span>
@@ -188,6 +189,7 @@ export default function PricingTable() {
           <div className="text-center">
             <Link
               href="/reservas"
+              onClick={() => gaEvent('cta_click', { cta_name: 'reserva_pricing', location: 'PricingTable' })}
               className="btn-primary text-lg px-8 py-4 inline-flex items-center gap-2"
             >
               Reserva tu fecha

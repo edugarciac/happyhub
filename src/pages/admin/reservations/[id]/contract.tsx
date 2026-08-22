@@ -20,8 +20,8 @@ interface ReservationData {
 }
 
 const TIME_SLOT_HOURS: Record<string, { label: string; start: string; end: string }> = {
-  morning: { label: 'Manana', start: '11:00', end: '14:30' },
-  afternoon: { label: 'Tarde', start: '16:30', end: '20:30' },
+  morning: { label: 'Manana', start: '10:00', end: '14:00' },
+  afternoon: { label: 'Tarde', start: '16:00', end: '20:00' },
   night: { label: 'Noche', start: '22:00', end: '02:00' },
 };
 

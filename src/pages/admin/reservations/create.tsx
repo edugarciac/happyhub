@@ -10,8 +10,8 @@ function jsonHeaders(): HeadersInit {
 }
 
 const TIME_SLOT_OPTIONS = [
-  { value: 'morning', label: 'Mañana (11:00–14:30)' },
-  { value: 'afternoon', label: 'Tarde (16:30–20:30)' },
+  { value: 'morning', label: 'Mañana (10:00–14:00)' },
+  { value: 'afternoon', label: 'Tarde (16:00–20:00)' },
   { value: 'night', label: 'Noche (22:00–02:00)' },
 ];
 

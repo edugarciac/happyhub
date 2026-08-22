@@ -7,7 +7,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import FullCalendar from '@/components/FullCalendar';
 import { formatDate } from '@/utils/formatters';
-import { isWeekend, isFriday, isHoliday, isHolidayEve, type TimeSlot } from '@/utils/pricing';
+import { isWeekend, isFriday, isHoliday, isHolidayEve, loadHolidaysFromApi, type TimeSlot } from '@/utils/pricing';
 
 export default function Disponibilidad() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -21,6 +21,9 @@ export default function Disponibilidad() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Fetch holiday dates (used by isHoliday() below)
+        await loadHolidaysFromApi();
+
         // Fetch pricing from database
         const pricingRes = await fetch('/api/pricing/current');
         if (pricingRes.ok) {
@@ -66,9 +69,9 @@ export default function Disponibilidad() {
   const getTimeSlotLabel = (slot: TimeSlot): string => {
     switch (slot) {
       case 'morning':
-        return 'Mañana (11:00-14:30)';
+        return 'Mañana (10:00-14:00)';
       case 'afternoon':
-        return 'Tarde (16:30-20:30)';
+        return 'Tarde (16:00-20:00)';
       case 'night':
         return 'Noche (22:00-02:00)';
     }
@@ -190,10 +193,8 @@ export default function Disponibilidad() {
               <div className="border-l-4 border-primary-500 pl-4">
                 <h3 className="font-bold text-gray-900 mb-3 text-lg">⏰ Franjas Horarias</h3>
                 <div className="space-y-2 text-gray-600">
-                  <p><strong>Mañanas:</strong> 11:00 - 14:30h</p>
-                  <p className="text-sm">Apertura anticipada desde las 10:00h sin coste</p>
-                  <p><strong>Tardes:</strong> 16:30 - 20:30h</p>
-                  <p className="text-sm">Apertura anticipada desde las 15:30h sin coste</p>
+                  <p><strong>Mañanas:</strong> 10:00 - 14:00h</p>
+                  <p><strong>Tardes:</strong> 16:00 - 20:00h</p>
                   <p><strong>Noches:</strong> 22:00 - 02:00h</p>
                   <p className="text-sm">Apertura anticipada desde las 21:30h sin coste</p>
                 </div>
@@ -220,7 +221,7 @@ export default function Disponibilidad() {
                   Se requiere un <strong>depósito del 30%</strong> para confirmar la reserva.
                 </p>
                 <p className="text-gray-600 mt-2">
-                  El resto se abona el día del evento.
+                  El resto se abona antes de comenzar el evento.
                 </p>
               </div>
 

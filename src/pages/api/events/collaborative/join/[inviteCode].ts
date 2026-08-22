@@ -11,6 +11,8 @@ import {
 
 const joinSchema = z.object({
   name: z.string().min(2).max(255),
+  // Required for anonymous joins (so the participant row can later be linked
+  // to an account by email); logged-in joiners get their email from the session.
   email: z.string().email().optional(),
 });
 
@@ -45,11 +47,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: 'Datos inválidos', details: result.error.flatten() });
   }
 
+  // Anonymous joiners must supply an email (enforced client-side too); logged-in
+  // joiners get theirs from the session regardless of what the client sent.
+  const email = userId ? session?.user?.email ?? result.data.email : result.data.email;
+  if (!email) {
+    return res.status(400).json({ error: 'El email es obligatorio' });
+  }
+
   const participant = await addParticipant({
     event_id: event.id,
     user_id: userId,
     name: result.data.name,
-    email: result.data.email,
+    email,
     role: 'participant',
   });
 

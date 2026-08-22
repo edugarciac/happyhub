@@ -134,9 +134,9 @@ interface ReservationConfirmationParams {
   contractUrl?: string;
 }
 
-const TIME_SLOT_LABELS: Record<string, string> = {
-  morning: 'Mañana (11:00-14:30)',
-  afternoon: 'Tarde (16:30-20:30)',
+export const TIME_SLOT_LABELS: Record<string, string> = {
+  morning: 'Mañana (10:00-14:00)',
+  afternoon: 'Tarde (16:00-20:00)',
   night: 'Noche (22:00-02:00)',
 };
 
@@ -171,7 +171,7 @@ Hola ${name}, tu reserva en HappyHub ha sido confirmada.
 
 ${contractUrl ? `📄 Contrato: ${contractUrl}` : ''}
 
-Resto pendiente: ${totalPrice - depositAmount}€ (a pagar el día del evento)
+Resto pendiente: ${totalPrice - depositAmount}€ (a pagar antes de comenzar el evento)
 
 ¿Tienes preguntas? Responde a este mensaje o escríbenos por WhatsApp al 624 645 517.
 
@@ -255,6 +255,47 @@ export async function notifyAdminNewReservation({
 👥 *Invitados:* ${guests}
 💰 *Total:* ${totalPrice}€
 ✅ *Señal:* ${depositAmount}€`;
+
+  return sendAdminNotification(message);
+}
+
+// Sent right when a reservation request comes in (before payment/approval) —
+// distinct wording from notifyAdminNewReservation (which fires on payment
+// success) so the admin isn't told twice that something is "confirmed".
+export async function notifyAdminReservationRequest({
+  name,
+  date,
+  timeSlot,
+  guests,
+  totalPrice,
+  depositAmount,
+  reservationId,
+  needsKidsFurniture,
+  isHoliday,
+}: Omit<ReservationConfirmationParams, 'phone' | 'contractUrl'> & { needsKidsFurniture?: boolean; isHoliday?: boolean }): Promise<boolean> {
+  const eventDate = new Date(date);
+  const formattedDate = eventDate.toLocaleDateString('es-ES', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  });
+
+  const kidsFurnitureLine = needsKidsFurniture ? '\n🪑 *Mesas/sillas niños:* Sí' : '';
+  const holidayHeader = isHoliday
+    ? '🎉 *FESTIVO — requiere confirmación caso a caso, no se ha cobrado ninguna señal*\n\n'
+    : '';
+
+  const message = `${holidayHeader}🆕 *Nueva solicitud de reserva*
+
+📝 *Nº:* ${reservationId}
+👤 *Cliente:* ${name}
+📅 *Fecha:* ${formattedDate}
+⏰ *Horario:* ${TIME_SLOT_LABELS[timeSlot] || timeSlot}
+👥 *Invitados:* ${guests}
+💰 *Total:* ${totalPrice}€
+🔖 *Señal:* ${depositAmount}€${kidsFurnitureLine}
+
+Revísala en el panel de administración.`;
 
   return sendAdminNotification(message);
 }

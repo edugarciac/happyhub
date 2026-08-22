@@ -8,27 +8,48 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const { code, state, error } = req.query;
 
-  if (error) return res.redirect('/mis-eventos?error=spotify_denied');
-  if (!code || !state) return res.redirect('/mis-eventos?error=spotify_invalid');
+  if (error) {
+    console.error('[spotify/callback] Spotify returned an error:', error);
+    return res.redirect('/area-privada?error=spotify_denied');
+  }
+  if (!code || !state) {
+    console.error('[spotify/callback] Missing code or state', { hasCode: !!code, hasState: !!state });
+    return res.redirect('/area-privada?error=spotify_invalid');
+  }
 
   const parts = (state as string).split(':');
-  if (parts.length < 3) return res.redirect('/mis-eventos?error=spotify_invalid');
-  const [eventIdStr, userIdStr, sig] = parts;
-  const eventId = parseInt(eventIdStr, 10);
+  if (parts.length < 2) {
+    console.error('[spotify/callback] Malformed state param:', state);
+    return res.redirect('/area-privada?error=spotify_invalid');
+  }
+  const [userIdStr, sig] = parts;
   const userId = parseInt(userIdStr, 10);
-  if (isNaN(eventId) || isNaN(userId)) return res.redirect('/mis-eventos?error=spotify_invalid');
+  if (isNaN(userId)) {
+    console.error('[spotify/callback] Non-numeric userId in state:', userIdStr);
+    return res.redirect('/area-privada?error=spotify_invalid');
+  }
 
   // Verificar firma HMAC
-  const hmacSecret = process.env.NEXTAUTH_SECRET || 'fallback-secret';
+  const hmacSecret = process.env.NEXTAUTH_SECRET;
+  if (!hmacSecret) {
+    console.error('[spotify/callback] NEXTAUTH_SECRET not configured');
+    return res.redirect('/area-privada?error=spotify_config');
+  }
   const expectedSig = crypto.createHmac('sha256', hmacSecret)
-    .update(`${eventIdStr}:${userIdStr}`).digest('hex');
-  if (sig !== expectedSig) return res.redirect('/mis-eventos?error=spotify_invalid');
+    .update(`${userIdStr}`).digest('hex');
+  if (sig !== expectedSig) {
+    console.error('[spotify/callback] HMAC signature mismatch for userId:', userId);
+    return res.redirect('/area-privada?error=spotify_invalid');
+  }
 
   const clientId = process.env.SPOTIFY_CLIENT_ID;
   const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
   const redirectUri = process.env.SPOTIFY_REDIRECT_URI;
   if (!clientId || !clientSecret || !redirectUri) {
-    return res.redirect(`/mis-eventos/${eventId}?section=entretenimiento&error=spotify_config`);
+    console.error('[spotify/callback] Missing Spotify env vars', {
+      hasClientId: !!clientId, hasClientSecret: !!clientSecret, hasRedirectUri: !!redirectUri,
+    });
+    return res.redirect('/area-privada?error=spotify_config');
   }
 
   try {
@@ -47,26 +68,47 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (!tokenRes.ok) {
-      return res.redirect(`/mis-eventos/${eventId}?section=entretenimiento&error=spotify_token`);
+      const errBody = await tokenRes.text();
+      console.error('[spotify/callback] Token exchange failed', {
+        status: tokenRes.status,
+        body: errBody,
+        redirectUriUsed: redirectUri,
+      });
+      return res.redirect('/area-privada?error=spotify_token');
     }
 
     const tokenData = await tokenRes.json();
     const expiresAt = new Date(Date.now() + tokenData.expires_in * 1000);
 
+    const meRes = await fetch('https://api.spotify.com/v1/me', {
+      headers: { Authorization: `Bearer ${tokenData.access_token}` },
+    });
+    if (!meRes.ok) {
+      const errBody = await meRes.text();
+      console.error('[spotify/callback] /v1/me failed', { status: meRes.status, body: errBody });
+      return res.redirect('/area-privada?error=spotify_profile');
+    }
+    const me = await meRes.json();
+
     await query(
-      `INSERT INTO event_spotify_connections (event_id, user_id, access_token, refresh_token, token_expires_at)
-       VALUES ($1, $2, $3, $4, $5)
-       ON CONFLICT (event_id) DO UPDATE SET
+      `INSERT INTO user_spotify_connections
+         (user_id, spotify_user_id, display_name, product, access_token, refresh_token, token_expires_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       ON CONFLICT (user_id) DO UPDATE SET
+         spotify_user_id = EXCLUDED.spotify_user_id,
+         display_name = EXCLUDED.display_name,
+         product = EXCLUDED.product,
          access_token = EXCLUDED.access_token,
          refresh_token = EXCLUDED.refresh_token,
          token_expires_at = EXCLUDED.token_expires_at,
          updated_at = NOW()`,
-      [eventId, userId, tokenData.access_token, tokenData.refresh_token, expiresAt]
+      [userId, me.id, me.display_name || null, me.product || 'free', tokenData.access_token, tokenData.refresh_token, expiresAt]
     );
 
-    return res.redirect(`/mis-eventos/${eventId}?section=entretenimiento&spotify=connected`);
+    console.log('[spotify/callback] Connected successfully for userId:', userId);
+    return res.redirect('/area-privada?spotify=connected');
   } catch (err: any) {
-    console.error('Spotify callback error:', err);
-    return res.redirect(`/mis-eventos/${eventId}?section=entretenimiento&error=spotify_error`);
+    console.error('[spotify/callback] Unexpected error:', err);
+    return res.redirect('/area-privada?error=spotify_error');
   }
 }

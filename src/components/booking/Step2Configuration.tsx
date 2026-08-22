@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useBooking, Extra } from './BookingContext';
 import PriceSummary from './PriceSummary';
-import { isWeekend, isFriday, isHoliday, isHolidayEve, type TimeSlot } from '@/utils/pricing';
+import { isWeekend, isFriday, isHoliday, isHolidayEve, loadHolidaysFromApi, type TimeSlot } from '@/utils/pricing';
 import { ChevronLeft, ChevronRight, Users, Package, Check, AlertCircle } from 'lucide-react';
 
 export default function Step2Configuration() {
@@ -33,6 +33,7 @@ export default function Step2Configuration() {
 
     const fetchAndSetPrice = async () => {
       try {
+        await loadHolidaysFromApi();
         const res = await fetch('/api/pricing/current');
         if (!res.ok) return;
         const data = await res.json();
@@ -90,6 +91,7 @@ export default function Step2Configuration() {
   };
 
   const getExtraPrice = (extra: Extra): string => {
+    if (extra.basePrice === 0) return 'A consultar';
     if (extra.priceType === 'per_person') {
       return `${extra.basePrice}€/persona`;
     }
@@ -210,10 +212,16 @@ export default function Step2Configuration() {
                         <p className="text-sm text-gray-500 mb-2">{extra.description}</p>
                       )}
                       <div className="flex items-baseline gap-2">
-                        <span className="text-lg font-bold text-primary-600">{totalPrice}€</span>
-                        <span className="text-xs text-gray-400">
-                          {getExtraPrice(extra)}
-                        </span>
+                        {extra.basePrice === 0 ? (
+                          <span className="text-lg font-bold text-primary-600">A consultar</span>
+                        ) : (
+                          <>
+                            <span className="text-lg font-bold text-primary-600">{totalPrice}€</span>
+                            <span className="text-xs text-gray-400">
+                              {getExtraPrice(extra)}
+                            </span>
+                          </>
+                        )}
                       </div>
                     </div>
                   </button>

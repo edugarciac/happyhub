@@ -48,6 +48,7 @@ export default function AdminServices() {
       if (data.success) {
         setServices(data.services.map((s: any) => ({
           ...s,
+          price: s.price !== null && s.price !== undefined ? parseFloat(s.price) : null,
           features: typeof s.features === 'string' ? JSON.parse(s.features) : (s.features || []),
         })));
       }
@@ -130,7 +131,7 @@ export default function AdminServices() {
   };
 
   const formatPrice = (price: number | null) => {
-    if (price === null || price === undefined) return 'Precio a consultar';
+    if (price === null || price === undefined || !Number.isFinite(price)) return 'Precio a consultar';
     return `${price.toFixed(2)} €`;
   };
 
@@ -243,7 +244,7 @@ export default function AdminServices() {
                 <button onClick={closeModals} className="p-1 hover:bg-gray-100 rounded-lg"><X className="w-5 h-5" /></button>
               </div>
               {formError && <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg mb-4">{formError}</div>}
-              <ServiceFormFields />
+              {ServiceFormFields()}
               <div className="flex gap-3 mt-6">
                 <button onClick={closeModals} className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg transition-colors">Cancelar</button>
                 <button onClick={handleCreate} disabled={saving} className="flex-1 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50">
@@ -263,7 +264,7 @@ export default function AdminServices() {
                 <button onClick={closeModals} className="p-1 hover:bg-gray-100 rounded-lg"><X className="w-5 h-5" /></button>
               </div>
               {formError && <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg mb-4">{formError}</div>}
-              <ServiceFormFields />
+              {ServiceFormFields()}
               <div className="flex gap-3 mt-6">
                 <button onClick={closeModals} className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg transition-colors">Cancelar</button>
                 <button onClick={handleUpdate} disabled={saving} className="flex-1 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50">

@@ -9,6 +9,15 @@ import Link from 'next/link';
 import GoogleSignInButton from '../components/GoogleSignInButton';
 import { event as gaEvent } from '@/lib/analytics';
 
+// Only accept same-site paths ("/foo") — rejects absolute URLs and
+// protocol-relative ("//evil.com") to avoid an open redirect.
+function safeRedirect(target: unknown, fallback: string): string {
+  if (typeof target === 'string' && target.startsWith('/') && !target.startsWith('//')) {
+    return target;
+  }
+  return fallback;
+}
+
 const registerSchema = z.object({
   email: z.string().email('Por favor, introduce una dirección de email válida'),
   password: z
@@ -85,8 +94,11 @@ export default function RegisterPage() {
         localStorage.setItem('token', result.token);
       }
 
-      // Redirect to verification-pending page
-      router.push(`/verificacion-pendiente?email=${encodeURIComponent(data.email)}`);
+      // Redirect to verification-pending page, carrying the post-verification
+      // destination (e.g. back to the event that invited this user) along.
+      const validRedirect = safeRedirect(router.query.redirect, '');
+      const redirectParam = validRedirect ? `&redirect=${encodeURIComponent(validRedirect)}` : '';
+      router.push(`/verificacion-pendiente?email=${encodeURIComponent(data.email)}${redirectParam}`);
     } catch (err: any) {
       console.error('Register exception:', err);
 
@@ -107,7 +119,7 @@ export default function RegisterPage() {
     setError('');
     try {
       gaEvent('sign_up', { method: 'google' });
-      await signIn('google', { callbackUrl: '/' });
+      await signIn('google', { callbackUrl: safeRedirect(router.query.redirect, '/') });
     } catch (err) {
       setError('Error al registrarse con Google');
       setGoogleLoading(false);

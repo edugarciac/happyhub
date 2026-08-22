@@ -9,6 +9,15 @@ import Link from 'next/link';
 import GoogleSignInButton from '../components/GoogleSignInButton';
 import { event as gaEvent } from '@/lib/analytics';
 
+// Only accept same-site paths ("/foo") — rejects absolute URLs and
+// protocol-relative ("//evil.com") to avoid an open redirect.
+function safeRedirect(target: unknown, fallback: string): string {
+  if (typeof target === 'string' && target.startsWith('/') && !target.startsWith('//')) {
+    return target;
+  }
+  return fallback;
+}
+
 const loginSchema = z.object({
   email: z.string().email('Por favor, introduce una dirección de email válida'),
   password: z.string().min(1, 'La contraseña es obligatoria'),
@@ -64,7 +73,7 @@ export default function LoginPage() {
       }
 
       gaEvent('login', { method: 'email' });
-      router.push('/area-privada');
+      router.push(safeRedirect(router.query.redirect, '/area-privada'));
     } catch (err) {
       setError('Error de conexión. Por favor, inténtalo de nuevo');
       setLoading(false);
@@ -76,7 +85,7 @@ export default function LoginPage() {
     setError('');
     try {
       gaEvent('login', { method: 'google' });
-      await signIn('google', { callbackUrl: '/area-privada' });
+      await signIn('google', { callbackUrl: safeRedirect(router.query.redirect, '/area-privada') });
     } catch (err) {
       setError('Error al iniciar sesión con Google');
       setGoogleLoading(false);

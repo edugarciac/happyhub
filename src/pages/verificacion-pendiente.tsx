@@ -5,7 +5,10 @@ import Link from 'next/link';
 
 export default function VerificacionPendientePage() {
   const router = useRouter();
-  const { email } = router.query;
+  const { email, redirect } = router.query;
+  const loginHref = typeof redirect === 'string' && redirect.startsWith('/') && !redirect.startsWith('//')
+    ? `/login?redirect=${encodeURIComponent(redirect)}`
+    : '/login';
   const [resending, setResending] = useState(false);
   const [resendMessage, setResendMessage] = useState('');
 
@@ -89,7 +92,7 @@ export default function VerificacionPendientePage() {
             </button>
 
             <div className="text-center">
-              <Link href="/login" className="text-sm text-primary hover:text-primary/80 transition">
+              <Link href={loginHref} className="text-sm text-primary hover:text-primary/80 transition">
                 Ir a iniciar sesion
               </Link>
             </div>

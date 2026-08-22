@@ -59,11 +59,11 @@ export default async function handler(
         // Determine time slot based on start time
         let timeSlot: 'morning' | 'afternoon' | 'night' = 'morning';
 
-        // Morning: 11:00-14:30
+        // Morning: 10:00-14:00
         if (startHour >= 10 && startHour < 15) {
           timeSlot = 'morning';
         }
-        // Afternoon: 16:30-20:30
+        // Afternoon: 16:00-20:00
         else if (startHour >= 15 && startHour < 21) {
           timeSlot = 'afternoon';
         }

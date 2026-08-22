@@ -4,13 +4,17 @@
 
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { initializeSchema, checkConnection, runPaymentsMigration } from '@/lib/db';
+import { requireAdminSession } from '@/utils/adminAuth';
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  // Allow first-time initialization in production
-  // After first run, you can delete this endpoint or add proper auth
+  try {
+    await requireAdminSession(req, res);
+  } catch {
+    return res.status(401).json({ success: false, error: 'No autorizado' });
+  }
 
   try {
     console.log('🔌 Checking database connection...');

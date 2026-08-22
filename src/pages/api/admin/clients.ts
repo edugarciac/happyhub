@@ -1,26 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import bcrypt from 'bcryptjs';
-import { query } from '../../../lib/db';
-import { requireAdminSession } from '../../../utils/adminAuth';
+import { query } from '@/lib/db';
+import { withAdminHandler, methodNotAllowed } from '@/lib/apiMiddleware';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  try {
-    await requireAdminSession(req, res);
-
-    if (req.method === 'GET') {
-      return handleList(req, res);
-    } else if (req.method === 'POST') {
-      return handleCreate(req, res);
-    }
-    return res.status(405).json({ success: false, error: 'Method not allowed' });
-  } catch (error: any) {
-    if (error.message === 'Unauthorized') {
-      return res.status(401).json({ success: false, error: 'No autorizado' });
-    }
-    console.error('Error in clients API:', error);
-    return res.status(500).json({ success: false, error: 'Error interno' });
-  }
-}
+export default withAdminHandler(async (req, res) => {
+  if (req.method === 'GET') return handleList(req, res);
+  if (req.method === 'POST') return handleCreate(req, res);
+  return methodNotAllowed(res);
+}, 'clients');
 
 async function handleList(req: NextApiRequest, res: NextApiResponse) {
   const page = parseInt(req.query.page as string) || 1;
@@ -68,7 +55,6 @@ async function handleCreate(req: NextApiRequest, res: NextApiResponse) {
     return res.status(400).json({ success: false, error: 'La contraseña debe tener al menos 8 caracteres' });
   }
 
-  // Check if email already exists
   const existing = await query('SELECT id FROM users WHERE email = $1', [email.trim().toLowerCase()]);
   if (existing.rows.length > 0) {
     return res.status(409).json({ success: false, error: 'Ya existe un usuario con ese email' });

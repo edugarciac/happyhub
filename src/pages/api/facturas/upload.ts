@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { extractInvoiceData } from '@/lib/invoiceExtractor';
 import { getMonthFolder, uploadFile, findExcelFile, saveExcelFile } from '@/lib/googleDrive';
 import { addInvoiceRow } from '@/lib/excelManager';
+import { requireAdminSession } from '@/utils/adminAuth';
 
 export const config = {
   api: { bodyParser: { sizeLimit: '20mb' } },
@@ -39,6 +40,12 @@ export default async function handler(
 ) {
   if (req.method !== 'POST') {
     return res.status(405).json({ success: false, error: 'Method not allowed' });
+  }
+
+  try {
+    await requireAdminSession(req, res);
+  } catch {
+    return res.status(401).json({ success: false, error: 'No autorizado' });
   }
 
   const { filename, mimeType, data } = req.body as UploadRequest;

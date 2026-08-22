@@ -16,7 +16,8 @@ import EventDashboardLayout from '@/components/events/EventDashboardLayout';
 import EventTimeline from '@/components/events/EventTimeline';
 import GuestList from '@/components/events/GuestList';
 import GiftSection from '@/components/events/GiftSection';
-import EntertainmentSection from '@/components/events/EntertainmentSection';
+import SpotifyPlaylistTab from '@/components/events/SpotifyPlaylistTab';
+import ActivitiesTab from '@/components/events/ActivitiesTab';
 
 interface Props {
   event: CollaborativeEvent;
@@ -90,13 +91,13 @@ export default function MisEventosDashboard({ event, participants, milestones, i
             isOrganizer={isOrganizer}
           />
         );
-      case 'info': return <SectionPlaceholder label="Info" />;
       case 'invitados':
         return (
           <GuestList
             eventId={event.id}
             isOrganizer={isOrganizer}
             inviteCode={event.invite_code}
+            eventTitle={event.title}
           />
         );
       case 'regalo':
@@ -108,9 +109,17 @@ export default function MisEventosDashboard({ event, participants, milestones, i
             eventType={event.category}
           />
         );
-      case 'entretenimiento':
+      case 'musica':
         return (
-          <EntertainmentSection
+          <SpotifyPlaylistTab
+            eventId={event.id}
+            isOrganizer={isOrganizer}
+            currentParticipantId={currentParticipantId}
+          />
+        );
+      case 'actividades':
+        return (
+          <ActivitiesTab
             eventId={event.id}
             isOrganizer={isOrganizer}
             currentParticipantId={currentParticipantId}
@@ -118,9 +127,6 @@ export default function MisEventosDashboard({ event, participants, milestones, i
           />
         );
       case 'detalles': return <SectionPlaceholder label="Detalles" />;
-      case 'servicios': return <SectionPlaceholder label="Servicios" />;
-      case 'fotos': return <SectionPlaceholder label="Fotos" />;
-      case 'mensajes': return <SectionPlaceholder label="Mensajes" />;
       default: return <SectionPlaceholder label={section} />;
     }
   };

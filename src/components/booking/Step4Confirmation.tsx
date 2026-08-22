@@ -1,14 +1,16 @@
 import { useBooking, EXTRAS } from './BookingContext';
-import { Check, Calendar, Clock, Users, MessageSquare, Mail, Phone, Home, AlertTriangle } from 'lucide-react';
+import { Check, Calendar, Clock, Users, MessageSquare, Mail, Phone, Home, AlertTriangle, PartyPopper } from 'lucide-react';
 import { formatDate } from '@/utils/formatters';
+import { isHoliday } from '@/utils/pricing';
 import Link from 'next/link';
 
 export default function Step4Confirmation() {
   const { state, calculateTotalPrice, calculateDepositAmount } = useBooking();
+  const dateIsHoliday = state.date ? isHoliday(state.date) : false;
 
   const timeSlotLabels: Record<string, string> = {
-    morning: 'Mañana (11:00 - 14:30h)',
-    afternoon: 'Tarde (16:30 - 20:30h)',
+    morning: 'Mañana (10:00 - 14:00h)',
+    afternoon: 'Tarde (16:00 - 20:00h)',
     night: 'Noche (22:00 - 02:00h)',
   };
 
@@ -56,6 +58,22 @@ export default function Step4Confirmation() {
             <div>
               <p className="text-sm font-semibold text-amber-900">Aviso sobre el email</p>
               <p className="text-sm text-amber-800 mt-1">{state.emailWarning}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Holiday Notice */}
+      {dateIsHoliday && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
+          <div className="flex gap-3">
+            <PartyPopper className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-amber-900">Tu fecha es festivo</p>
+              <p className="text-sm text-amber-800 mt-1">
+                Los días festivos requieren confirmación expresa de HappyHub caso a caso. No se ha realizado ningún
+                cargo: te confirmaremos la disponibilidad y, una vez confirmada, te enviaremos el enlace de pago de la señal.
+              </p>
             </div>
           </div>
         </div>
@@ -193,7 +211,7 @@ export default function Step4Confirmation() {
           </span>
         </div>
         <p className="text-xs text-gray-600 mt-4">
-          * El resto ({totalPrice !== 'consult' ? totalPrice - depositAmount : 0}€) se abonará el día del evento
+          * El resto ({totalPrice !== 'consult' ? totalPrice - depositAmount : 0}€) se abonará antes de comenzar el evento
         </p>
       </div>
 

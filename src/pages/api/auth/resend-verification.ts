@@ -4,7 +4,11 @@ import { getUserById } from '../../../utils/db/users';
 import { generateVerificationToken } from '../../../utils/emailVerification';
 import { sendVerificationEmail } from '../../../lib/email';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error('JWT_SECRET environment variable is required');
+  return secret;
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -19,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   let decoded: { userId: number; email: string; role: string; emailVerified?: boolean };
   try {
-    decoded = jwt.verify(authHeader.substring(7), JWT_SECRET) as any;
+    decoded = jwt.verify(authHeader.substring(7), getJwtSecret()) as any;
   } catch {
     return res.status(401).json({ success: false, error: 'Token invalido o expirado' });
   }

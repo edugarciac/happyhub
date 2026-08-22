@@ -51,7 +51,7 @@ export default function Terminos() {
                 <li>El cliente completa el formulario de reserva con sus datos y los detalles del evento.</li>
                 <li>Para formalizar la reserva, el cliente abona un depósito del <strong>30% del precio total</strong>.</li>
                 <li>Una vez recibido el depósito, HappyHub envía la confirmación de reserva.</li>
-                <li>El importe restante (70%) se abona antes o el día del evento.</li>
+                <li>El importe restante (70%) se abona antes de comenzar el evento.</li>
               </ol>
             </div>
 

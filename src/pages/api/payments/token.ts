@@ -9,11 +9,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Protect with internal secret (called by n8n)
   const internalSecret = process.env.INTERNAL_API_SECRET;
-  if (internalSecret) {
-    const provided = req.headers['x-internal-secret'];
-    if (provided !== internalSecret) {
-      return res.status(401).json({ error: 'No autorizado' });
-    }
+  const provided = req.headers['x-internal-secret'];
+  if (!internalSecret || provided !== internalSecret) {
+    return res.status(401).json({ error: 'No autorizado' });
   }
 
   const { reservationId } = req.body as { reservationId: number };

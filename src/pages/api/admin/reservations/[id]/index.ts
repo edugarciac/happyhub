@@ -51,7 +51,7 @@ async function handlePatch(id: number, req: NextApiRequest, res: NextApiResponse
       return res.status(404).json({ success: false, error: 'Reserva no encontrada' });
     }
 
-    const { eventDate, timeSlot, eventType, guests, totalPrice, depositAmount, securityDeposit, notes } = req.body;
+    const { eventDate, timeSlot, eventType, guests, totalPrice, depositAmount, securityDeposit, notes, needsKidsFurniture } = req.body;
 
     if (eventDate) {
       const d = new Date(eventDate);
@@ -79,6 +79,7 @@ async function handlePatch(id: number, req: NextApiRequest, res: NextApiResponse
     if (totalPrice !== undefined) { sets.push(`total_price = $${idx++}`); params.push(totalPrice); }
     if (depositAmount !== undefined) { sets.push(`deposit_amount = $${idx++}`); params.push(depositAmount); }
     if (notes !== undefined) { sets.push(`notes = $${idx++}`); params.push(notes); }
+    if (needsKidsFurniture !== undefined) { sets.push(`needs_kids_furniture = $${idx++}`); params.push(needsKidsFurniture); }
 
     if (sets.length === 0) {
       return res.status(400).json({ success: false, error: 'No se proporcionaron campos para actualizar' });

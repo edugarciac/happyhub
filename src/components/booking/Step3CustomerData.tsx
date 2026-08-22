@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useBooking, EventType, PaymentMethod } from './BookingContext';
 import PriceSummary from './PriceSummary';
+import { isHoliday } from '@/utils/pricing';
 import { ChevronLeft, ChevronRight, User, AlertCircle, FileText, Loader2, CreditCard } from 'lucide-react';
 
 const customerSchema = z.object({
@@ -24,6 +25,7 @@ const customerSchema = z.object({
     errorMap: () => ({ message: 'Selecciona un método de pago' }),
   }),
   message: z.string().optional(),
+  needsKidsFurniture: z.boolean().optional(),
   acceptTerms: z.boolean().refine(val => val === true, {
     message: 'Debes aceptar los términos y condiciones',
   }),
@@ -52,6 +54,7 @@ export default function Step3CustomerData() {
       eventType: state.eventType || undefined,
       paymentMethod: state.paymentMethod || undefined,
       message: state.message,
+      needsKidsFurniture: state.needsKidsFurniture,
       acceptTerms: state.acceptTerms,
     },
   });
@@ -71,6 +74,7 @@ export default function Step3CustomerData() {
           eventType: data.eventType as EventType,
           paymentMethod: data.paymentMethod as PaymentMethod,
           message: data.message || '',
+          needsKidsFurniture: data.needsKidsFurniture || false,
           acceptTerms: data.acceptTerms,
         },
       });
@@ -90,11 +94,11 @@ export default function Step3CustomerData() {
 
       // Map timeSlot to time string
       const timeMap: Record<string, string> = {
-        morning: '11:00',
-        afternoon: '16:30',
+        morning: '10:00',
+        afternoon: '16:00',
         night: '22:00'
       };
-      const timeStr = state.timeSlot ? timeMap[state.timeSlot] : '11:00';
+      const timeStr = state.timeSlot ? timeMap[state.timeSlot] : '10:00';
 
       // Send reservation to n8n (which will handle WhatsApp, DB, Calendar, etc.)
       const response = await fetch('/api/webhook-reserva', {
@@ -108,6 +112,7 @@ export default function Step3CustomerData() {
           eventType: data.eventType,
           paymentMethod: data.paymentMethod,
           message: data.message || '',
+          needsKidsFurniture: data.needsKidsFurniture || false,
           // Booking data
           date: dateStr,
           time: timeStr,
@@ -174,8 +179,14 @@ export default function Step3CustomerData() {
         });
       }
 
-      // If card payment: redirect to Stripe for deposit
-      if (data.paymentMethod === 'card') {
+      // Los días festivos requieren confirmación explícita de HappyHub caso a caso:
+      // no se redirige a Stripe automáticamente, se avanza a la pantalla de
+      // "solicitud enviada" igual que con bizum/efectivo, y el admin envía el
+      // enlace de pago manualmente tras confirmar.
+      const dateIsHoliday = state.date ? isHoliday(state.date) : false;
+
+      // If card payment on a non-holiday date: redirect to Stripe for deposit
+      if (data.paymentMethod === 'card' && !dateIsHoliday) {
         try {
           const checkoutRes = await fetch('/api/create-checkout-session', {
             method: 'POST',
@@ -215,7 +226,7 @@ export default function Step3CustomerData() {
         }
       }
 
-      // Non-card payment: advance to confirmation step
+      // Non-card payment, or a holiday date pending manual confirmation: advance to confirmation step
       nextStep();
     } catch (error: any) {
       console.error('Error submitting reservation:', error);
@@ -368,6 +379,21 @@ export default function Step3CustomerData() {
                     placeholder="Cuéntanos cualquier detalle especial sobre tu evento..."
                   />
                 </div>
+
+                <div className="md:col-span-2">
+                  <label className="flex items-start gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      {...register('needsKidsFurniture')}
+                      className="mt-1 w-5 h-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                    />
+                    <span className="text-sm text-gray-700">
+                      <span className="font-medium">¿Necesitas mesas y sillas para niños?</span>
+                      <br />
+                      <span className="text-gray-500">No tiene coste adicional ni afecta al aforo — solo nos ayuda a prepararlo todo antes de tu evento.</span>
+                    </span>
+                  </label>
+                </div>
               </div>
             </div>
 
@@ -382,7 +408,7 @@ export default function Step3CustomerData() {
                 <h4 className="font-semibold mb-2">Política de reservas HappyHub</h4>
                 <ul className="space-y-2 list-disc list-inside">
                   <li>Se requiere un depósito del 30% para confirmar la reserva.</li>
-                  <li>El resto del pago se realizará el día del evento.</li>
+                  <li>El resto del pago se realizará antes de comenzar el evento.</li>
                   <li>Cancelación gratuita hasta 15 días antes del evento.</li>
                   <li>Cancelaciones con menos de 15 días: se retiene el depósito.</li>
                   <li>Cambio de fecha gratuito hasta 30 días antes, sujeto a disponibilidad.</li>

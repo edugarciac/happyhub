@@ -3,7 +3,7 @@
 # Script que espera a que build de Amplify complete y aplica schema
 
 AMPLIFY_URL="https://main.du3to83rdme3o.amplifyapp.com"
-DB_SECRET="c0MAkvDuZ6yWhfUUzgMh"
+DB_SECRET="${DB_PASSWORD:?Set DB_PASSWORD environment variable}"
 
 echo "════════════════════════════════════════════════════════════"
 echo "  Esperando Build de Amplify y Aplicando Schema"
