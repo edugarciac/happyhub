@@ -8,12 +8,11 @@ El tab "Timeline" de "Mis Eventos" se va a rehacer más adelante y de momento ge
 - **EventSidebar**: la entrada "Detalles" se renombra a "Detalles personalizados" (mismo `id: 'detalles'`, mismo icono/color).
 - **Nuevo tab "Detalles personalizados"**: sustituye el `SectionPlaceholder` actual por un componente real `CustomDetailsTab` con:
   - Texto explicativo invitando a describir la idea para crear objetos personalizados e inolvidables para los asistentes.
-  - Dos campos de texto cortos (máx. 25 y 40 caracteres) pensados para aparecer en los recordatorios del evento (WhatsApp).
-  - Un campo de texto grande, **solo interno** (uso exclusivo del equipo HappyHub, nunca se muestra a invitados ni en recordatorios), donde el organizador detalla lo que quiere.
-  - Subida de hasta 2 imágenes de referencia, reutilizando el patrón `ImageUpload` + `/api/upload`.
   - Galería estática de ideas preconcebidas por HappyHub (gorras, chapas, tazas, bolsos, vasos, camisetas, bolsitas neceser, peluches, botellas de agua, etc.) a modo de inspiración, con espacio reservado para foto futura de cada idea (de momento solo icono/placeholder).
+  - Enlace a WhatsApp Web debajo de la galería para que el organizador contacte directamente y nos explique su idea (copy: HappyHub conoce profesionales que pueden hacer realidad estas ideas a un precio razonable).
+  - **[V1 — desactivado de momento]** El formulario de personalización (dos campos de texto cortos de 25/40 caracteres para recordatorios, un campo grande solo interno, y subida de hasta 2 imágenes de referencia vía `ImageUpload` + `/api/upload`) se implementó pero se oculta en esta primera versión pública — de momento se prioriza el contacto directo por WhatsApp sobre el autoservicio. El componente, la tabla `event_custom_details` y el endpoint `GET`/`PUT` quedan intactos y listos para reactivarse sin cambios de esquema.
 - **Backend**: nueva tabla `event_custom_details` (una fila por evento) y rutas API `GET`/`PUT` bajo `src/pages/api/events/collaborative/[id]/detalles/` siguiendo el patrón de autenticación de `regalo`/`entertainment`. El catálogo de ideas preconcebidas se define como datos estáticos en código (contenido curado por HappyHub, no editable por el usuario) — no requiere tabla propia.
-- **Upload**: se añade `'custom-details'` a la whitelist de carpetas de `src/pages/api/upload.ts`.
+- **Upload**: se añade `'custom-details'` a la whitelist de carpetas de `src/pages/api/upload.ts` (queda lista para cuando se reactive la subida de imágenes).
 
 ## Capabilities
 
@@ -26,6 +25,6 @@ El tab "Timeline" de "Mis Eventos" se va a rehacer más adelante y de momento ge
 ## Impact
 
 - **DB**: nueva tabla `event_custom_details` (migración `database/migrations/022_custom_details_section.sql`)
-- **Frontend**: `EventSidebar.tsx` (quitar entrada Timeline, renombrar label Detalles), `src/pages/mis-eventos/[id].tsx` (fallback de sección por defecto, nuevo `case 'detalles'`), nuevo `src/components/events/CustomDetailsTab.tsx`, nuevo `src/data/customDetailIdeas.ts` (catálogo estático de ideas)
+- **Frontend**: `EventSidebar.tsx` (quitar entrada Timeline, renombrar label Detalles), `src/pages/mis-eventos/[id].tsx` (fallback de sección por defecto, nuevo `case 'detalles'`), `src/components/events/CustomDetailsTab.tsx` (formulario desactivado en V1, solo intro + galería + CTA WhatsApp), `src/data/customDetailIdeas.ts` (catálogo estático de ideas), reutiliza `CONTACT_INFO.whatsapp` de `src/config/contact.ts` para el enlace
 - **Backend**: nuevas rutas `src/pages/api/events/collaborative/[id]/detalles/index.ts` (GET/PUT), whitelist de `src/pages/api/upload.ts` ampliada con `'custom-details'`
 - Sin impacto en `EventTimeline.tsx` ni en sus rutas API — quedan intactas pero sin enlace de navegación
