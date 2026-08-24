@@ -85,7 +85,29 @@
 - Abrir `/mis-eventos/:id` sin `?section=` y confirmar que carga "Invitados" por defecto, no Timeline
 - Confirmar que el sidebar ya no muestra "Timeline" (desktop y móvil) y que "Detalles" ahora dice "Detalles personalizados"
 - Confirmar que `/mis-eventos/:id?section=timeline` sigue renderizando el Timeline (código intacto, solo sin enlace)
-- Como organizador: rellenar los dos campos cortos, el campo interno y subir 2 imágenes, guardar, recargar y comprobar que persiste
-- Confirmar que exceder 25/40 caracteres se bloquea tanto en el input como si se fuerza vía API
-- Como participante no organizador: confirmar que no puede guardar (403) pero sí ve la galería de ideas
 - Revisar visualmente que la galería de ideas se ve bien sin fotos reales (placeholders/iconos)
+
+## T10 — Ocultar el formulario de personalización en V1
+
+**Archivo**: `src/components/events/CustomDetailsTab.tsx`
+
+- Quitar del render: los dos `<input>` de recordatorio, el `<textarea>` de notas internas, y los dos `<ImageUpload>`
+- Quitar la lógica que ya no se usa al no haber formulario: `fetchData`/`useEffect` inicial, estado `details`, `handleSave`, estados `saving`/`error`/`saved`
+- Mantener: bloque de intro "¿Tienes una idea?" y la galería `CUSTOM_DETAIL_IDEAS`
+- No tocar el backend (`event_custom_details`, endpoint `detalles/index.ts`, whitelist `custom-details` en `upload.ts`) — queda intacto y sin usar, listo para reactivarse
+
+## T11 — Enlace de contacto por WhatsApp
+
+**Archivo**: `src/components/events/CustomDetailsTab.tsx`
+
+- Importar `CONTACT_INFO` de `@/config/contact`
+- Debajo de la galería de ideas, añadir un bloque con copy explicando que HappyHub conoce profesionales que pueden realizar estas ideas por un precio razonable, con un botón/enlace `<a href={CONTACT_INFO.whatsapp} target="_blank" rel="noopener noreferrer">`
+- Reutilizar el mismo icono `WhatsAppIcon` (SVG inline) que ya usa `src/components/Hero.tsx`, para consistencia visual
+
+## T12 — Verificación manual (V1: intro + galería + CTA WhatsApp)
+
+- Abrir `/mis-eventos/:id?section=detalles` y confirmar que se ve: intro "¿Tienes una idea?", galería de ideas, y el enlace de WhatsApp — sin ningún campo de formulario ni botón de subir imagen
+- Confirmar que el enlace de WhatsApp abre `https://wa.me/34624645517` en una pestaña nueva
+- Confirmar que esto se ve igual para organizador y para participante no organizador (no hay distinción de roles ya que no hay nada que editar)
+- Confirmar que no hay llamadas de red a `/api/events/collaborative/[id]/detalles` desde este tab (el formulario y su `fetch` se quitaron)
+- Confirmar que `npx tsc --noEmit` y `npx next build` siguen pasando tras quitar el JSX y el estado no usado
