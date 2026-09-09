@@ -7,6 +7,7 @@ import '@/styles/globals.css';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import VerificationBanner from '@/components/VerificationBanner';
+import ComingSoonOverlay from '@/components/ComingSoonOverlay';
 import CookieConsent, { useCookieConsent } from '@/components/CookieConsent';
 import FeedbackWidget from '@/components/FeedbackWidget';
 import { Toaster } from 'react-hot-toast';
@@ -39,6 +40,7 @@ function AppContent({ Component, pageProps }: { Component: AppProps['Component']
 
   return (
     <>
+      <ComingSoonOverlay />
       {showBanner && <VerificationBanner />}
       <Toaster position="top-center" />
       <Header />
