@@ -17,3 +17,7 @@ HappyHub aún no está abierto públicamente pero la web ya es visitable. Se nec
 
 - **Frontend**: nuevo `src/components/ComingSoonOverlay.tsx`, integrado en `src/pages/_app.tsx` (rama pública de `AppContent`, no en `isAdminPage`)
 - Sin impacto en backend, base de datos ni endpoints existentes
+
+## Updates
+
+- 2026-09-27: progreso actualizado de 92% a 96% (`strokeDashoffset` del círculo recalculado a 17.6 sobre `strokeDasharray="439.8"`) y copy cambiado a "¡Ya casi estamos listos del todo!" para reflejar el avance del lanzamiento.

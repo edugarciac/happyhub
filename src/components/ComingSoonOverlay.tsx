@@ -38,22 +38,22 @@ export default function ComingSoonOverlay() {
             <circle cx="84" cy="84" r="70" fill="none" stroke="#EAF6F5" strokeWidth="14" />
             <circle
               cx="84" cy="84" r="70" fill="none" stroke="#F86F24" strokeWidth="14"
-              strokeLinecap="round" strokeDasharray="439.8" strokeDashoffset="35.2"
+              strokeLinecap="round" strokeDasharray="439.8" strokeDashoffset="17.6"
             />
           </svg>
           <div className="absolute inset-0 flex items-center justify-center">
             <img src="/happyhub_logo_cara.png" alt="HappyHub" className="w-28 h-28 object-contain" />
           </div>
           <span className="absolute -bottom-1 -right-1 bg-[#05585B] text-white text-[13px] font-bold px-2.5 py-1 rounded-full border-[3px] border-white">
-            92%
+            96%
           </span>
         </div>
 
         <h1 className="font-bold text-2xl text-[#05585B] mt-4" style={{ fontFamily: 'var(--font-fredoka, inherit)' }}>
-          ¡Ya casi estamos listos!
+          ¡Ya casi estamos listos del todo!
         </h1>
         <p className="text-slate-600 text-sm mt-2 mb-7">
-          Estamos dando los últimos toques a HappyHub. Abrimos muy pronto 🎈
+          Estamos dando los últimos retoques a HappyHub. ¡Nos vemos muy pronto! 🎈
         </p>
 
         <div className="flex items-center justify-center mb-7">
