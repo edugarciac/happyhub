@@ -189,7 +189,42 @@ export default function AdminPartners() {
         ) : filtered.length === 0 ? (
           <div className="p-12 text-center text-gray-400">No hay partners</div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          {/* Mobile: cards */}
+          <ul className="md:hidden divide-y divide-gray-100">
+            {filtered.map(p => (
+              <li key={p.id} className="flex items-center gap-3 p-4">
+                {p.logo_url ? (
+                  <Image src={p.logo_url} alt={p.name} width={40} height={40} className="rounded-lg object-cover shrink-0" />
+                ) : (
+                  <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+                    <Building2 className="w-5 h-5 text-gray-400" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-gray-900 truncate">{p.name}</p>
+                    <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium shrink-0 ${p.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
+                      {p.active ? 'Activo' : 'Inactivo'}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600 truncate">{p.service_type}</p>
+                  {p.phone && <p className="text-sm text-gray-500 truncate">{p.phone}</p>}
+                </div>
+                <div className="flex shrink-0">
+                  <button onClick={() => openEdit(p)} aria-label="Editar" className="p-3 text-gray-500 hover:text-primary-600 transition-colors">
+                    <Pencil className="w-5 h-5" />
+                  </button>
+                  <button onClick={() => setDeletingPartner(p)} aria-label="Eliminar" className="p-3 text-gray-500 hover:text-red-600 transition-colors">
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          {/* Desktop: table */}
+          <div className="hidden md:block overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
@@ -234,6 +269,7 @@ export default function AdminPartners() {
             </tbody>
           </table>
           </div>
+          </>
         )}
       </div>
 

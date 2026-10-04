@@ -5,6 +5,7 @@ En móvil, la tabla de Partners del panel admin queda recortada: el contenedor u
 ## What Changes
 
 - Envolver en `overflow-x-auto` las tablas admin que no lo tenían: `partners`, `event-types`, `reservations/blocked-dates`, `actividades-catalogo`
+- Partners en móvil (< `md`): vista en tarjetas (logo, nombre, estado, tipo, teléfono y botones editar/eliminar siempre visibles); la tabla queda solo para escritorio
 - Evitar que los iconos de acciones de Partners se partan en dos líneas (`whitespace-nowrap`)
 
 ## Capabilities

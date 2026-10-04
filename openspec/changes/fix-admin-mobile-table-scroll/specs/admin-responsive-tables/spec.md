@@ -5,4 +5,4 @@ Admin tables SHALL be horizontally scrollable when wider than the viewport, so e
 
 #### Scenario: Admin opens Partners on mobile
 - **WHEN** an admin views `/admin/partners` on a phone-width viewport
-- **THEN** they SHALL be able to scroll the table horizontally and reach the edit and delete actions
+- **THEN** partners SHALL be shown as cards with the edit and delete actions visible without horizontal scrolling

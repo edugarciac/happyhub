@@ -7,6 +7,9 @@ El resto de tablas admin (`clients`, `reservations`, `reviews`, `pricing`, `holi
 1. **Mismo patrón existente** (`overflow-x-auto` alrededor de la tabla) en vez de rediseñar a tarjetas en móvil: arreglo mínimo, consistente con el resto del admin.
 2. Se mantiene el `overflow-hidden` del contenedor exterior (para respetar los bordes redondeados); el scroll lo hace el wrapper interior.
 
+3. **Partners: tarjetas en móvil**. Es la pantalla que más se usa desde el móvil, así que bajo `md` se muestra una lista de tarjetas (`md:hidden`) y la tabla pasa a `hidden md:block`. Botones con área táctil mayor (`p-3`, iconos 20px).
+
 ## Risks / Trade-offs
 
-- En móvil la tabla requiere deslizar horizontalmente para ver "Acciones". Aceptable para un panel interno; una vista en tarjetas sería mejor UX pero es un cambio mayor.
+- Las otras tres tablas solo ganan scroll horizontal (no tarjetas). Si se usan a menudo en móvil, aplicar el mismo patrón después.
+- Partners tiene dos marcados (tarjeta y fila) que hay que mantener sincronizados.

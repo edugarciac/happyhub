@@ -1,6 +1,7 @@
 ## 1. Implement
 
 - [x] 1.1 Wrap tables in `overflow-x-auto` in partners, event-types, blocked-dates, actividades-catalogo
+- [x] 1.3 Partners card view below `md`, table only on `md+`
 - [x] 1.2 `whitespace-nowrap` on Partners actions cell
 
 ## 2. Verify
