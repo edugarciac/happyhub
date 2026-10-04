@@ -278,6 +278,7 @@ export default function AdminEventTypes() {
             ) : types.length === 0 ? (
               <div className="text-center py-12 text-gray-500">No hay tipos de eventos</div>
             ) : (
+              <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
@@ -418,6 +419,7 @@ export default function AdminEventTypes() {
                   ))}
                 </tbody>
               </table>
+              </div>
             )}
           </div>
         </div>

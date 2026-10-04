@@ -189,6 +189,7 @@ export default function AdminPartners() {
         ) : filtered.length === 0 ? (
           <div className="p-12 text-center text-gray-400">No hay partners</div>
         ) : (
+          <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
@@ -220,7 +221,7 @@ export default function AdminPartners() {
                       {p.active ? 'Activo' : 'Inactivo'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="px-6 py-4 text-right whitespace-nowrap">
                     <button onClick={() => openEdit(p)} className="p-2 text-gray-500 hover:text-primary-600 transition-colors">
                       <Pencil className="w-4 h-4" />
                     </button>
@@ -232,6 +233,7 @@ export default function AdminPartners() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 

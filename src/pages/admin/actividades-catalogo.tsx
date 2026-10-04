@@ -260,7 +260,7 @@ export default function AdminActividadesCatalogo() {
             ) : templates.length === 0 ? (
               <p className="text-gray-400 text-center py-12">Sin actividades. Añade la primera.</p>
             ) : (
-              <div className="border rounded-lg overflow-hidden">
+              <div className="border rounded-lg overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 border-b">
                     <tr>

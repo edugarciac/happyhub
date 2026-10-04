@@ -307,6 +307,7 @@ export default function BlockedDates() {
               No hay bloqueos activos. Usa el formulario de arriba para añadir fechas bloqueadas.
             </div>
           ) : (
+            <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100 text-left">
@@ -393,6 +394,7 @@ export default function BlockedDates() {
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </div>
       </div>
