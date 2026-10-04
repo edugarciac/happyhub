@@ -3,7 +3,7 @@ import Head from 'next/head';
 import Image from 'next/image';
 import AdminLayout from '../../components/admin/AdminLayout';
 import toast, { Toaster } from 'react-hot-toast';
-import { Search, Plus, Pencil, Trash2, X, Upload, Building2 } from 'lucide-react';
+import { Search, Plus, Pencil, Trash2, X, Upload, Building2, Power } from 'lucide-react';
 
 interface Partner {
   id: number;
@@ -45,6 +45,7 @@ export default function AdminPartners() {
   const [form, setForm] = useState<PartnerForm>(emptyForm);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [togglingId, setTogglingId] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchPartners = useCallback(async () => {
@@ -141,6 +142,24 @@ export default function AdminPartners() {
     setSaving(false);
   };
 
+  const handleToggleActive = async (p: Partner) => {
+    setTogglingId(p.id);
+    try {
+      const res = await fetch('/api/admin/partners', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...p, active: !p.active }),
+      });
+      if (res.ok) {
+        toast.success(p.active ? 'Partner desactivado' : 'Partner activado');
+        setPartners(prev => prev.map(x => x.id === p.id ? { ...x, active: !p.active } : x));
+      } else {
+        toast.error('Error al cambiar estado');
+      }
+    } catch { toast.error('Error de conexion'); }
+    setTogglingId(null);
+  };
+
   const handleDelete = async () => {
     if (!deletingPartner) return;
     try {
@@ -215,8 +234,13 @@ export default function AdminPartners() {
                   <button onClick={() => openEdit(p)} aria-label="Editar" className="p-3 text-gray-500 hover:text-primary-600 transition-colors">
                     <Pencil className="w-5 h-5" />
                   </button>
-                  <button onClick={() => setDeletingPartner(p)} aria-label="Eliminar" className="p-3 text-gray-500 hover:text-red-600 transition-colors">
-                    <Trash2 className="w-5 h-5" />
+                  <button
+                    onClick={() => handleToggleActive(p)}
+                    disabled={togglingId === p.id}
+                    aria-label={p.active ? 'Desactivar' : 'Activar'}
+                    className={`p-3 transition-colors disabled:opacity-50 ${p.active ? 'text-green-600 hover:text-gray-500' : 'text-gray-400 hover:text-green-600'}`}
+                  >
+                    <Power className="w-5 h-5" />
                   </button>
                 </div>
               </li>
@@ -260,8 +284,13 @@ export default function AdminPartners() {
                     <button onClick={() => openEdit(p)} className="p-2 text-gray-500 hover:text-primary-600 transition-colors">
                       <Pencil className="w-4 h-4" />
                     </button>
-                    <button onClick={() => setDeletingPartner(p)} className="p-2 text-gray-500 hover:text-red-600 transition-colors ml-1">
-                      <Trash2 className="w-4 h-4" />
+                    <button
+                      onClick={() => handleToggleActive(p)}
+                      disabled={togglingId === p.id}
+                      title={p.active ? 'Desactivar' : 'Activar'}
+                      className={`p-2 transition-colors ml-1 disabled:opacity-50 ${p.active ? 'text-green-600 hover:text-gray-500' : 'text-gray-400 hover:text-green-600'}`}
+                    >
+                      <Power className="w-4 h-4" />
                     </button>
                   </td>
                 </tr>
@@ -364,7 +393,15 @@ export default function AdminPartners() {
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
+            <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t">
+              {editingPartner && (
+                <button
+                  onClick={() => { setDeletingPartner(editingPartner); setShowModal(false); }}
+                  className="mr-auto flex items-center gap-1.5 px-2 py-2 text-sm text-red-600 hover:text-red-700"
+                >
+                  <Trash2 className="w-4 h-4" /> Eliminar
+                </button>
+              )}
               <button onClick={() => setShowModal(false)} className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">
                 Cancelar
               </button>
@@ -381,7 +418,7 @@ export default function AdminPartners() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setDeletingPartner(null)}>
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm m-4 p-6" onClick={e => e.stopPropagation()}>
             <h2 className="text-lg font-bold text-gray-900 mb-2">Eliminar partner</h2>
-            <p className="text-gray-600 mb-6">¿Seguro que quieres eliminar <strong>{deletingPartner.name}</strong>?</p>
+            <p className="text-gray-600 mb-6">¿Seguro que quieres eliminar <strong>{deletingPartner.name}</strong>? Esta acción no se puede deshacer. Si solo quieres ocultarlo, desactívalo.</p>
             <div className="flex justify-end gap-3">
               <button onClick={() => setDeletingPartner(null)} className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">
                 Cancelar
