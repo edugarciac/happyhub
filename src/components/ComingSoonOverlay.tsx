@@ -1,24 +1,31 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { BOOKINGS_FROM_LABEL, OPENING_LABEL } from '@/config/opening';
 import { useDaysUntilOpening } from '@/components/OpeningCountdown';
 
-const STORAGE_KEY = 'happyhub_opening_popup_dismissed';
+const STORAGE_KEY = 'happyhub_opening_popup_dismissed_at';
+const HIDE_FOR_MS = 24 * 60 * 60 * 1000;
 
-/** Popup de entrada con la cuenta atrás. Una vez por sesión, y solo hasta el día de la inauguración. */
+/**
+ * Popup de entrada con la cuenta atrás, solo en la portada y hasta el día de la inauguración.
+ * Al cerrarlo no vuelve a salir en 24 h, aunque se abra otra pestaña (p. ej. un enlace de un correo).
+ */
 export default function ComingSoonOverlay() {
+  const router = useRouter();
   const days = useDaysUntilOpening();
   const [dismissed, setDismissed] = useState(true);
 
   useEffect(() => {
     try {
-      setDismissed(!!sessionStorage.getItem(STORAGE_KEY));
+      const at = Number(localStorage.getItem(STORAGE_KEY) || 0);
+      setDismissed(Date.now() - at < HIDE_FOR_MS);
     } catch {
       setDismissed(false);
     }
   }, []);
 
-  const visible = !dismissed && days !== null && days >= 0;
+  const visible = router.pathname === '/' && !dismissed && days !== null && days >= 0;
 
   useEffect(() => {
     document.body.style.overflow = visible ? 'hidden' : '';
@@ -26,7 +33,7 @@ export default function ComingSoonOverlay() {
   }, [visible]);
 
   const close = () => {
-    try { sessionStorage.setItem(STORAGE_KEY, '1'); } catch { /* ignore */ }
+    try { localStorage.setItem(STORAGE_KEY, String(Date.now())); } catch { /* ignore */ }
     setDismissed(true);
   };
 

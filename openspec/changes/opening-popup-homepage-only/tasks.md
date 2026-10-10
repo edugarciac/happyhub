@@ -1,0 +1,3 @@
+- [x] Homepage-only + 24 h dismissal in localStorage
+- [x] tsc, Jest 161/161
+- [x] Browser check: direct link to inner page → no popup; homepage first visit → popup; new tab after closing → no popup
