@@ -90,10 +90,6 @@ export default function Step4Confirmation() {
             <ul className="space-y-2 text-sm text-blue-800">
               <li className="flex items-start gap-2">
                 <span className="text-blue-600 font-bold">•</span>
-                <span>Recibirás un <strong>WhatsApp</strong> con los detalles de tu reserva</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-blue-600 font-bold">•</span>
                 <span>Te enviaremos un <strong>email de confirmación</strong> a {state.email}</span>
               </li>
               <li className="flex items-start gap-2">
@@ -102,7 +98,7 @@ export default function Step4Confirmation() {
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-blue-600 font-bold">•</span>
-                <span>Nos pondremos en contacto contigo en las próximas <strong>24 horas</strong></span>
+                <span>Nos pondremos en contacto contigo en los <strong>próximos días</strong></span>
               </li>
             </ul>
           </div>

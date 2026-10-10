@@ -109,8 +109,8 @@ export function reservationCustomerEmail(r: ReservationEmailData): { subject: st
     ])}
     ${note(
       r.isHoliday
-        ? '<strong>Próximos pasos:</strong> al ser festivo, revisaremos tu solicitud caso a caso y te contactaremos en las próximas 24 horas.'
-        : '<strong>Próximos pasos:</strong> revisaremos tu solicitud y te contactaremos en las próximas 24 horas para confirmar los detalles y el pago de la señal.'
+        ? '<strong>Próximos pasos:</strong> al ser festivo, revisaremos tu solicitud caso a caso y te contactaremos en los próximos días.'
+        : '<strong>Próximos pasos:</strong> revisaremos tu solicitud y te contactaremos en los próximos días para confirmar los detalles y el pago de la señal.'
     )}
     ${CONTACT_HTML}`;
   return {
