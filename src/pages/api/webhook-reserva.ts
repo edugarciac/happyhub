@@ -34,6 +34,20 @@ interface ResponseData {
   detail?: string;
 }
 
+// En Vercel la función se congela al responder: hay que esperar al envío
+// (con tope de tiempo) o el WhatsApp puede no salir nunca.
+async function notifyAdminSafely(params: Parameters<typeof notifyAdminReservationRequest>[0]) {
+  try {
+    const sent = await Promise.race([
+      notifyAdminReservationRequest(params),
+      new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 5000)),
+    ]);
+    if (!sent) console.error('Admin WhatsApp notification NOT sent for reservation', params.reservationId);
+  } catch (err) {
+    console.error('Error sending admin WhatsApp notification:', err);
+  }
+}
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ResponseData>
@@ -97,7 +111,7 @@ export default async function handler(
         timeout: 10000,
       });
       const reservationId = mockResponse.data?.reservationId || `RES-${Date.now()}`;
-      notifyAdminReservationRequest({
+      await notifyAdminSafely({
         name: reservationData.name,
         date: reservationData.date,
         timeSlot: reservationData.timeSlot,
@@ -107,7 +121,7 @@ export default async function handler(
         reservationId,
         needsKidsFurniture: reservationData.needsKidsFurniture,
         isHoliday: isHolidayDate,
-      }).catch((err) => console.error('Error sending admin WhatsApp notification:', err));
+      });
       return res.status(200).json({
         success: true,
         message: 'Reserva creada exitosamente (MOCK)',
@@ -139,7 +153,7 @@ export default async function handler(
 
     const reservationId = n8nData?.reservationId || `RES-${Date.now()}`;
 
-    notifyAdminReservationRequest({
+    await notifyAdminSafely({
       name: reservationData.name,
       date: reservationData.date,
       timeSlot: reservationData.timeSlot,
@@ -149,7 +163,7 @@ export default async function handler(
       reservationId,
       needsKidsFurniture: reservationData.needsKidsFurniture,
       isHoliday: isHolidayDate,
-    }).catch((err) => console.error('Error sending admin WhatsApp notification:', err));
+    });
 
     return res.status(200).json({
       success: true,
