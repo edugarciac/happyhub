@@ -5,6 +5,7 @@
 - [x] 1.3 Entry popup turned into countdown
 - [x] 1.4 `FullCalendar`: dates before opening unavailable; opens on opening month
 - [x] 1.5 `webhook-reserva`: reject dates before opening
+- [x] 1.6 Label "Gran inauguración" → "Inauguración" (owner request)
 
 ## 2. Pending owner input
 

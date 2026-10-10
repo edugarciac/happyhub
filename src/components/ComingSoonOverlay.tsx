@@ -51,7 +51,7 @@ export default function ComingSoonOverlay() {
         <img src="/happyhub_logo_cara.png" alt="HappyHub" className="w-20 h-20 object-contain mx-auto mb-3" />
 
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#F86F24]">
-          {isToday ? '¡Hoy es el día!' : 'Gran inauguración'}
+          {isToday ? '¡Hoy es el día!' : 'Inauguración'}
         </p>
         <h1
           className="font-bold text-4xl sm:text-5xl text-[#05585B] mt-1 leading-tight"

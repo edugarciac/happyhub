@@ -5,7 +5,7 @@ HappyHub se inaugura el **16 de octubre de 2026**. La web tiene que anunciarlo c
 ## What Changes
 
 - **Popup de entrada** (`ComingSoonOverlay`): pasa de "¡Ya casi estamos listos!" a una cuenta atrás con la fecha en grande y los días que faltan. El botón principal lleva a "Ver fechas disponibles". Sale una vez por sesión y deja de mostrarse a partir del 17 de octubre.
-- **Hero de la portada**: tarjeta con la cuenta atrás ("6 días · Gran inauguración · 16 de octubre"). El día 16 muestra "¡Hoy inauguramos!" y desaparece a partir del 17.
+- **Hero de la portada**: tarjeta con la cuenta atrás ("6 días · Inauguración · 16 de octubre"). El día 16 muestra "¡Hoy inauguramos!" y desaparece a partir del 17.
 - **Calendario** (`FullCalendar`, usado en `/disponibilidad` y en el paso 1 de `/reservas`): los días anteriores al 16 de octubre aparecen como no disponibles. Si la inauguración aún no ha llegado, el calendario se abre en el mes de la inauguración.
 - **API** `POST /api/webhook-reserva`: rechaza (400) reservas con fecha anterior al 16 de octubre.
 

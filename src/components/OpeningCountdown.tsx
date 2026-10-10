@@ -27,7 +27,7 @@ export default function OpeningCountdown() {
       </div>
       <div className="bg-orange-500 text-white px-5 py-3 flex flex-col justify-center">
         <span className="text-xs font-semibold uppercase tracking-wide text-white/90">
-          {days === 0 ? '¡Hoy inauguramos!' : 'Gran inauguración'}
+          {days === 0 ? '¡Hoy inauguramos!' : 'Inauguración'}
         </span>
         <span className="text-xl md:text-2xl font-extrabold leading-tight">{OPENING_LABEL}</span>
       </div>
