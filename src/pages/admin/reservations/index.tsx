@@ -11,6 +11,7 @@ import {
   TRANSITION_LABELS, getAvailableTransitions,
 } from '@/utils/reservationStatus';
 import { buildWhatsAppUrl } from '@/utils/phone';
+import DateInput from '@/components/DateInput';
 
 interface EventTypeOption { id: number; name: string; icon: string; }
 
@@ -262,12 +263,12 @@ export default function AdminReservations() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Desde</label>
-                <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)}
+                <DateInput value={dateFrom} onChange={(e) => setDateFrom(e.target.value)}
                   className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Hasta</label>
-                <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)}
+                <DateInput value={dateTo} onChange={(e) => setDateTo(e.target.value)}
                   className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
               </div>
               <button type="submit" className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium text-sm">
@@ -469,7 +470,7 @@ export default function AdminReservations() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Fecha del evento</label>
-                    <input type="date" value={editForm.eventDate} onChange={(e) => setEditForm({ ...editForm, eventDate: e.target.value })}
+                    <DateInput value={editForm.eventDate} onChange={(e) => setEditForm({ ...editForm, eventDate: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
                   </div>
                   <div>

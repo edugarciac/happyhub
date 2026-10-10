@@ -3,6 +3,7 @@ import Head from 'next/head';
 import AdminLayout from '@/components/admin/AdminLayout';
 import toast, { Toaster } from 'react-hot-toast';
 import { Plus, Pencil, Trash2, X } from 'lucide-react';
+import DateInput from '@/components/DateInput';
 
 interface PricingRule {
   id: number;
@@ -188,12 +189,12 @@ export default function AdminPricing() {
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Vigente desde</label>
-          <input type="date" value={form.effective_from} onChange={(e) => setForm({ ...form, effective_from: e.target.value })}
+          <DateInput value={form.effective_from} onChange={(e) => setForm({ ...form, effective_from: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Vigente hasta</label>
-          <input type="date" value={form.effective_to} onChange={(e) => setForm({ ...form, effective_to: e.target.value })}
+          <DateInput value={form.effective_to} onChange={(e) => setForm({ ...form, effective_to: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
         </div>
       </div>

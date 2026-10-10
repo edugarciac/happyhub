@@ -3,6 +3,7 @@ import Head from 'next/head';
 import AdminLayout from '@/components/admin/AdminLayout';
 import toast, { Toaster } from 'react-hot-toast';
 import { Plus, Pencil, Trash2, X, Lock } from 'lucide-react';
+import DateInput from '@/components/DateInput';
 
 interface Holiday {
   id: number;
@@ -137,7 +138,7 @@ export default function AdminHolidays() {
     <div className="space-y-4">
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Fecha <span className="text-red-500">*</span></label>
-        <input type="date" value={form.holiday_date} onChange={(e) => setForm({ ...form, holiday_date: e.target.value })}
+        <DateInput value={form.holiday_date} onChange={(e) => setForm({ ...form, holiday_date: e.target.value })}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
       </div>
       <div>

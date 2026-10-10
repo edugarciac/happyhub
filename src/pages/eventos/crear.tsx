@@ -7,6 +7,7 @@ import { ArrowLeft, Loader2 } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import EventCategoryPicker from '@/components/events/EventCategoryPicker';
+import DateInput from '@/components/DateInput';
 
 export default function CrearEventoPage() {
   const router = useRouter();
@@ -136,8 +137,7 @@ export default function CrearEventoPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Fecha
                   </label>
-                  <input
-                    type="date"
+                  <DateInput
                     value={form.event_date}
                     onChange={(e) => setForm({ ...form, event_date: e.target.value })}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"

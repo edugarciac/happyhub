@@ -3,6 +3,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { ArrowLeft, Lock, Trash2, Pencil, Check, X, CalendarX } from 'lucide-react';
+import DateInput from '@/components/DateInput';
 
 type TimeSlot = 'morning' | 'afternoon' | 'night';
 
@@ -192,8 +193,7 @@ export default function BlockedDates() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Fecha inicio</label>
-              <input
-                type="date"
+              <DateInput
                 value={startDate}
                 min={today()}
                 onChange={(e) => handleStartDateChange(e.target.value)}
@@ -203,8 +203,7 @@ export default function BlockedDates() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Fecha fin</label>
-              <input
-                type="date"
+              <DateInput
                 value={endDate}
                 min={startDate}
                 onChange={(e) => setEndDate(e.target.value)}
