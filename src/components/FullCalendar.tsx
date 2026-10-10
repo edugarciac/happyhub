@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { OPENING_DATE, isBeforeOpening, toDateStr } from '@/config/opening';
+import { BOOKINGS_FROM_DATE, isBeforeBookingStart, toDateStr } from '@/config/opening';
 import { AFTERNOON_EXTENSION_NOTE } from '@/utils/pricing';
 
 interface TimeSlotStatus {
@@ -25,10 +25,10 @@ interface FullCalendarProps {
 }
 
 export default function FullCalendar({ onSlotSelect, bookedSlots = [], selectedDate, selectedTimeSlot }: FullCalendarProps) {
-  // Abrir en el mes de la inauguración si aún no ha llegado
+  // Abrir en el mes en que empiezan las reservas si aún no ha llegado
   const [currentMonth, setCurrentMonth] = useState(() => {
-    const opening = new Date(`${OPENING_DATE}T12:00:00`);
-    return new Date() < opening ? opening : new Date();
+    const bookingsFrom = new Date(`${BOOKINGS_FROM_DATE}T12:00:00`);
+    return new Date() < bookingsFrom ? bookingsFrom : new Date();
   });
 
   // Get days in month
@@ -62,7 +62,7 @@ export default function FullCalendar({ onSlotSelect, bookedSlots = [], selectedD
     // Add days of the current month
     for (let day = 1; day <= daysInMonth; day++) {
       const currentDate = new Date(year, month, day);
-      const isPast = currentDate < new Date(new Date().setHours(0, 0, 0, 0)) || isBeforeOpening(toDateStr(currentDate));
+      const isPast = currentDate < new Date(new Date().setHours(0, 0, 0, 0)) || isBeforeBookingStart(toDateStr(currentDate));
 
       days.push({
         date: currentDate,

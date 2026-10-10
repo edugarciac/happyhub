@@ -10,7 +10,7 @@ import {
   type ReservationEmailData,
 } from '@/lib/emailTemplates';
 import { createReservationEvent } from '@/lib/googleCalendar';
-import { OPENING_LABEL, isBeforeOpening } from '@/config/opening';
+import { BOOKINGS_FROM_LABEL, isBeforeBookingStart } from '@/config/opening';
 import { isBookableTimeSlot } from '@/utils/pricing';
 
 interface ReservationData {
@@ -76,10 +76,10 @@ export default async function handler(
       });
     }
 
-    if (!reservationData.date || !/^\d{4}-\d{2}-\d{2}$/.test(reservationData.date) || isBeforeOpening(reservationData.date)) {
+    if (!reservationData.date || !/^\d{4}-\d{2}-\d{2}$/.test(reservationData.date) || isBeforeBookingStart(reservationData.date)) {
       return res.status(400).json({
         success: false,
-        error: `Solo aceptamos reservas a partir del ${OPENING_LABEL}`,
+        error: `Solo aceptamos reservas a partir del ${BOOKINGS_FROM_LABEL}`,
       });
     }
 
@@ -114,6 +114,9 @@ export default async function handler(
          WHERE NOT EXISTS (
            SELECT 1 FROM reservations
            WHERE event_date = $3::date AND time_slot = $4::text AND status IN ('pending', 'approved', 'confirmed')
+         )
+         AND NOT EXISTS (
+           SELECT 1 FROM blocked_slots WHERE slot_date = $3::date AND time_slot = $4::text
          )
          RETURNING id`,
         [

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { OPENING_LABEL } from '@/config/opening';
+import { BOOKINGS_FROM_LABEL, OPENING_LABEL } from '@/config/opening';
 import { useDaysUntilOpening } from '@/components/OpeningCountdown';
 
 const STORAGE_KEY = 'happyhub_opening_popup_dismissed';
@@ -76,8 +76,8 @@ export default function ComingSoonOverlay() {
 
         <p className="text-slate-600 text-sm mb-7">
           {isToday
-            ? '¡Abrimos las puertas de HappyHub! Reserva ya tu celebración.'
-            : 'Ya puedes reservar tu celebración a partir del día de la inauguración. 🎈'}
+            ? `¡Abrimos las puertas de HappyHub! Ya puedes reservar tu celebración a partir del ${BOOKINGS_FROM_LABEL}.`
+            : `Ya puedes reservar tu celebración a partir del ${BOOKINGS_FROM_LABEL}. 🎈`}
         </p>
 
         <div className="flex flex-wrap gap-3 justify-center">
