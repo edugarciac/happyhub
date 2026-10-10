@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { queryOne, query } from '@/lib/db';
 import { google } from 'googleapis';
+import { parseReservationCode } from '@/utils/reservationCode';
 
 // Called when a user cancels Stripe checkout for a pending_deposit reservation.
 // No auth required — reservation must be in pending_deposit status (not yet confirmed).
@@ -11,7 +12,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const { reservationId } = req.body as { reservationId: string };
 
-  if (!reservationId) {
+  const dbId = parseReservationCode(reservationId);
+  if (!dbId) {
     return res.status(400).json({ error: 'reservationId requerido' });
   }
 
@@ -19,8 +21,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const reservation = await queryOne(
       `SELECT id, status, payment_status, google_calendar_event_id
        FROM reservations
-       WHERE id = $1 OR reservation_id = $1`,
-      [reservationId]
+       WHERE id = $1`,
+      [dbId]
     );
 
     if (!reservation) {

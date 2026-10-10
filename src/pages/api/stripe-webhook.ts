@@ -7,6 +7,7 @@ import {
   sendReservationConfirmation,
   notifyAdminNewReservation,
 } from '@/lib/whatsapp';
+import { parseReservationCode } from '@/utils/reservationCode';
 
 export const config = {
   api: {
@@ -130,7 +131,15 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session, host?: s
   const paymentType = metadata.type || 'deposit';
   const amount = session.amount_total ? session.amount_total / 100 : 0;
 
-  if (reservationId) {
+  // metadata.reservationId es el código RES-YYYYMMDD-NNN (o el id numérico en enlaces de pago del admin)
+  const dbId = parseReservationCode(reservationId);
+  if (!dbId) {
+    console.error(
+      `CRITICAL: Unknown reservation code "${reservationId}" in Stripe session ${session.id} (${paymentType}, ${amount} EUR). Manual reconciliation required.`
+    );
+  }
+
+  if (dbId) {
     try {
       if (paymentType === 'deposit') {
         await query(
@@ -139,9 +148,8 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session, host?: s
                payment_status = 'deposit_paid',
                stripe_deposit_session_id = $2,
                updated_at = NOW()
-           WHERE reservation_id = $3
-              OR id::text = $3`,
-          [amount, session.id, reservationId]
+           WHERE id = $3`,
+          [amount, session.id, dbId]
         );
       } else if (paymentType === 'remaining') {
         await query(
@@ -150,19 +158,14 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session, host?: s
                payment_status = 'fully_paid',
                stripe_remaining_session_id = $1,
                updated_at = NOW()
-           WHERE reservation_id = $2
-              OR id::text = $2`,
-          [session.id, reservationId]
+           WHERE id = $2`,
+          [session.id, dbId]
         );
         // Mark payment token as used
         await query(
           `UPDATE payment_tokens SET used = true
-           WHERE reservation_id = (
-             SELECT id FROM reservations
-             WHERE reservation_id = $1 OR id::text = $1
-             LIMIT 1
-           ) AND used = false`,
-          [reservationId]
+           WHERE reservation_id = $1 AND used = false`,
+          [dbId]
         );
       }
       console.log(`✅ DB updated for ${paymentType} payment, reservation ${reservationId}`);

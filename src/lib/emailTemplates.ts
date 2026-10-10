@@ -36,10 +36,7 @@ export function formatDateEs(date: string): string {
   return y && m && d ? `${d}/${m}/${y}` : date;
 }
 
-/** Id visible de la reserva, mismo formato que generaba n8n: RES-YYYYMMDD-NNN */
-export function buildReservationCode(date: string, dbId: number): string {
-  return `RES-${date.replace(/-/g, '')}-${String(dbId).padStart(3, '0')}`;
-}
+export { buildReservationCode } from '@/utils/reservationCode';
 
 const CONTACT_HTML = `<p style="font-size: 14px; color: #666;">Si tienes alguna pregunta, no dudes en contactarnos:</p>
     <p style="font-size: 14px;">Tel: <a href="tel:+34624645517" style="color: #FF6B35;">624 645 517</a><br>Email: <a href="mailto:hola@happyhub.es" style="color: #FF6B35;">hola@happyhub.es</a></p>`;
