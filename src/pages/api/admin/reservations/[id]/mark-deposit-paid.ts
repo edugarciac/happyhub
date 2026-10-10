@@ -43,7 +43,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    await query(`UPDATE payment_tokens SET used = true WHERE reservation_id = $1 AND token_type = 'deposit' AND used = false`, [id]).catch(
+    await query(`UPDATE payment_tokens SET used = true WHERE reservation_id::text = $1::text AND token_type = 'deposit' AND used = false`, [String(id)]).catch(
       (err) => console.error('Error invalidating deposit token:', err)
     );
 

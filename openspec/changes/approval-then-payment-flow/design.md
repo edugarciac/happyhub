@@ -17,3 +17,9 @@ Ya existen: `payment_tokens` + `/pagar/[token]` + `/api/payments/remaining` (pag
 
 - Si el correo de aprobación no llega (spam), el cliente puede perder el plazo. Mitigación: el correo se envía con Resend desde el dominio verificado, y el admin ve en el panel cuándo vence.
 - Reservas `pending` antiguas creadas con el flujo anterior (tarjeta) no tienen `payment_method`. Al aprobarlas se tratan como tarjeta.
+
+## Fix 2026-10-10: payment_tokens.reservation_id es VARCHAR en producción
+
+La tabla `payment_tokens` ya existía en producción con `reservation_id VARCHAR` (no `INTEGER` como en `lib/db.ts`), así que `CREATE TABLE IF NOT EXISTS` no la cambió. `JOIN reservations r ON pt.reservation_id = r.id` fallaba con `operator does not exist: character varying = integer` y la página `/pagar/[token]` mostraba "Error del servidor".
+
+Solución: todas las comparaciones con `payment_tokens.reservation_id` se hacen como texto (`pt.reservation_id::text = r.id::text`, `reservation_id::text = $1::text`), lo que funciona sea cual sea el tipo de la columna. Verificado en PostgreSQL 16 con la columna como VARCHAR: la consulta antigua reproduce el error y la nueva funciona.

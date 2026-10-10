@@ -29,7 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 r.guests, r.deposit_amount,
                 u.name as customer_name, u.email as customer_email, u.phone as customer_phone
          FROM payment_tokens pt
-         JOIN reservations r ON pt.reservation_id = r.id
+         JOIN reservations r ON pt.reservation_id::text = r.id::text
          LEFT JOIN users u ON r.user_id = u.id
          WHERE pt.token = $1 AND pt.used = false AND pt.expires_at > NOW()`,
         [token]

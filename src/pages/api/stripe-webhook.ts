@@ -155,8 +155,8 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session, host?: s
         );
         // El enlace de pago de la señal ya no sirve
         await query(
-          `UPDATE payment_tokens SET used = true WHERE reservation_id = $1 AND token_type = 'deposit' AND used = false`,
-          [dbId]
+          `UPDATE payment_tokens SET used = true WHERE reservation_id::text = $1::text AND token_type = 'deposit' AND used = false`,
+          [String(dbId)]
         );
         // Correo de confirmación al cliente
         const info = await queryOne<{ event_date: string; time_slot: string; deposit_amount: string | null; total_price: string | null; name: string | null; email: string | null }>(
@@ -190,8 +190,8 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session, host?: s
         // Mark payment token as used
         await query(
           `UPDATE payment_tokens SET used = true
-           WHERE reservation_id = $1 AND used = false`,
-          [dbId]
+           WHERE reservation_id::text = $1::text AND used = false`,
+          [String(dbId)]
         );
       }
       console.log(`✅ DB updated for ${paymentType} payment, reservation ${reservationId}`);

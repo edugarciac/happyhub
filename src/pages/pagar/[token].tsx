@@ -207,7 +207,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
               r.payment_method, r.payment_due_at,
               u.name as customer_name
        FROM payment_tokens pt
-       JOIN reservations r ON pt.reservation_id = r.id
+       JOIN reservations r ON pt.reservation_id::text = r.id::text
        LEFT JOIN users u ON r.user_id = u.id
        WHERE pt.token = $1`,
       [token]
