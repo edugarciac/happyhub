@@ -1,0 +1,3 @@
+- [x] holidays + pricing: call form fields as functions
+- [x] Regression test (fails on old code, passes on new)
+- [x] tsc, Jest 161/161
