@@ -110,11 +110,14 @@ export default function Home({ instagramPosts }: HomeProps) {
   const finalCtaRef = useSectionView('cta_final');
 
   const photos = [
-    { src: '/images/gallery/gallery-1.jpg', alt: 'Brindis entre amigos', caption: 'Celebra con los tuyos en un ambiente único' },
-    { src: '/images/gallery/gallery-2.jpg', alt: 'Cumpleaños en HappyHub', caption: 'Fiestas de cumpleaños con todos los detalles' },
-    { src: '/images/gallery/gallery-3.jpg', alt: 'Fiesta nocturna', caption: 'Sesiones nocturnas con luces y sonido profesional' },
-    { src: '/images/gallery/gallery-4.jpg', alt: 'Decoración con globos', caption: 'Decoramos tu evento para hacerlo especial' },
-    { src: '/images/gallery/gallery-5.jpg', alt: 'Globos de colores', caption: 'Cada celebración es única en HappyHub' },
+    { src: '/images/gallery/sala-barra-zona-juegos.jpg', alt: 'Sala con barra y zona de juegos al fondo', caption: 'Un espacio diáfano con barra y zona de juegos' },
+    { src: '/images/gallery/sala-principal.jpg', alt: 'Sala principal con barra y luz natural', caption: 'Sala principal con luz natural y sonido profesional' },
+    { src: '/images/gallery/zona-juegos-futbolin.jpg', alt: 'Parque infantil y futbolín', caption: 'Parque infantil y futbolín para los peques' },
+    { src: '/images/gallery/zona-chill-juegos.jpg', alt: 'Zona chill junto al parque infantil', caption: 'Zona chill para los mayores, al lado de los juegos' },
+    { src: '/images/gallery/zona-chill.jpg', alt: 'Zona de descanso con sofás y jardín vertical', caption: 'Rincón de descanso con sofás y jardín vertical' },
+    { src: '/images/gallery/lavabos.jpg', alt: 'Lavabos', caption: 'Lavabos nuevos y cuidados', portrait: true },
+    { src: '/images/gallery/bano-adaptado-cambiador.jpg', alt: 'Baño adaptado con cambiador de bebés', caption: 'Baño adaptado con cambiador de bebés', portrait: true },
+    { src: '/images/gallery/bano-adaptado.jpg', alt: 'Baño adaptado con barras de apoyo', caption: 'Baño accesible con barras de apoyo', portrait: true },
   ];
 
   return (

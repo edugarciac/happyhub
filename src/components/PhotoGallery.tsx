@@ -5,6 +5,8 @@ interface Photo {
   src: string;
   alt: string;
   caption?: string;
+  /** Foto vertical: se muestra entera (sin recortar) sobre un fondo desenfocado */
+  portrait?: boolean;
 }
 
 interface PhotoGalleryProps {
@@ -45,11 +47,19 @@ export default function PhotoGallery({ photos, title = 'Nuestro Espacio' }: Phot
 
         {/* Main carousel */}
         <div className="relative max-w-4xl mx-auto mb-8">
-          <div className="aspect-video rounded-2xl overflow-hidden shadow-2xl">
+          <div className="relative aspect-video rounded-2xl overflow-hidden shadow-2xl bg-gray-900">
+            {photos[currentIndex].portrait && (
+              <img
+                src={photos[currentIndex].src}
+                alt=""
+                aria-hidden="true"
+                className="absolute inset-0 w-full h-full object-cover blur-2xl scale-110 opacity-60"
+              />
+            )}
             <img
               src={photos[currentIndex].src}
               alt={photos[currentIndex].alt}
-              className="w-full h-full object-cover cursor-pointer"
+              className={`relative w-full h-full cursor-pointer ${photos[currentIndex].portrait ? 'object-contain' : 'object-cover'}`}
               onClick={() => openLightbox(currentIndex)}
             />
           </div>
@@ -91,6 +101,7 @@ export default function PhotoGallery({ photos, title = 'Nuestro Espacio' }: Phot
               <img
                 src={photo.src}
                 alt={photo.alt}
+                loading="lazy"
                 className="w-full h-full object-cover"
               />
             </button>
