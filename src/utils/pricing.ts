@@ -21,6 +21,10 @@ export interface TimeSlotInfo {
   description: string;
 }
 
+/** No abrimos de noche, pero la tarde se puede alargar unas horas */
+export const AFTERNOON_EXTENSION_UNTIL = '23:00';
+export const AFTERNOON_EXTENSION_NOTE = `La franja de tarde se puede ampliar unas horas adicionales, hasta las ${AFTERNOON_EXTENSION_UNTIL}h. Consúltanos la tarifa.`;
+
 export const TIME_SLOTS: TimeSlotInfo[] = [
   {
     id: 'morning',

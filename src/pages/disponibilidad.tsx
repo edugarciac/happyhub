@@ -7,7 +7,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import FullCalendar from '@/components/FullCalendar';
 import { formatDate } from '@/utils/formatters';
-import { isWeekend, isFriday, isHoliday, isHolidayEve, loadHolidaysFromApi, type TimeSlot } from '@/utils/pricing';
+import { isWeekend, isFriday, isHoliday, isHolidayEve, loadHolidaysFromApi, type TimeSlot, AFTERNOON_EXTENSION_NOTE } from '@/utils/pricing';
 
 export default function Disponibilidad() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -195,6 +195,7 @@ export default function Disponibilidad() {
                 <div className="space-y-2 text-gray-600">
                   <p><strong>Mañanas:</strong> 10:00 - 14:00h</p>
                   <p><strong>Tardes:</strong> 16:00 - 20:00h</p>
+                  <p className="text-sm">{AFTERNOON_EXTENSION_NOTE}</p>
                 </div>
               </div>
 

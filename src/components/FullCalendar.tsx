@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { OPENING_DATE, isBeforeOpening, toDateStr } from '@/config/opening';
+import { AFTERNOON_EXTENSION_NOTE } from '@/utils/pricing';
 
 interface TimeSlotStatus {
   id: 'morning' | 'afternoon' | 'night';
@@ -242,9 +243,11 @@ export default function FullCalendar({ onSlotSelect, bookedSlots = [], selectedD
           <span className="font-semibold">M</span> = Mañana (10:00-14:00)
         </div>
         <div className="hidden md:flex items-center gap-2 text-gray-500">
-          <span className="font-semibold">T</span> = Tarde (16:00-20:00)
+          <span className="font-semibold">T</span> = Tarde (16:00-20:00)*
         </div>
       </div>
+
+      <p className="mt-4 text-center text-xs md:text-sm text-gray-500">* {AFTERNOON_EXTENSION_NOTE}</p>
     </div>
   );
 }

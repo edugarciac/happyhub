@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { AFTERNOON_EXTENSION_NOTE } from '@/utils/pricing';
 import Link from 'next/link';
 import { Check, Info } from 'lucide-react';
 import { event as gaEvent, useSectionView } from '@/lib/analytics';
@@ -97,7 +98,7 @@ export default function PricingTable() {
                     </th>
                     <th className="px-6 py-4 text-center font-semibold">
                       <div>Tarde</div>
-                      <div className="text-xs font-normal opacity-80">16:00 - 20:00</div>
+                      <div className="text-xs font-normal opacity-80">16:00 - 20:00*</div>
                     </th>
                   </tr>
                 </thead>
@@ -137,7 +138,7 @@ export default function PricingTable() {
             </div>
             <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-start gap-2 text-sm text-gray-600">
               <Info className="w-4 h-4 text-primary-500 flex-shrink-0 mt-0.5" />
-              <span>¿Necesitas más tiempo? Puedes ampliar tu franja horaria según disponibilidad — consúltanos para conocer la tarifa adicional.</span>
+              <span>* {AFTERNOON_EXTENSION_NOTE}</span>
             </div>
           </div>
 
