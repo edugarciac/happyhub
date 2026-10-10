@@ -4,7 +4,6 @@ import { useRouter } from 'next/router';
 import { useState, useEffect } from 'react';
 import { Menu, X, User, LogOut } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
-import { isBookingAllowedEmail } from '@/utils/bookingAccess';
 import { event as gaEvent } from '@/lib/analytics';
 
 export default function Header() {
@@ -12,7 +11,6 @@ export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const { data: session } = useSession();
   const router = useRouter();
-  const canRequestReservation = isBookingAllowedEmail(session?.user?.email);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -109,23 +107,13 @@ export default function Header() {
                 <User className="w-5 h-5" />
               </Link>
             )}
-            {canRequestReservation ? (
-              <Link
-                href="/reservas"
-                onClick={() => gaEvent('cta_click', { cta_name: 'solicitar_reserva_header', location: 'Header' })}
-                className="btn-primary ml-4 !py-2 !px-4 text-sm whitespace-nowrap"
-              >
-                Solicitar Reserva
-              </Link>
-            ) : (
-              <span
-                aria-disabled="true"
-                title="Solicitar reserva no está disponible con esta cuenta."
-                className="btn-primary ml-4 !py-2 !px-4 text-sm whitespace-nowrap opacity-50 cursor-not-allowed pointer-events-none"
-              >
-                Solicitar Reserva
-              </span>
-            )}
+            <Link
+              href="/reservas"
+              onClick={() => gaEvent('cta_click', { cta_name: 'solicitar_reserva_header', location: 'Header' })}
+              className="btn-primary ml-4 !py-2 !px-4 text-sm whitespace-nowrap"
+            >
+              Solicitar Reserva
+            </Link>
           </div>
 
           <button
@@ -173,23 +161,13 @@ export default function Header() {
                 Iniciar Sesión
               </Link>
             )}
-            {canRequestReservation ? (
-              <Link
-                href="/reservas"
-                onClick={() => { setIsMenuOpen(false); gaEvent('cta_click', { cta_name: 'solicitar_reserva_header_movil', location: 'Header' }); }}
-                className="block btn-primary text-center mt-4"
-              >
-                Solicitar Reserva
-              </Link>
-            ) : (
-              <span
-                aria-disabled="true"
-                title="Solicitar reserva no está disponible con esta cuenta."
-                className="block btn-primary text-center mt-4 opacity-50 cursor-not-allowed"
-              >
-                Solicitar Reserva
-              </span>
-            )}
+            <Link
+              href="/reservas"
+              onClick={() => { setIsMenuOpen(false); gaEvent('cta_click', { cta_name: 'solicitar_reserva_header_movil', location: 'Header' }); }}
+              className="block btn-primary text-center mt-4"
+            >
+              Solicitar Reserva
+            </Link>
           </div>
         )}
       </nav>
