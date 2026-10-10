@@ -25,8 +25,17 @@ describe('isValidTransition', () => {
     expect(isValidTransition('approved', 'cancelled')).toBe(true);
   });
 
-  it('allows approved → completed', () => {
-    expect(isValidTransition('approved', 'completed')).toBe(true);
+  it('disallows approved → completed (must be paid/confirmed first)', () => {
+    expect(isValidTransition('approved', 'completed')).toBe(false);
+  });
+
+  it('disallows choosing confirmed manually (it comes from the deposit payment)', () => {
+    expect(isValidTransition('approved', 'confirmed')).toBe(false);
+  });
+
+  it('allows confirmed → completed and confirmed → cancelled', () => {
+    expect(isValidTransition('confirmed', 'completed')).toBe(true);
+    expect(isValidTransition('confirmed', 'cancelled')).toBe(true);
   });
 
   it('disallows approved → pending', () => {
@@ -57,8 +66,12 @@ describe('getAvailableTransitions', () => {
     expect(getAvailableTransitions('pending')).toEqual(['approved', 'cancelled']);
   });
 
-  it('returns [cancelled, completed] for approved', () => {
-    expect(getAvailableTransitions('approved')).toEqual(['cancelled', 'completed']);
+  it('returns [cancelled] for approved (confirmation comes from the payment)', () => {
+    expect(getAvailableTransitions('approved')).toEqual(['cancelled']);
+  });
+
+  it('returns [cancelled, completed] for confirmed', () => {
+    expect(getAvailableTransitions('confirmed')).toEqual(['cancelled', 'completed']);
   });
 
   it('returns [pending] for rejected', () => {

@@ -25,6 +25,7 @@ interface Reservation {
 
 const RESERVATION_STATUS_BADGE: Record<string, string> = {
   pending: 'bg-yellow-100 text-yellow-800',
+  approved: 'bg-amber-100 text-amber-800',
   confirmed: 'bg-green-100 text-green-800',
   cancelled: 'bg-red-100 text-red-800',
   completed: 'bg-blue-100 text-blue-800',
@@ -32,6 +33,7 @@ const RESERVATION_STATUS_BADGE: Record<string, string> = {
 
 const RESERVATION_STATUS_LABELS: Record<string, string> = {
   pending: 'Pendiente',
+  approved: 'Aprobada (pendiente de pago)',
   confirmed: 'Confirmada',
   cancelled: 'Cancelada',
   completed: 'Completada',

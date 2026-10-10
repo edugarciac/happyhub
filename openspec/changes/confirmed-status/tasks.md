@@ -1,0 +1,6 @@
+- [x] `confirmed` status, labels, colors, transitions (+ tests)
+- [x] Stripe webhook and Bizum mark set `confirmed`
+- [x] Backfill approved+paid → confirmed
+- [x] Admin filter, clients and customer area labels
+- [x] Admin alert when a deposit is paid on a non-approved reservation
+- [x] tsc, Jest 164/164; SQL verified on PostgreSQL 16

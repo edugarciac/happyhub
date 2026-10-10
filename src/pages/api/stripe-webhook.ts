@@ -3,7 +3,7 @@ import { buffer } from 'micro';
 import Stripe from 'stripe';
 import { constructWebhookEvent } from '@/lib/stripe';
 import { query, queryOne } from '@/lib/db';
-import { sendEmail } from '@/lib/mailer';
+import { getAdminEmails, sendEmail } from '@/lib/mailer';
 import { buildReservationCode, depositReceivedEmail } from '@/lib/emailTemplates';
 import {
   sendReservationConfirmation,
@@ -148,6 +148,7 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session, host?: s
           `UPDATE reservations
            SET deposit_paid = $1,
                payment_status = 'deposit_paid',
+               status = CASE WHEN status = 'approved' THEN 'confirmed' ELSE status END,
                stripe_deposit_session_id = $2,
                updated_at = NOW()
            WHERE id = $3`,
@@ -159,12 +160,20 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session, host?: s
           [String(dbId)]
         );
         // Correo de confirmación al cliente
-        const info = await queryOne<{ event_date: string; time_slot: string; deposit_amount: string | null; total_price: string | null; name: string | null; email: string | null }>(
-          `SELECT TO_CHAR(r.event_date, 'YYYY-MM-DD') AS event_date, r.time_slot, r.deposit_amount, r.total_price, u.name, u.email
+        const info = await queryOne<{ status: string; event_date: string; time_slot: string; deposit_amount: string | null; total_price: string | null; name: string | null; email: string | null }>(
+          `SELECT r.status, TO_CHAR(r.event_date, 'YYYY-MM-DD') AS event_date, r.time_slot, r.deposit_amount, r.total_price, u.name, u.email
            FROM reservations r LEFT JOIN users u ON u.id = r.user_id WHERE r.id = $1`,
           [dbId]
         );
-        if (info?.email) {
+        if (info && info.status !== 'confirmed') {
+          // Pagó cuando la reserva ya no estaba aprobada (p. ej. cancelada por plazo vencido): revisar a mano
+          console.error(`CRITICAL: deposit paid for reservation ${dbId} in status "${info.status}" (Stripe session ${session.id}, ${amount} EUR)`);
+          await sendEmail({
+            to: getAdminEmails(),
+            subject: `⚠️ Señal pagada en una reserva ${info.status} (${buildReservationCode(info.event_date, dbId)})`,
+            html: `<p>Se ha cobrado una señal de <strong>${amount} €</strong> (sesión de Stripe ${session.id}) para la reserva <strong>${buildReservationCode(info.event_date, dbId)}</strong>, pero su estado es <strong>${info.status}</strong>.</p><p>Revisa si la franja sigue libre para reactivarla o devuelve el pago desde Stripe.</p>`,
+          });
+        } else if (info?.email) {
           await sendEmail({
             to: info.email,
             ...depositReceivedEmail({

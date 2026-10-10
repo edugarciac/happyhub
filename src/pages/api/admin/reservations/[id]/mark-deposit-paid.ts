@@ -30,7 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       user_id: number | null;
     }>(
       `UPDATE reservations
-       SET deposit_paid = COALESCE(deposit_amount, 0), payment_status = 'deposit_paid', updated_at = NOW()
+       SET deposit_paid = COALESCE(deposit_amount, 0), payment_status = 'deposit_paid', status = 'confirmed', updated_at = NOW()
        WHERE id = $1 AND status = 'approved' AND COALESCE(payment_status, 'pending') NOT IN ('deposit_paid', 'fully_paid')
        RETURNING id, TO_CHAR(event_date, 'YYYY-MM-DD') AS event_date, time_slot, deposit_amount, total_price, user_id`,
       [id]

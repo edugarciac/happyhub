@@ -270,7 +270,8 @@ export default function AdminReservations() {
                   className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
                   <option value="all">Todos</option>
                   <option value="pending">Pendiente</option>
-                  <option value="approved">Aprobada</option>
+                  <option value="approved">Aprobada (pendiente de pago)</option>
+                  <option value="confirmed">Confirmada</option>
                   <option value="cancelled">Cancelada</option>
                   <option value="completed">Evento Realizado</option>
                 </select>

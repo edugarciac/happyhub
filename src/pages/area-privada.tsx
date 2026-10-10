@@ -72,7 +72,8 @@ const TIME_SLOT_LABELS: Record<string, string> = {
 
 const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
   pending: { label: 'Pendiente', className: 'bg-yellow-100 text-yellow-800' },
-  approved: { label: 'Aprobada', className: 'bg-green-100 text-green-800' },
+  approved: { label: 'Aprobada · pendiente de pago', className: 'bg-amber-100 text-amber-800' },
+  confirmed: { label: 'Confirmada', className: 'bg-green-100 text-green-800' },
   rejected: { label: 'Rechazada', className: 'bg-red-100 text-red-800' },
   paid: { label: 'Pagada', className: 'bg-blue-100 text-blue-800' },
   completed: { label: 'Realizada', className: 'bg-purple-100 text-purple-800' },
