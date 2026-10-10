@@ -1,0 +1,4 @@
+- [x] Remove global `scroll-behavior: smooth`
+- [x] Scroll to top on booking step change
+- [x] tsc, Jest 160/160
+- [x] Browser check: footer links from bottom (scrollY 7189 / 5807) → new page at scrollY 0

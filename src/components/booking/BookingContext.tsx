@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useReducer, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useReducer, ReactNode } from 'react';
 import { TimeSlot } from '@/utils/pricing';
 import { event as gaEvent } from '@/lib/analytics';
 
@@ -152,6 +152,11 @@ export function BookingProvider({ children, initialDate, initialTimeSlot }: Book
   };
 
   const [state, dispatch] = useReducer(bookingReducer, getInitialState());
+
+  // Cada paso nuevo empieza arriba (los botones de avanzar están al final de la página)
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [state.step]);
 
   const goToStep = (step: number) => {
     dispatch({ type: 'SET_STEP', step });
