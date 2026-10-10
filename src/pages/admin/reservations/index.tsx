@@ -476,7 +476,7 @@ export default function AdminReservations() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">Franja horaria</label>
                     <select value={editForm.timeSlot} onChange={(e) => setEditForm({ ...editForm, timeSlot: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
-                      <option value="morning">Mañana</option><option value="afternoon">Tarde</option><option value="night">Noche</option>
+                      <option value="morning">Mañana</option><option value="afternoon">Tarde</option>
                     </select>
                   </div>
                 </div>

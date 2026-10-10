@@ -32,7 +32,7 @@ export default function ReservationForm({
     resolver: zodResolver(reservationSchema),
     defaultValues: {
       date: preselectedDate || '',
-      timeSlot: preselectedTimeSlot || undefined,
+      timeSlot: preselectedTimeSlot === 'morning' || preselectedTimeSlot === 'afternoon' ? preselectedTimeSlot : undefined,
       extras: [],
       paymentMethod: 'card',
     },
@@ -57,7 +57,7 @@ export default function ReservationForm({
     fetchPricing();
     loadHolidaysFromApi();
 
-    if (preselectedTimeSlot) {
+    if (preselectedTimeSlot === 'morning' || preselectedTimeSlot === 'afternoon') {
       setValue('timeSlot', preselectedTimeSlot);
     }
   }, [preselectedTimeSlot, setValue]);
@@ -232,7 +232,6 @@ export default function ReservationForm({
             <option value="">Selecciona franja</option>
             <option value="morning">{getTimeSlotLabel('morning')}</option>
             <option value="afternoon">{getTimeSlotLabel('afternoon')}</option>
-            <option value="night">{getTimeSlotLabel('night')}</option>
           </select>
           {errors.timeSlot && <p className="text-red-500 text-sm mt-1">{errors.timeSlot.message}</p>}
         </div>

@@ -3,6 +3,7 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 import dynamic from 'next/dynamic';
+import { isBookableTimeSlot } from '@/utils/pricing';
 
 const BookingWizard = dynamic(() => import('@/components/booking/BookingWizard'), { ssr: false });
 
@@ -39,7 +40,7 @@ export default function Reservas() {
 
       <BookingWizard
         preselectedDate={date as string}
-        preselectedTimeSlot={timeSlot as 'morning' | 'afternoon' | 'night'}
+        preselectedTimeSlot={isBookableTimeSlot(timeSlot) ? timeSlot : undefined}
       />
     </>
   );

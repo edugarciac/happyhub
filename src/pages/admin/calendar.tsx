@@ -15,7 +15,6 @@ interface Slot {
 const TIME_SLOTS: { id: TimeSlotType; label: string; shortLabel: string }[] = [
   { id: 'morning', label: 'Mañana', shortLabel: 'M' },
   { id: 'afternoon', label: 'Tarde', shortLabel: 'T' },
-  { id: 'night', label: 'Noche', shortLabel: 'N' },
 ];
 
 export default function AdminCalendar() {

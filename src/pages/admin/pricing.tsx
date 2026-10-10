@@ -31,7 +31,7 @@ const emptyForm: FormData = {
 };
 
 const DAY_TYPE_OPTIONS = ['weekday', 'friday', 'weekend', 'holiday'];
-const TIME_SLOT_OPTIONS = ['morning', 'afternoon', 'night'];
+const TIME_SLOT_OPTIONS = ['morning', 'afternoon'];
 
 export default function AdminPricing() {
   const [rules, setRules] = useState<PricingRule[]>([]);

@@ -15,7 +15,7 @@ export const reservationSchema = z.object({
     errorMap: () => ({ message: 'Selecciona un tipo de evento válido' }),
   }),
   date: z.string().min(1, 'Selecciona una fecha'),
-  timeSlot: z.enum(['morning', 'afternoon', 'night'], {
+  timeSlot: z.enum(['morning', 'afternoon'], {
     errorMap: () => ({ message: 'Selecciona una franja horaria válida' }),
   }),
   guests: z.number().min(1, 'Debe haber al menos 1 invitado').max(150, 'Máximo 150 invitados'),

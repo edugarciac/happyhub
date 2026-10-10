@@ -123,7 +123,7 @@ export default function Disponibilidad() {
               Elige Fecha y Hora
             </h1>
             <p className="text-sm text-gray-500">
-              Verde = Disponible | Rojo = Reservado | M = Mañana | T = Tarde | N = Noche
+              Verde = Disponible | Rojo = Reservado | M = Mañana | T = Tarde
             </p>
           </div>
 
@@ -195,8 +195,6 @@ export default function Disponibilidad() {
                 <div className="space-y-2 text-gray-600">
                   <p><strong>Mañanas:</strong> 10:00 - 14:00h</p>
                   <p><strong>Tardes:</strong> 16:00 - 20:00h</p>
-                  <p><strong>Noches:</strong> 22:00 - 02:00h</p>
-                  <p className="text-sm">Apertura anticipada desde las 21:30h sin coste</p>
                 </div>
               </div>
 
@@ -208,7 +206,6 @@ export default function Disponibilidad() {
                   <p><strong>Viernes - Tardes:</strong> {pricing.friday_afternoon || 155}€</p>
                   <p><strong>Fines de semana - Mañanas:</strong> {pricing.weekend_morning || 145}€</p>
                   <p><strong>Fines de semana - Tardes:</strong> {pricing.weekend_afternoon || 185}€</p>
-                  <p><strong>Nocturno:</strong> A consultar</p>
                 </div>
               </div>
 

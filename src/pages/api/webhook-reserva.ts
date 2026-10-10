@@ -3,6 +3,7 @@ import axios from 'axios';
 import { notifyAdminReservationRequest } from '@/lib/whatsapp';
 import { queryOne } from '@/lib/db';
 import { OPENING_LABEL, isBeforeOpening } from '@/config/opening';
+import { isBookableTimeSlot } from '@/utils/pricing';
 
 interface ReservationData {
   name: string;
@@ -55,6 +56,13 @@ export default async function handler(
       return res.status(400).json({
         success: false,
         error: `Solo aceptamos reservas a partir del ${OPENING_LABEL}`,
+      });
+    }
+
+    if (!isBookableTimeSlot(reservationData.timeSlot)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Franja horaria no disponible. Solo ofrecemos mañana y tarde.',
       });
     }
 

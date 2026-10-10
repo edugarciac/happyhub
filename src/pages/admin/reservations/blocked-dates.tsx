@@ -12,7 +12,7 @@ const TIME_SLOT_LABELS: Record<TimeSlot, string> = {
   night: 'Noche (22:00-02:00)',
 };
 
-const ALL_SLOTS: TimeSlot[] = ['morning', 'afternoon', 'night'];
+const ALL_SLOTS: TimeSlot[] = ['morning', 'afternoon'];
 
 interface BlockedSlot {
   id: number;
@@ -43,7 +43,7 @@ export default function BlockedDates() {
   // Form state
   const [startDate, setStartDate] = useState(today());
   const [endDate, setEndDate] = useState(today());
-  const [selectedSlots, setSelectedSlots] = useState<TimeSlot[]>(['morning', 'afternoon', 'night']);
+  const [selectedSlots, setSelectedSlots] = useState<TimeSlot[]>(['morning', 'afternoon']);
   const [reason, setReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');

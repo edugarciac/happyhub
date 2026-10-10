@@ -5,6 +5,13 @@
 
 export type TimeSlot = 'morning' | 'afternoon' | 'night';
 
+/** Franjas que se pueden reservar. 'night' ya no se ofrece; se mantiene en el tipo solo para mostrar reservas antiguas. */
+export const BOOKABLE_TIME_SLOTS: TimeSlot[] = ['morning', 'afternoon'];
+
+export function isBookableTimeSlot(slot: unknown): slot is TimeSlot {
+  return typeof slot === 'string' && (BOOKABLE_TIME_SLOTS as string[]).includes(slot);
+}
+
 export interface TimeSlotInfo {
   id: TimeSlot;
   label: string;
@@ -194,7 +201,7 @@ export function getDayTypeDescription(date: Date): string {
  * Obtiene todas las franjas horarias disponibles para una fecha con precios
  */
 export function getAvailableTimeSlotsWithPricing(date: Date) {
-  return TIME_SLOTS.map((slot) => ({
+  return TIME_SLOTS.filter((slot) => BOOKABLE_TIME_SLOTS.includes(slot.id)).map((slot) => ({
     ...slot,
     price: calculateBasePrice(date, slot.id),
     priceLabel: getPriceLabel(date, slot.id),

@@ -15,7 +15,6 @@ const INCLUDED = [
   'Mobiliario básico (mesas y sillas)',
   'Sistema de sonido',
   'Microondas y nevera',
-  'Apertura anticipada sin coste extra',
 ];
 
 export default function PricingTable() {

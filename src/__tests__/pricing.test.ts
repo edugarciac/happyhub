@@ -154,9 +154,9 @@ describe('getDayTypeDescription', () => {
 });
 
 describe('getAvailableTimeSlotsWithPricing', () => {
-  it('returns 3 time slots', () => {
+  it('returns only bookable slots (morning, afternoon)', () => {
     const slots = getAvailableTimeSlotsWithPricing(new Date('2025-01-07'));
-    expect(slots).toHaveLength(3);
+    expect(slots.map((s) => s.id)).toEqual(['morning', 'afternoon']);
   });
 
   it('includes price and priceLabel for each slot', () => {
@@ -173,10 +173,8 @@ describe('getAvailableTimeSlotsWithPricing', () => {
     const slots = getAvailableTimeSlotsWithPricing(new Date('2025-01-07'));
     const morning = slots.find((s) => s.id === 'morning');
     const afternoon = slots.find((s) => s.id === 'afternoon');
-    const night = slots.find((s) => s.id === 'night');
     expect(morning?.price).toBe(110);
     expect(afternoon?.price).toBe(110);
-    expect(night?.price).toBe('consult');
   });
 });
 

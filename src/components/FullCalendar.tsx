@@ -54,7 +54,6 @@ export default function FullCalendar({ onSlotSelect, bookedSlots = [], selectedD
         slots: [
           { id: 'morning', label: 'Mañana', shortLabel: 'M', time: '10:00-14:00', available: false },
           { id: 'afternoon', label: 'Tarde', shortLabel: 'T', time: '16:00-20:00', available: false },
-          { id: 'night', label: 'Noche', shortLabel: 'N', time: '22:00-02:00', available: false },
         ],
       });
     }
@@ -81,13 +80,6 @@ export default function FullCalendar({ onSlotSelect, bookedSlots = [], selectedD
             shortLabel: 'T',
             time: '16:00-20:00',
             available: !isPast && !isSlotBooked(currentDate, 'afternoon'),
-          },
-          {
-            id: 'night',
-            label: 'Noche',
-            shortLabel: 'N',
-            time: '22:00-02:00',
-            available: !isPast && !isSlotBooked(currentDate, 'night'),
           },
         ],
       });
@@ -251,9 +243,6 @@ export default function FullCalendar({ onSlotSelect, bookedSlots = [], selectedD
         </div>
         <div className="hidden md:flex items-center gap-2 text-gray-500">
           <span className="font-semibold">T</span> = Tarde (16:00-20:00)
-        </div>
-        <div className="hidden md:flex items-center gap-2 text-gray-500">
-          <span className="font-semibold">N</span> = Noche (22:00-02:00)
         </div>
       </div>
     </div>
