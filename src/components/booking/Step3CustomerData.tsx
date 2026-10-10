@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useBooking, EventType, PaymentMethod } from './BookingContext';
 import PriceSummary from './PriceSummary';
+import TermsContent from '@/components/TermsContent';
 import { ChevronLeft, ChevronRight, User, AlertCircle, FileText, Loader2, CreditCard } from 'lucide-react';
 
 const customerSchema = z.object({
@@ -39,6 +40,15 @@ export default function Step3CustomerData() {
   const [submitErrorDetail, setSubmitErrorDetail] = useState<string | null>(null);
   const [showErrorDetail, setShowErrorDetail] = useState(false);
   const [isConflictError, setIsConflictError] = useState(false);
+  // La casilla de aceptar solo se activa tras leer los términos hasta el final
+  const [hasReadTerms, setHasReadTerms] = useState<boolean>(!!state.acceptTerms);
+  const termsBoxRef = useRef<HTMLDivElement>(null);
+
+  const checkTermsRead = () => {
+    const el = termsBoxRef.current;
+    if (el && el.scrollTop + el.clientHeight >= el.scrollHeight - 24) setHasReadTerms(true);
+  };
+  useEffect(checkTermsRead, []);
 
   const {
     register,
@@ -359,28 +369,33 @@ export default function Step3CustomerData() {
                 <h3 className="text-lg font-bold text-gray-900">Términos y condiciones</h3>
               </div>
 
-              <div className="bg-gray-50 rounded-lg p-4 mb-4 max-h-40 overflow-y-auto text-sm text-gray-600">
-                <h4 className="font-semibold mb-2">Política de reservas HappyHub</h4>
-                <ul className="space-y-2 list-disc list-inside">
-                  <li>Se requiere un depósito del 30% para confirmar la reserva.</li>
-                  <li>El resto del pago se realizará antes de comenzar el evento.</li>
-                  <li>Cancelación gratuita hasta 3 días antes del evento.</li>
-                  <li>Cancelaciones con menos de 3 días: se retiene el depósito.</li>
-                  <li>Cambio de fecha gratuito hasta 30 días antes, sujeto a disponibilidad.</li>
-                  <li>El aforo máximo es de 50 personas.</li>
-                  <li>Se deberá dejar el espacio completamente recogido y en las mismas condiciones en que fue entregado.</li>
-                  <li>
-                    <strong>El incumplimiento de estas obligaciones puede tener repercusiones económicas</strong>, por ejemplo
-                    un cargo de 50 € por la limpieza posterior si el espacio no se deja recogido.
-                  </li>
-                </ul>
+              <p className="text-sm text-gray-600 mb-3">
+                Lee los términos y condiciones completos. Podrás aceptarlos al llegar al final.
+              </p>
+              <div
+                ref={termsBoxRef}
+                onScroll={checkTermsRead}
+                tabIndex={0}
+                aria-label="Términos y condiciones"
+                className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-2 h-72 overflow-y-auto text-sm text-gray-700 space-y-5 [&_h2]:text-base [&_h2]:font-bold [&_h2]:text-gray-900 [&_h2]:mb-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mb-1"
+              >
+                <TermsContent />
+              </div>
+              <div className="flex items-center justify-between mb-4 text-xs">
+                <span className={hasReadTerms ? 'text-green-600 font-medium' : 'text-amber-600'}>
+                  {hasReadTerms ? '✓ Has leído los términos completos' : '↓ Desplázate hasta el final para poder aceptar'}
+                </span>
+                <a href="/terminos" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">
+                  Abrir en otra pestaña
+                </a>
               </div>
 
-              <label className="flex items-start gap-3 cursor-pointer">
+              <label className={`flex items-start gap-3 ${hasReadTerms ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'}`}>
                 <input
                   type="checkbox"
                   {...register('acceptTerms')}
-                  className="mt-1 w-5 h-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                  disabled={!hasReadTerms}
+                  className="mt-1 w-5 h-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500 disabled:cursor-not-allowed"
                 />
                 <span className="text-sm text-gray-700">
                   He leído y acepto los{' '}
