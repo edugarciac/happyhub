@@ -18,7 +18,7 @@ export const reservationSchema = z.object({
   timeSlot: z.enum(['morning', 'afternoon'], {
     errorMap: () => ({ message: 'Selecciona una franja horaria válida' }),
   }),
-  guests: z.number().min(1, 'Debe haber al menos 1 invitado').max(150, 'Máximo 150 invitados'),
+  guests: z.number().min(1, 'Debe haber al menos 1 invitado').max(50, 'Máximo 50 invitados'),
   extras: z.array(z.string()).optional(),
   paymentMethod: z.enum(['card', 'bizum', 'cash'], {
     errorMap: () => ({ message: 'Selecciona un método de pago válido' }),

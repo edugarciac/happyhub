@@ -72,9 +72,8 @@ export default function Terminos() {
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-4">5. Política de cancelación</h2>
               <ul className="list-disc list-inside space-y-2">
-                <li><strong>Más de 15 días antes del evento:</strong> cancelación sin coste. Se devuelve el 100% del depósito.</li>
-                <li><strong>Entre 15 y 7 días antes del evento:</strong> se retiene el 50% del depósito.</li>
-                <li><strong>Menos de 7 días antes del evento:</strong> no se realizan devoluciones del depósito.</li>
+                <li><strong>3 días o más antes del evento:</strong> cancelación sin coste. Se devuelve el 100% del depósito.</li>
+                <li><strong>Menos de 3 días antes del evento:</strong> se retiene el depósito y no se realiza ninguna devolución.</li>
               </ul>
               <p className="mt-3">
                 Las cancelaciones deben comunicarse por escrito a través de correo electrónico o WhatsApp.
@@ -86,7 +85,7 @@ export default function Terminos() {
               <h2 className="text-2xl font-bold text-gray-900 mb-4">6. Obligaciones del cliente</h2>
               <p>El cliente se compromete a:</p>
               <ul className="list-disc list-inside space-y-2 mt-2">
-                <li>Respetar el aforo máximo del espacio comunicado en el momento de la reserva.</li>
+                <li>Respetar el aforo máximo del espacio, que es de <strong>50 personas</strong>.</li>
                 <li>Hacer un uso responsable de las instalaciones y equipamiento.</li>
                 <li>Respetar los horarios contratados, incluyendo las horas de inicio y finalización del evento.</li>
                 <li>No realizar actividades ilegales ni que atenten contra el orden público.</li>
@@ -95,6 +94,15 @@ export default function Terminos() {
                 <li>Dejar el espacio completamente recogido y en las mismas condiciones en que fue entregado al finalizar el evento. Esto incluye recoger todos los residuos, devolver el mobiliario a su posición original y retirar cualquier decoración o material traído por el cliente.</li>
                 <li>No traer ni utilizar equipos de audio o sistemas de sonido propios. El espacio dispone de su propio sistema de sonido. El uso de dispositivos de audio externos no está permitido bajo ninguna circunstancia.</li>
               </ul>
+              <div className="mt-4 bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg">
+                <p className="font-semibold text-amber-900">Incumplimiento de las obligaciones</p>
+                <p className="mt-1 text-amber-900">
+                  El incumplimiento de cualquiera de estas obligaciones puede tener <strong>repercusiones económicas</strong> para
+                  el cliente. Por ejemplo, si el espacio no se deja completamente recogido y en las mismas condiciones en que fue
+                  entregado, se cobrará un importe de <strong>50 €</strong> en concepto de limpieza posterior. Esto es
+                  independiente de la responsabilidad por daños descrita en el apartado 7.
+                </p>
+              </div>
             </div>
 
             <div>

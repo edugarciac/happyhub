@@ -239,7 +239,7 @@ export default function CreateReservation() {
                     type="number"
                     name="guests"
                     min="1"
-                    max="150"
+                    max="50"
                     value={form.guests}
                     onChange={handleChange}
                     placeholder="1–150"

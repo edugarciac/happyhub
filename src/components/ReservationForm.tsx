@@ -244,7 +244,7 @@ export default function ReservationForm({
             className="input-field"
             placeholder="50"
             min="1"
-            max="150"
+            max="50"
           />
           {errors.guests && <p className="text-red-500 text-sm mt-1">{errors.guests.message}</p>}
         </div>

@@ -42,7 +42,7 @@ const categories: FaqCategory[] = [
       {
         question: '¿Cuál es la política de cancelación?',
         answer:
-          'Ofrecemos cancelación gratuita hasta 15 días antes del evento. A partir de ese momento se aplica una penalización del 50% del depósito. Si cancelas con menos de 48h de antelación, el depósito no es reembolsable.',
+          'La cancelación es gratuita hasta 3 días antes del evento y te devolvemos el depósito. Si cancelas con menos de 3 días de antelación, se retiene el depósito.',
       },
       {
         question: '¿Cómo funciona el pago?',
@@ -63,7 +63,7 @@ const categories: FaqCategory[] = [
       {
         question: '¿Qué incluye el alquiler del espacio?',
         answer:
-          'El precio incluye el uso del espacio, mesas, sillas, equipo de sonido básico, WiFi, climatización y limpieza posterior al evento. Los servicios adicionales como catering, decoración o animación se contratan aparte.',
+          'El precio incluye el uso del espacio, mesas, sillas, equipo de sonido básico, WiFi, climatización y la limpieza general tras el evento, siempre que el espacio se deje recogido. Los servicios adicionales como catering, decoración o animación se contratan aparte.',
       },
       {
         question: '¿Puedo traer comida y bebida de fuera?',
@@ -104,7 +104,7 @@ const categories: FaqCategory[] = [
       {
         question: '¿Quién se encarga de la limpieza?',
         answer:
-          'La limpieza post-evento está incluida en el precio del alquiler. Solo te pedimos que recojas tus pertenencias y dejes el espacio en un orden mínimo antes de irte.',
+          'Al terminar, el espacio debe quedar completamente recogido y en las mismas condiciones en que te lo entregamos: residuos recogidos, mobiliario en su sitio y decoración retirada. Si no es así, se cobrarán 50 € por la limpieza posterior.',
       },
       {
         question: '¿Qué ocurre si se produce algún desperfecto?',
@@ -120,7 +120,7 @@ const categories: FaqCategory[] = [
       {
         question: '¿Hay un límite de personas?',
         answer:
-          'El aforo máximo varía según la configuración del evento. Consúltanos con el número de asistentes previsto para que podamos orientarte sobre la distribución más adecuada.',
+          'Sí, el aforo máximo es de 50 personas, contando adultos y niños.',
       },
       {
         question: '¿Se puede fumar en el espacio?',

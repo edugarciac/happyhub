@@ -191,8 +191,8 @@ export default function ContractPage() {
         </div>
 
         <h2>3. Condiciones de uso del espacio</h2>
-        <p>3.1. El espacio se entrega al Cliente en perfecto estado de uso. El Cliente se compromete a devolver el espacio en condiciones razonables de orden y limpieza.</p>
-        <p>3.2. El aforo maximo del espacio es de <strong>150 personas</strong>.</p>
+        <p>3.1. El espacio se entrega al Cliente en perfecto estado de uso. El Cliente se compromete a devolver el espacio completamente recogido y en las mismas condiciones en que le fue entregado. En caso contrario, se cobrara un importe de <strong>50 EUR</strong> en concepto de limpieza posterior, que podra descontarse de la fianza.</p>
+        <p>3.2. El aforo maximo del espacio es de <strong>50 personas</strong>.</p>
         <p>3.3. El Cliente es responsable de la supervision de todos los asistentes al evento, especialmente de los menores de edad.</p>
 
         <h2>4. Horarios</h2>
@@ -204,9 +204,8 @@ export default function ContractPage() {
         <table>
           <thead><tr><th>Plazo</th><th>Consecuencia</th></tr></thead>
           <tbody>
-            <tr><td>Mas de 15 dias antes</td><td>Devolucion del 100% de la senal</td></tr>
-            <tr><td>Entre 15 y 7 dias</td><td>Se retiene el 50% de la senal</td></tr>
-            <tr><td>Menos de 7 dias</td><td>No se devuelve la senal</td></tr>
+            <tr><td>3 dias o mas antes</td><td>Devolucion del 100% de la senal</td></tr>
+            <tr><td>Menos de 3 dias</td><td>Se retiene la senal</td></tr>
           </tbody>
         </table>
         <p>La fianza se devuelve integramente en caso de cancelacion.</p>

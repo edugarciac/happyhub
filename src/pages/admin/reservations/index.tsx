@@ -521,7 +521,7 @@ export default function AdminReservations() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Invitados</label>
-                    <input type="number" min="1" max="150" value={editForm.guests}
+                    <input type="number" min="1" max="50" value={editForm.guests}
                       onChange={(e) => setEditForm({ ...editForm, guests: parseInt(e.target.value) || 0 })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
                   </div>
