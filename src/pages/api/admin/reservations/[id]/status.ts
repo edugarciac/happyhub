@@ -2,6 +2,9 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { queryOne } from '../../../../../lib/db';
 import { verifyAdminSession } from '../../../../../utils/adminAuth';
 import { isValidTransition, ReservationStatus } from '../../../../../utils/reservationStatus';
+import { isEmailConfigured, sendEmail } from '@/lib/mailer';
+import { reservationCancelledEmail } from '@/lib/emailTemplates';
+import { deleteCalendarEvent } from '@/lib/googleCalendar';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'PATCH') {
@@ -66,9 +69,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       );
     }
 
-    // Notify n8n for rejected/cancelled (delete calendar event + send email)
+    // Rechazo/cancelación: email al cliente y borrar el evento de Google Calendar
     let notificationWarning: string | undefined;
-    if ((status === 'rejected' || status === 'cancelled') && process.env.N8N_WEBHOOK_CANCELLATION_URL) {
+    if ((status === 'rejected' || status === 'cancelled') && isEmailConfigured()) {
+      const info = await queryOne<{ name: string | null; email: string | null; event_date: string; time_slot: string; google_calendar_event_id: string | null }>(
+        `SELECT u.name, u.email, TO_CHAR(r.event_date, 'YYYY-MM-DD') AS event_date, r.time_slot, r.google_calendar_event_id
+         FROM reservations r LEFT JOIN users u ON r.user_id = u.id WHERE r.id = $1`,
+        [parseInt(id)]
+      ).catch(() => null);
+
+      if (info?.google_calendar_event_id) {
+        await deleteCalendarEvent(info.google_calendar_event_id);
+      }
+
+      const sent = info?.email
+        ? await sendEmail({
+            to: info.email,
+            ...reservationCancelledEmail({
+              name: info.name || '',
+              status,
+              date: info.event_date,
+              timeSlot: info.time_slot,
+              reason: cancellationReason,
+            }),
+          })
+        : false;
+      if (!sent) notificationWarning = 'El estado se cambio pero no se pudo enviar el email al cliente';
+    } else if ((status === 'rejected' || status === 'cancelled') && process.env.N8N_WEBHOOK_CANCELLATION_URL) {
       try {
         const n8nRes = await fetch(process.env.N8N_WEBHOOK_CANCELLATION_URL, {
           method: 'POST',

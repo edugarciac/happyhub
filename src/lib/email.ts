@@ -1,3 +1,5 @@
+import { isEmailConfigured, sendEmail } from '@/lib/mailer';
+
 const BASE_URL = process.env.NEXTAUTH_URL || 'http://localhost:3000';
 
 function buildVerificationEmailHtml(name: string, verificationUrl: string): string {
@@ -71,7 +73,11 @@ export async function sendVerificationEmail(
   const verificationUrl = `${BASE_URL}/verify-email?token=${token}`;
   const html = buildVerificationEmailHtml(name, verificationUrl);
 
-  // Try n8n webhook first
+  if (isEmailConfigured()) {
+    return sendEmail({ to: email, subject: 'Verifica tu email - HappyHub', html });
+  }
+
+  // Respaldo mientras no haya Resend configurado
   const n8nUrl = process.env.N8N_EMAIL_WEBHOOK_URL;
   if (n8nUrl) {
     try {
@@ -176,6 +182,10 @@ export async function sendInvitationEmail(
 ): Promise<boolean> {
   const rsvpUrl = `${BASE_URL}/invitacion/${inviteToken}`;
   const html = buildInvitationEmailHtml(guestName, eventTitle, eventDate, eventLocation, rsvpUrl);
+
+  if (isEmailConfigured()) {
+    return sendEmail({ to: email, subject: `Invitación: ${eventTitle}`, html });
+  }
 
   const n8nUrl = process.env.N8N_EMAIL_WEBHOOK_URL;
   if (n8nUrl) {

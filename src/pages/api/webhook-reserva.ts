@@ -1,7 +1,15 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import axios from 'axios';
 import { notifyAdminReservationRequest } from '@/lib/whatsapp';
 import { queryOne } from '@/lib/db';
+import { sendEmail, getAdminEmails } from '@/lib/mailer';
+import {
+  buildReservationCode,
+  reservationAdminEmail,
+  reservationCustomerEmail,
+  EVENT_TYPE_LABELS,
+  type ReservationEmailData,
+} from '@/lib/emailTemplates';
+import { createReservationEvent } from '@/lib/googleCalendar';
 import { OPENING_LABEL, isBeforeOpening } from '@/config/opening';
 import { isBookableTimeSlot } from '@/utils/pricing';
 
@@ -32,6 +40,8 @@ interface ResponseData {
   reservationId?: string;
   error?: string;
   detail?: string;
+  emailWarning?: string;
+  step?: string;
 }
 
 // En Vercel la función se congela al responder: hay que esperar al envío
@@ -66,7 +76,7 @@ export default async function handler(
       });
     }
 
-    if (!reservationData.date || isBeforeOpening(reservationData.date)) {
+    if (!reservationData.date || !/^\d{4}-\d{2}-\d{2}$/.test(reservationData.date) || isBeforeOpening(reservationData.date)) {
       return res.status(400).json({
         success: false,
         error: `Solo aceptamos reservas a partir del ${OPENING_LABEL}`,
@@ -80,129 +90,143 @@ export default async function handler(
       });
     }
 
+    const guests = Number.parseInt(String(reservationData.guests), 10) || 0;
+    const totalPrice = Number(reservationData.totalPrice) || 0;
+    const depositAmount = Number(reservationData.depositAmount) || 0;
+    const needsKidsFurniture = reservationData.needsKidsFurniture === true;
+
     const holidayRow = await queryOne('SELECT 1 FROM holidays WHERE holiday_date = $1', [reservationData.date]).catch(
       () => null
     );
     const isHolidayDate = !!holidayRow;
 
-    const n8nWebhookUrl = process.env.N8N_WEBHOOK_URL;
-
-    if (!n8nWebhookUrl) {
-      console.error('N8N_WEBHOOK_URL no está configurada');
+    // Comprobar disponibilidad y guardar en una sola sentencia: si ya hay una
+    // reserva activa en esa fecha y franja, no inserta nada (evita dobles reservas).
+    let inserted: { id: number } | null;
+    try {
+      const user = await queryOne<{ id: number }>('SELECT id FROM users WHERE LOWER(email) = LOWER($1) LIMIT 1', [
+        reservationData.email,
+      ]);
+      inserted = await queryOne<{ id: number }>(
+        `INSERT INTO reservations
+           (user_id, event_type, event_date, time_slot, guests, total_price, deposit_amount, notes, status, needs_kids_furniture, created_at)
+         SELECT $1::int, $2::text, $3::date, $4::text, $5::int, $6::numeric, $7::numeric, $8::text, 'pending', $9::boolean, NOW()
+         WHERE NOT EXISTS (
+           SELECT 1 FROM reservations
+           WHERE event_date = $3::date AND time_slot = $4::text AND status IN ('pending', 'approved', 'confirmed')
+         )
+         RETURNING id`,
+        [
+          user?.id ?? null,
+          reservationData.eventType || 'otros',
+          reservationData.date,
+          reservationData.timeSlot,
+          guests,
+          totalPrice,
+          depositAmount,
+          reservationData.message || '',
+          needsKidsFurniture,
+        ]
+      );
+    } catch (dbError: any) {
+      // 23505 = unique_violation (restricción unique_slot en (event_date, time_slot))
+      if (dbError?.code === '23505') {
+        return res.status(409).json({
+          success: false,
+          error: 'Esta fecha y franja horaria ya está reservada.',
+          step: 'availability',
+        });
+      }
+      console.error('Error guardando la reserva en la BD:', dbError?.message || dbError);
       return res.status(500).json({
         success: false,
-        error: 'Error de configuración del servidor',
+        error: 'No se ha podido guardar la reserva. Inténtalo de nuevo o contáctanos.',
+        step: 'database',
       });
     }
 
-    const payload = {
-      ...reservationData,
-      timestamp: new Date().toISOString(),
-      source: 'web',
+    if (!inserted) {
+      return res.status(409).json({
+        success: false,
+        error: 'Esta fecha y franja horaria ya está reservada.',
+        step: 'availability',
+      });
+    }
+
+    const reservationId = buildReservationCode(reservationData.date, inserted.id);
+    const emailData: ReservationEmailData = {
+      code: reservationId,
+      name: reservationData.name,
+      email: reservationData.email,
+      phone: reservationData.phone,
+      date: reservationData.date,
+      timeSlot: reservationData.timeSlot,
+      guests,
+      eventType: reservationData.eventType,
+      paymentMethod: reservationData.paymentMethod,
+      totalPrice,
+      depositAmount,
+      message: reservationData.message,
+      needsKidsFurniture,
+      isHoliday: isHolidayDate,
+      dbId: inserted.id,
     };
 
-    // Si la URL es el mock, hacer request local
-    if (n8nWebhookUrl.includes('/api/webhook-reserva-mock')) {
-      console.log('🎭 Usando MOCK de n8n para testing');
-      // Hacer request interno al mock
-      const mockUrl = `${req.headers.origin || 'http://localhost:3000'}/api/webhook-reserva-mock`;
-      const mockResponse = await axios.post(mockUrl, payload, {
-        headers: { 'Content-Type': 'application/json' },
-        timeout: 10000,
-      });
-      const reservationId = mockResponse.data?.reservationId || `RES-${Date.now()}`;
-      await notifyAdminSafely({
+    // Efectos secundarios: se esperan (Vercel congela la función al responder),
+    // pero ninguno anula la reserva si falla.
+    const customerEmail = reservationCustomerEmail(emailData);
+    const adminEmail = reservationAdminEmail(emailData);
+    const [calendarEventId, customerEmailSent] = await Promise.all([
+      createReservationEvent({
+        date: reservationData.date,
+        timeSlot: reservationData.timeSlot,
+        summary: `${isHolidayDate ? '[FESTIVO] ' : ''}[PENDIENTE] ${EVENT_TYPE_LABELS[reservationData.eventType] || reservationData.eventType} - ${reservationData.name}`,
+        description: [
+          `Reserva: ${reservationId}`,
+          `Nombre: ${reservationData.name}`,
+          `Teléfono: ${reservationData.phone}`,
+          `Email: ${reservationData.email}`,
+          `Invitados: ${guests}`,
+          `Total: ${totalPrice} € (señal ${depositAmount} €)`,
+          `Pago: ${reservationData.paymentMethod}`,
+          reservationData.message ? `Mensaje: ${reservationData.message}` : '',
+        ].filter(Boolean).join('\n'),
+      }),
+      sendEmail({ to: reservationData.email, ...customerEmail }),
+      sendEmail({ to: getAdminEmails(), replyTo: reservationData.email, ...adminEmail }),
+      notifyAdminSafely({
         name: reservationData.name,
         date: reservationData.date,
         timeSlot: reservationData.timeSlot,
-        guests: reservationData.guests,
-        totalPrice: reservationData.totalPrice,
-        depositAmount: reservationData.depositAmount,
+        guests,
+        totalPrice,
+        depositAmount,
         reservationId,
-        needsKidsFurniture: reservationData.needsKidsFurniture,
+        needsKidsFurniture,
         isHoliday: isHolidayDate,
-      });
-      return res.status(200).json({
-        success: true,
-        message: 'Reserva creada exitosamente (MOCK)',
-        reservationId,
-      });
+      }),
+    ]);
+
+    if (calendarEventId) {
+      await queryOne('UPDATE reservations SET google_calendar_event_id = $1 WHERE id = $2', [calendarEventId, inserted.id]).catch(
+        (err) => console.error('Error guardando google_calendar_event_id:', err)
+      );
     }
-
-    console.log('Enviando reserva a n8n:', payload);
-
-    const n8nResponse = await axios.post(n8nWebhookUrl, payload, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      timeout: 10000,
-    });
-
-    console.log('Respuesta de n8n:', n8nResponse.data);
-
-    const n8nData = n8nResponse.data;
-
-    // Check if n8n returned an error (200 with success: false)
-    if (n8nData?.success === false) {
-      return res.status(422).json({
-        success: false,
-        error: n8nData.error || 'Error al procesar la reserva en el servidor.',
-        detail: n8nData.message || '',
-      });
-    }
-
-    const reservationId = n8nData?.reservationId || `RES-${Date.now()}`;
-
-    await notifyAdminSafely({
-      name: reservationData.name,
-      date: reservationData.date,
-      timeSlot: reservationData.timeSlot,
-      guests: reservationData.guests,
-      totalPrice: reservationData.totalPrice,
-      depositAmount: reservationData.depositAmount,
-      reservationId,
-      needsKidsFurniture: reservationData.needsKidsFurniture,
-      isHoliday: isHolidayDate,
-    });
 
     return res.status(200).json({
       success: true,
       message: 'Reserva creada exitosamente',
       reservationId,
+      ...(customerEmailSent
+        ? {}
+        : { emailWarning: 'No se pudo enviar el email de confirmación. Te contactaremos pronto.' }),
     });
   } catch (error: any) {
-    console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.error('Error al procesar la reserva:');
-    console.error('Message:', error.message);
-    console.error('Code:', error.code);
-    console.error('Status:', error.response?.status);
-    console.error('Response:', error.response?.data);
-    console.error('URL:', process.env.N8N_WEBHOOK_URL);
-    console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-
-    if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT' || error.code === 'ENOTFOUND') {
-      return res.status(503).json({
-        success: false,
-        error: 'El servicio de reservas no esta disponible en este momento.',
-        detail: error.message,
-      });
-    }
-
-    // Forward n8n HTTP status codes (409 conflict, etc.)
-    if (error.response?.status) {
-      const n8nStatus = error.response.status;
-      const n8nData = error.response.data;
-      return res.status(n8nStatus).json({
-        success: false,
-        error: n8nData?.error || n8nData?.message || 'Error al procesar la reserva.',
-        detail: JSON.stringify(n8nData),
-      });
-    }
-
+    console.error('Error al procesar la reserva:', error?.message || error);
     return res.status(500).json({
       success: false,
       error: 'Error al procesar la reserva.',
-      detail: error.message,
+      detail: error?.message,
     });
   }
 }

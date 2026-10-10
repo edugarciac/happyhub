@@ -3,6 +3,8 @@ import { z } from 'zod';
 import crypto from 'crypto';
 import { query, queryOne } from '@/lib/db';
 import { getUserByEmail } from '@/utils/db/users';
+import { isEmailConfigured, sendEmail } from '@/lib/mailer';
+import { passwordResetEmail } from '@/lib/emailTemplates';
 
 const resetRequestSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -62,8 +64,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Log the reset URL in development (in production, send via email/n8n)
     console.log(`[Password Reset] URL for ${email}: ${resetUrl}`);
 
-    // Send email via n8n webhook if configured
-    if (process.env.N8N_PASSWORD_RESET_WEBHOOK) {
+    if (isEmailConfigured()) {
+      await sendEmail({ to: user.email, ...passwordResetEmail(user.name, resetUrl) });
+    } else if (process.env.N8N_PASSWORD_RESET_WEBHOOK) {
       try {
         await fetch(process.env.N8N_PASSWORD_RESET_WEBHOOK, {
           method: 'POST',
