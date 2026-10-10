@@ -73,6 +73,9 @@ export async function createCheckoutSession({
       cancel_url: cancelUrl,
       customer_email: customerEmail,
       metadata,
+      // Copiar los datos de la reserva al PaymentIntent: así los avisos de pago
+      // rechazado (payment_intent.payment_failed) saben a qué reserva corresponden
+      payment_intent_data: metadata ? { metadata } : undefined,
     });
 
     return session;

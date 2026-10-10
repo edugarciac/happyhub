@@ -78,6 +78,7 @@ async function handleList(req: NextApiRequest, res: NextApiResponse) {
               r.rejection_reason, r.cancellation_reason,
               r.admin_approved_by, r.approved_at, r.needs_kids_furniture,
               r.payment_method, r.payment_due_at,
+              r.last_payment_error, r.last_payment_error_at,
               u.name, u.email, u.phone
        FROM reservations r
        LEFT JOIN users u ON r.user_id = u.id
@@ -107,6 +108,8 @@ async function handleList(req: NextApiRequest, res: NextApiResponse) {
       needsKidsFurniture: !!r.needs_kids_furniture,
       paymentMethod: r.payment_method || null,
       paymentDueAt: r.payment_due_at || null,
+      lastPaymentError: r.last_payment_error || null,
+      lastPaymentErrorAt: r.last_payment_error_at || null,
       createdAt: r.created_at,
       updatedAt: r.updated_at,
     }));

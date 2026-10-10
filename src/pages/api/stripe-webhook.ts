@@ -1,7 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { buffer } from 'micro';
 import Stripe from 'stripe';
-import { constructWebhookEvent } from '@/lib/stripe';
+import { constructWebhookEvent, stripe } from '@/lib/stripe';
+import { ensureReservationFlowColumns } from '@/lib/reservationFlow';
+import { stripeDeclineMessage } from '@/utils/stripeErrors';
 import { query, queryOne } from '@/lib/db';
 import { getAdminEmails, sendEmail } from '@/lib/mailer';
 import { buildReservationCode, depositReceivedEmail } from '@/lib/emailTemplates';
@@ -75,44 +77,36 @@ async function handlePaymentSuccess(paymentIntent: Stripe.PaymentIntent) {
     customer: paymentIntent.customer,
     metadata: paymentIntent.metadata,
   });
-
-  if (paymentIntent.metadata?.reservationId && process.env.N8N_WEBHOOK_URL) {
-    try {
-      const axios = require('axios');
-      await axios.post(process.env.N8N_WEBHOOK_URL, {
-        event: 'payment_success',
-        reservationId: paymentIntent.metadata.reservationId,
-        paymentIntentId: paymentIntent.id,
-        amount: paymentIntent.amount / 100,
-        timestamp: new Date().toISOString(),
-      });
-    } catch (error) {
-      console.error('Error notificando a n8n:', error);
-    }
-  }
 }
 
 async function handlePaymentFailure(paymentIntent: Stripe.PaymentIntent) {
-  console.log('Procesando pago fallido:', {
-    id: paymentIntent.id,
-    lastPaymentError: paymentIntent.last_payment_error,
-    metadata: paymentIntent.metadata,
-  });
+  const reason = stripeDeclineMessage(paymentIntent.last_payment_error);
+  console.log('Procesando pago fallido:', { id: paymentIntent.id, reason, metadata: paymentIntent.metadata });
 
-  if (paymentIntent.metadata?.reservationId && process.env.N8N_WEBHOOK_URL) {
+  // El número de reserva viaja en los metadatos del PaymentIntent (payment_intent_data);
+  // para sesiones antiguas se busca en la sesión de Checkout asociada.
+  let code: string | undefined = paymentIntent.metadata?.reservationId;
+  if (!code) {
     try {
-      const axios = require('axios');
-      await axios.post(process.env.N8N_WEBHOOK_URL, {
-        event: 'payment_failed',
-        reservationId: paymentIntent.metadata.reservationId,
-        paymentIntentId: paymentIntent.id,
-        error: paymentIntent.last_payment_error?.message,
-        timestamp: new Date().toISOString(),
-      });
-    } catch (error) {
-      console.error('Error notificando a n8n:', error);
+      const sessions = await stripe.checkout.sessions.list({ payment_intent: paymentIntent.id, limit: 1 });
+      code = sessions.data[0]?.metadata?.reservationId;
+    } catch (err) {
+      console.error('No se pudo buscar la sesión de Checkout del pago fallido:', err);
     }
   }
+
+  const dbId = parseReservationCode(code);
+  if (!dbId) {
+    console.error(`Pago rechazado sin reserva asociada (PaymentIntent ${paymentIntent.id}): ${reason}`);
+    return;
+  }
+
+  await ensureReservationFlowColumns();
+  await query(
+    `UPDATE reservations SET last_payment_error = $1, last_payment_error_at = NOW(), updated_at = NOW() WHERE id = $2`,
+    [reason, dbId]
+  );
+  console.log(`Pago rechazado registrado en la reserva ${dbId}: ${reason}`);
 }
 
 async function handleCheckoutComplete(session: Stripe.Checkout.Session, host?: string | string[]) {
@@ -150,6 +144,7 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session, host?: s
                payment_status = 'deposit_paid',
                status = CASE WHEN status = 'approved' THEN 'confirmed' ELSE status END,
                stripe_deposit_session_id = $2,
+               last_payment_error = NULL,
                updated_at = NOW()
            WHERE id = $3`,
           [amount, session.id, dbId]
@@ -192,6 +187,7 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session, host?: s
            SET deposit_paid = total_price,
                payment_status = 'fully_paid',
                stripe_remaining_session_id = $1,
+               last_payment_error = NULL,
                updated_at = NOW()
            WHERE id = $2`,
           [session.id, dbId]
@@ -250,35 +246,5 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session, host?: s
     console.log('WhatsApp notification sent to admin');
   } catch (error) {
     console.error('Error sending admin WhatsApp notification:', error);
-  }
-
-  // Notify n8n for additional processing (email, calendar, etc.)
-  if (process.env.N8N_WEBHOOK_URL) {
-    try {
-      const axios = require('axios');
-      await axios.post(process.env.N8N_WEBHOOK_URL, {
-        event: paymentType === 'deposit' ? 'checkout_complete' : 'remaining_payment_complete',
-        reservationId: metadata.reservationId,
-        sessionId: session.id,
-        customerEmail: session.customer_email || metadata.email,
-        customerPhone: metadata.phone,
-        customerName: metadata.name,
-        date: metadata.date,
-        timeSlot: metadata.timeSlot,
-        guests: parseInt(metadata.guests || '0'),
-        eventType: metadata.eventType,
-        extras: metadata.extras ? metadata.extras.split(',') : [],
-        basePrice: parseFloat(metadata.basePrice || '0'),
-        totalPrice: parseFloat(metadata.totalPrice || '0'),
-        depositAmount: parseFloat(metadata.depositAmount || '0'),
-        message: metadata.message,
-        contractUrl,
-        paymentStatus: session.payment_status,
-        timestamp: new Date().toISOString(),
-      });
-      console.log('n8n notified of checkout completion');
-    } catch (error) {
-      console.error('Error notificando a n8n:', error);
-    }
   }
 }

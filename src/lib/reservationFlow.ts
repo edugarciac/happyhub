@@ -11,6 +11,8 @@ export function ensureReservationFlowColumns(): Promise<void> {
     columnsReady = (async () => {
       await query('ALTER TABLE reservations ADD COLUMN IF NOT EXISTS payment_method VARCHAR(20)');
       await query('ALTER TABLE reservations ADD COLUMN IF NOT EXISTS payment_due_at TIMESTAMPTZ');
+      await query('ALTER TABLE reservations ADD COLUMN IF NOT EXISTS last_payment_error TEXT');
+      await query('ALTER TABLE reservations ADD COLUMN IF NOT EXISTS last_payment_error_at TIMESTAMPTZ');
       await query(
         `UPDATE reservations SET status = 'confirmed', updated_at = NOW()
          WHERE status = 'approved' AND payment_status IN ('deposit_paid', 'fully_paid')`

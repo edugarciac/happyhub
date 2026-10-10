@@ -36,6 +36,8 @@ interface Reservation {
   needsKidsFurniture: boolean;
   paymentMethod: string | null;
   paymentDueAt: string | null;
+  lastPaymentError: string | null;
+  lastPaymentErrorAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -360,6 +362,12 @@ export default function AdminReservations() {
                             {r.status === 'approved' && r.paymentStatus !== 'deposit_paid' && r.paymentStatus !== 'fully_paid' && r.paymentDueAt && (
                               <div className="text-xs mt-1 text-red-600">
                                 Pendiente de señal ({r.paymentMethod === 'bizum' ? 'Bizum' : 'tarjeta'}) · vence {formatDueAt(r.paymentDueAt)}
+                              </div>
+                            )}
+                            {r.lastPaymentError && r.paymentStatus !== 'deposit_paid' && r.paymentStatus !== 'fully_paid' && (
+                              <div className="text-xs mt-1 text-red-700 font-medium">
+                                ⚠️ Pago con tarjeta denegado: {r.lastPaymentError}
+                                {r.lastPaymentErrorAt && <> · {formatDueAt(r.lastPaymentErrorAt)}</>}
                               </div>
                             )}
                             {r.status === 'pending' && r.paymentMethod && (
