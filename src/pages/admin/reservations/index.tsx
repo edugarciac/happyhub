@@ -4,8 +4,9 @@ import Link from 'next/link';
 import AdminLayout from '@/components/admin/AdminLayout';
 import {
   Search, Filter, ChevronLeft, ChevronRight, RefreshCw, Calendar,
-  Users, Mail, Phone, MessageCircle, Pencil, Trash2, Plus, X, CreditCard, CalendarX,
+  Users, Mail, Phone, MessageCircle, Pencil, Trash2, Plus, X, CreditCard, CalendarX, BadgeCheck,
 } from 'lucide-react';
+import { formatDueAt } from '@/config/payments';
 import {
   ReservationStatus, STATUS_LABELS, STATUS_COLORS,
   TRANSITION_LABELS, getAvailableTransitions,
@@ -33,6 +34,8 @@ interface Reservation {
   rejectionReason: string;
   cancellationReason: string;
   needsKidsFurniture: boolean;
+  paymentMethod: string | null;
+  paymentDueAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -177,6 +180,17 @@ export default function AdminReservations() {
       setPaymentLinkModal({ reservationId, url: data.url });
     } catch { alert('No se pudo generar el enlace de pago'); }
     finally { setGeneratingLinkFor(null); }
+  };
+
+  const handleMarkDepositPaid = async (r: Reservation) => {
+    if (!confirm(`¿Confirmas que has recibido la señal de ${r.depositAmount} € por Bizum de ${r.name || 'este cliente'}?`)) return;
+    try {
+      const res = await fetch(`/api/admin/reservations/${r.id}/mark-deposit-paid`, { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) { showToast(data.error || 'Error al registrar la señal', 'error'); return; }
+      showToast(data.warning || 'Señal registrada: reserva confirmada', data.warning ? 'error' : 'success');
+      fetchReservations();
+    } catch { showToast('Error de conexión', 'error'); }
   };
 
   const handleDelete = async () => {
@@ -342,6 +356,14 @@ export default function AdminReservations() {
                             <div className={`text-xs mt-1 font-medium ${r.paymentStatus === 'fully_paid' ? 'text-green-600' : r.paymentStatus === 'deposit_paid' ? 'text-amber-600' : 'text-gray-400'}`}>
                               {r.paymentStatus === 'fully_paid' ? '✓ Pagado completo' : r.paymentStatus === 'deposit_paid' ? 'Señal pagada' : ''}
                             </div>
+                            {r.status === 'approved' && r.paymentStatus !== 'deposit_paid' && r.paymentStatus !== 'fully_paid' && r.paymentDueAt && (
+                              <div className="text-xs mt-1 text-red-600">
+                                Pendiente de señal ({r.paymentMethod === 'bizum' ? 'Bizum' : 'tarjeta'}) · vence {formatDueAt(r.paymentDueAt)}
+                              </div>
+                            )}
+                            {r.status === 'pending' && r.paymentMethod && (
+                              <div className="text-xs mt-1 text-gray-500">Pagará con {r.paymentMethod === 'bizum' ? 'Bizum' : 'tarjeta'}</div>
+                            )}
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${colors.bg} ${colors.text}`}>
@@ -380,6 +402,11 @@ export default function AdminReservations() {
                               <button onClick={() => openEdit(r)} className="p-1.5 text-gray-600 hover:bg-gray-100 rounded transition-colors" title="Editar">
                                 <Pencil className="w-4 h-4" />
                               </button>
+                              {r.status === 'approved' && r.paymentStatus !== 'deposit_paid' && r.paymentStatus !== 'fully_paid' && (
+                                <button onClick={() => handleMarkDepositPaid(r)} className="p-1.5 text-green-600 hover:bg-green-50 rounded transition-colors" title="Señal recibida (Bizum)">
+                                  <BadgeCheck className="w-4 h-4" />
+                                </button>
+                              )}
                               {r.paymentStatus === 'deposit_paid' && (
                                 <button onClick={() => handleGeneratePaymentLink(r.id)} disabled={generatingLinkFor === r.id} className="p-1.5 text-amber-600 hover:bg-amber-50 rounded transition-colors" title="Generar enlace de pago">
                                   <CreditCard className="w-4 h-4" />

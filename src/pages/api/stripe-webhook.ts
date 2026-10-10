@@ -2,7 +2,9 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { buffer } from 'micro';
 import Stripe from 'stripe';
 import { constructWebhookEvent } from '@/lib/stripe';
-import { query } from '@/lib/db';
+import { query, queryOne } from '@/lib/db';
+import { sendEmail } from '@/lib/mailer';
+import { buildReservationCode, depositReceivedEmail } from '@/lib/emailTemplates';
 import {
   sendReservationConfirmation,
   notifyAdminNewReservation,
@@ -151,6 +153,30 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session, host?: s
            WHERE id = $3`,
           [amount, session.id, dbId]
         );
+        // El enlace de pago de la señal ya no sirve
+        await query(
+          `UPDATE payment_tokens SET used = true WHERE reservation_id = $1 AND token_type = 'deposit' AND used = false`,
+          [dbId]
+        );
+        // Correo de confirmación al cliente
+        const info = await queryOne<{ event_date: string; time_slot: string; deposit_amount: string | null; total_price: string | null; name: string | null; email: string | null }>(
+          `SELECT TO_CHAR(r.event_date, 'YYYY-MM-DD') AS event_date, r.time_slot, r.deposit_amount, r.total_price, u.name, u.email
+           FROM reservations r LEFT JOIN users u ON u.id = r.user_id WHERE r.id = $1`,
+          [dbId]
+        );
+        if (info?.email) {
+          await sendEmail({
+            to: info.email,
+            ...depositReceivedEmail({
+              name: info.name || '',
+              code: buildReservationCode(info.event_date, dbId),
+              date: info.event_date,
+              timeSlot: info.time_slot,
+              depositAmount: Number(info.deposit_amount) || amount,
+              totalPrice: Number(info.total_price) || 0,
+            }),
+          });
+        }
       } else if (paymentType === 'remaining') {
         await query(
           `UPDATE reservations

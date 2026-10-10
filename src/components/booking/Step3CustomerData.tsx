@@ -4,7 +4,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useBooking, EventType, PaymentMethod } from './BookingContext';
 import PriceSummary from './PriceSummary';
-import { isHoliday } from '@/utils/pricing';
 import { ChevronLeft, ChevronRight, User, AlertCircle, FileText, Loader2, CreditCard } from 'lucide-react';
 
 const customerSchema = z.object({
@@ -21,7 +20,7 @@ const customerSchema = z.object({
   ], {
     errorMap: () => ({ message: 'Selecciona un tipo de evento' }),
   }),
-  paymentMethod: z.enum(['card', 'bizum', 'cash'], {
+  paymentMethod: z.enum(['card', 'bizum'], {
     errorMap: () => ({ message: 'Selecciona un método de pago' }),
   }),
   message: z.string().optional(),
@@ -179,54 +178,8 @@ export default function Step3CustomerData() {
         });
       }
 
-      // Los días festivos requieren confirmación explícita de HappyHub caso a caso:
-      // no se redirige a Stripe automáticamente, se avanza a la pantalla de
-      // "solicitud enviada" igual que con bizum/efectivo, y el admin envía el
-      // enlace de pago manualmente tras confirmar.
-      const dateIsHoliday = state.date ? isHoliday(state.date) : false;
-
-      // If card payment on a non-holiday date: redirect to Stripe for deposit
-      if (data.paymentMethod === 'card' && !dateIsHoliday) {
-        try {
-          const checkoutRes = await fetch('/api/create-checkout-session', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              reservationId,
-              type: 'deposit',
-              name: data.name,
-              email: data.email,
-              phone: data.phone,
-              eventType: data.eventType,
-              message: data.message || '',
-              date: dateStr,
-              timeSlot: state.timeSlot,
-              guests: state.guests,
-              extras: state.selectedExtras || [],
-              basePrice: state.basePrice || totalPrice,
-              totalPrice,
-              depositAmount,
-            }),
-          });
-
-          const checkoutData = await checkoutRes.json();
-
-          if (!checkoutRes.ok || !checkoutData.url) {
-            setSubmitError('Error al iniciar el pago con tarjeta. Inténtalo de nuevo.');
-            setIsSubmitting(false);
-            return;
-          }
-
-          window.location.href = checkoutData.url;
-          return;
-        } catch (stripeError: any) {
-          setSubmitError('No se pudo conectar con el sistema de pago. Inténtalo de nuevo.');
-          setIsSubmitting(false);
-          return;
-        }
-      }
-
-      // Non-card payment, or a holiday date pending manual confirmation: advance to confirmation step
+      // Todas las solicitudes quedan pendientes de aprobación: el enlace de pago
+      // (tarjeta o Bizum) se envía por correo cuando HappyHub la aprueba.
       nextStep();
     } catch (error: any) {
       console.error('Error submitting reservation:', error);
@@ -339,11 +292,10 @@ export default function Step3CustomerData() {
                       Método de pago *
                     </div>
                   </label>
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-2 gap-3">
                     {[
                       { value: 'card', label: 'Tarjeta', icon: '💳' },
                       { value: 'bizum', label: 'Bizum', icon: '📱' },
-                      { value: 'cash', label: 'Efectivo', icon: '💵' },
                     ].map((method) => (
                       <label
                         key={method.value}
@@ -366,6 +318,9 @@ export default function Step3CustomerData() {
                   {errors.paymentMethod && (
                     <p className="text-red-500 text-sm mt-1">{errors.paymentMethod.message}</p>
                   )}
+                  <p className="text-xs text-gray-500 mt-2">
+                    No pagas nada ahora. Cuando aprobemos tu solicitud te enviaremos un correo para pagar la señal.
+                  </p>
                 </div>
 
                 <div className="md:col-span-2">

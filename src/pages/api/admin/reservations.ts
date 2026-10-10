@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { verifyAdminSession } from '@/utils/adminAuth';
+import { ensureReservationFlowColumns, expireUnpaidReservations } from '@/lib/reservationFlow';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const admin = await verifyAdminSession(req, res);
@@ -57,6 +58,9 @@ async function handleList(req: NextApiRequest, res: NextApiResponse) {
 
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
+    await ensureReservationFlowColumns();
+    await expireUnpaidReservations();
+
     const countResult = await query(
       `SELECT COUNT(*) as total FROM reservations r LEFT JOIN users u ON r.user_id = u.id ${whereClause}`,
       params
@@ -73,6 +77,7 @@ async function handleList(req: NextApiRequest, res: NextApiResponse) {
               r.status, r.notes, r.created_at, r.updated_at,
               r.rejection_reason, r.cancellation_reason,
               r.admin_approved_by, r.approved_at, r.needs_kids_furniture,
+              r.payment_method, r.payment_due_at,
               u.name, u.email, u.phone
        FROM reservations r
        LEFT JOIN users u ON r.user_id = u.id
@@ -100,6 +105,8 @@ async function handleList(req: NextApiRequest, res: NextApiResponse) {
       rejectionReason: r.rejection_reason || '',
       cancellationReason: r.cancellation_reason || '',
       needsKidsFurniture: !!r.needs_kids_furniture,
+      paymentMethod: r.payment_method || null,
+      paymentDueAt: r.payment_due_at || null,
       createdAt: r.created_at,
       updatedAt: r.updated_at,
     }));

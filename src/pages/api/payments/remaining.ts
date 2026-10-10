@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { query, queryOne } from '@/lib/db';
 import { createCheckoutSession } from '@/lib/stripe';
+import { ensureReservationFlowColumns } from '@/lib/reservationFlow';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -16,12 +17,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
+    await ensureReservationFlowColumns();
     let reservation: any;
+    let tokenType = 'remaining_payment';
 
     if (token) {
       // Token-based access (email link, non-registered user)
       const paymentToken = await queryOne(
-        `SELECT pt.reservation_id as res_id, r.id, r.total_price, r.deposit_paid,
+        `SELECT pt.reservation_id as res_id, pt.token_type, r.status, r.id, r.total_price, r.deposit_paid,
                 r.payment_status, r.event_date, r.time_slot, r.event_type,
                 r.guests, r.deposit_amount,
                 u.name as customer_name, u.email as customer_email, u.phone as customer_phone
@@ -35,7 +38,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (!paymentToken) {
         return res.status(404).json({ error: 'Enlace de pago no válido o caducado' });
       }
+      tokenType = paymentToken.token_type || 'remaining_payment';
       reservation = {
+        status: paymentToken.status,
         id: paymentToken.id,
         total_price: paymentToken.total_price,
         deposit_paid: paymentToken.deposit_paid,
@@ -73,10 +78,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const totalPrice = parseFloat(reservation.total_price || '0');
     const depositPaid = parseFloat(reservation.deposit_paid || '0');
-    const remaining = totalPrice - depositPaid;
+    const isDeposit = tokenType === 'deposit';
+    let amount: number;
 
-    if (remaining <= 0 || reservation.payment_status === 'fully_paid') {
-      return res.status(400).json({ error: 'Esta reserva ya está totalmente pagada' });
+    if (isDeposit) {
+      // Señal tras la aprobación: solo si sigue aprobada y sin pagar
+      if (reservation.status !== 'approved') {
+        return res.status(400).json({ error: 'Esta reserva ya no está pendiente de pago (cancelada o plazo vencido)' });
+      }
+      if (reservation.payment_status === 'deposit_paid' || reservation.payment_status === 'fully_paid') {
+        return res.status(400).json({ error: 'La señal de esta reserva ya está pagada' });
+      }
+      amount = parseFloat(reservation.deposit_amount || '0');
+      if (amount <= 0) {
+        return res.status(400).json({ error: 'Esta reserva no tiene importe de señal' });
+      }
+    } else {
+      amount = totalPrice - depositPaid;
+      if (amount <= 0 || reservation.payment_status === 'fully_paid') {
+        return res.status(400).json({ error: 'Esta reserva ya está totalmente pagada' });
+      }
     }
 
     const baseUrl = process.env.NEXTAUTH_URL || `https://${req.headers.host}`;
@@ -88,20 +109,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           price_data: {
             currency: 'eur',
             product_data: {
-              name: 'Pago restante — HappyHub',
+              name: isDeposit ? 'Señal de la reserva — HappyHub' : 'Pago restante — HappyHub',
               description: `Evento ${new Date(reservation.event_date).toLocaleDateString('es-ES')} — ${reservation.time_slot}`,
             },
-            unit_amount: Math.round(remaining * 100),
+            unit_amount: Math.round(amount * 100),
           },
           quantity: 1,
         },
       ],
-      successUrl: `${baseUrl}/booking/success?session_id={CHECKOUT_SESSION_ID}&reservation_id=${reservationIdStr}&type=remaining`,
-      cancelUrl: `${baseUrl}/area-privada`,
+      successUrl: `${baseUrl}/booking/success?session_id={CHECKOUT_SESSION_ID}&reservation_id=${reservationIdStr}&type=${isDeposit ? 'deposit' : 'remaining'}`,
+      // Volver al mismo enlace si cancela: no libera la reserva, aún está dentro del plazo
+      cancelUrl: token ? `${baseUrl}/pagar/${token}` : `${baseUrl}/area-privada`,
       customerEmail: reservation.email,
       metadata: {
         reservationId: reservationIdStr,
-        type: 'remaining',
+        type: isDeposit ? 'deposit' : 'remaining',
         name: reservation.name || '',
         email: reservation.email || '',
         phone: reservation.phone || '',
@@ -112,14 +134,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         extras: '',
         basePrice: totalPrice.toString(),
         totalPrice: totalPrice.toString(),
-        depositAmount: remaining.toString(),
+        depositAmount: amount.toString(),
         message: '',
       },
     });
 
     // Save session ID to reservation
     await query(
-      `UPDATE reservations SET stripe_remaining_session_id = $1, updated_at = NOW() WHERE id = $2`,
+      isDeposit
+        ? `UPDATE reservations SET stripe_deposit_session_id = $1, updated_at = NOW() WHERE id = $2`
+        : `UPDATE reservations SET stripe_remaining_session_id = $1, updated_at = NOW() WHERE id = $2`,
       [stripeSession.id, reservation.id]
     );
 

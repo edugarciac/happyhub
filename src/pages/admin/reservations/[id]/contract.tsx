@@ -187,7 +187,7 @@ export default function ContractPage() {
         </div>
 
         <div className="clause">
-          <p><strong>2.4. Metodos de pago aceptados:</strong> Tarjeta bancaria, Bizum o efectivo.</p>
+          <p><strong>2.4. Metodos de pago aceptados:</strong> Tarjeta bancaria o Bizum.</p>
         </div>
 
         <h2>3. Condiciones de uso del espacio</h2>

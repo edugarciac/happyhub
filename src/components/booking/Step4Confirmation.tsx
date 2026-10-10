@@ -3,6 +3,7 @@ import { Check, Calendar, Clock, Users, MessageSquare, Mail, Phone, Home, AlertT
 import { formatDate } from '@/utils/formatters';
 import { isHoliday } from '@/utils/pricing';
 import Link from 'next/link';
+import { PAYMENT_WINDOW_HOURS } from '@/config/payments';
 
 export default function Step4Confirmation() {
   const { state, calculateTotalPrice, calculateDepositAmount } = useBooking();
@@ -41,7 +42,7 @@ export default function Step4Confirmation() {
           ¡Solicitud enviada!
         </h2>
         <p className="text-lg text-gray-600">
-          Tu reserva ha sido recibida correctamente
+          Tu reserva está <strong>pendiente de aprobación</strong>
         </p>
         {state.reservationId && (
           <p className="text-sm text-gray-500 mt-2">
@@ -71,8 +72,8 @@ export default function Step4Confirmation() {
             <div>
               <p className="text-sm font-semibold text-amber-900">Tu fecha es festivo</p>
               <p className="text-sm text-amber-800 mt-1">
-                Los días festivos requieren confirmación expresa de HappyHub caso a caso. No se ha realizado ningún
-                cargo: te confirmaremos la disponibilidad y, una vez confirmada, te enviaremos el enlace de pago de la señal.
+                Los días festivos requieren confirmación expresa de HappyHub caso a caso. Revisaremos la disponibilidad
+                antes de aprobar tu solicitud.
               </p>
             </div>
           </div>
@@ -87,20 +88,24 @@ export default function Step4Confirmation() {
             <h3 className="font-semibold text-blue-900 mb-2">
               ¿Qué sigue ahora?
             </h3>
-            <ul className="space-y-2 text-sm text-blue-800">
-              <li className="flex items-start gap-2">
-                <span className="text-blue-600 font-bold">•</span>
-                <span>Te enviaremos un <strong>email de confirmación</strong> a {state.email}</span>
+            <ol className="space-y-2 text-sm text-blue-800 list-decimal list-inside">
+              <li>
+                <strong>Revisamos tu solicitud.</strong> Te hemos enviado un email con el resumen a {state.email}.
               </li>
-              <li className="flex items-start gap-2">
-                <span className="text-blue-600 font-bold">•</span>
-                <span>Incluiremos el <strong>enlace de pago</strong> para la señal del 30% ({depositAmount}€)</span>
+              <li>
+                <strong>Si la aprobamos</strong>, recibirás un nuevo email{' '}
+                {state.paymentMethod === 'bizum' ? (
+                  <>con las <strong>instrucciones para pagar por Bizum</strong> la señal del 30% ({depositAmount}€).</>
+                ) : (
+                  <>con el <strong>enlace para pagar con tarjeta</strong> la señal del 30% ({depositAmount}€).</>
+                )}
               </li>
-              <li className="flex items-start gap-2">
-                <span className="text-blue-600 font-bold">•</span>
-                <span>Nos pondremos en contacto contigo en los <strong>próximos días</strong></span>
+              <li>
+                <strong>Tendrás {PAYMENT_WINDOW_HOURS} horas para pagarla.</strong> Al recibir el pago, tu reserva queda
+                confirmada. Si no se paga a tiempo, se cancelará automáticamente y la fecha quedará libre.
               </li>
-            </ul>
+            </ol>
+            <p className="text-xs text-blue-700 mt-3">No se ha realizado ningún cargo.</p>
           </div>
         </div>
       </div>

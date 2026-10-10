@@ -1,4 +1,5 @@
 // Plantillas HTML de los correos transaccionales (adaptadas de los workflows de n8n)
+import { BIZUM_PHONE, PAYMENT_WINDOW_HOURS, formatDueAt } from '@/config/payments';
 
 export function escapeHtml(value: unknown): string {
   return String(value ?? '')
@@ -105,9 +106,13 @@ export function reservationCustomerEmail(r: ReservationEmailData): { subject: st
       ['Señal (30%)', `<strong style="color: #FF6B35;">${escapeHtml(r.depositAmount)} €</strong>`],
     ])}
     ${note(
-      r.isHoliday
-        ? '<strong>Próximos pasos:</strong> al ser festivo, revisaremos tu solicitud caso a caso y te contactaremos en los próximos días.'
-        : '<strong>Próximos pasos:</strong> revisaremos tu solicitud y te contactaremos en los próximos días para confirmar los detalles y el pago de la señal.'
+      `<strong>Tu solicitud está pendiente de aprobación.</strong> ${
+        r.isHoliday ? 'Al ser festivo, la revisaremos caso a caso. ' : ''
+      }Cuando la aprobemos te enviaremos un correo ${
+        r.paymentMethod === 'bizum'
+          ? `con las instrucciones para pagar la señal de <strong>${escapeHtml(r.depositAmount)} €</strong> por Bizum`
+          : `con el enlace para pagar la señal de <strong>${escapeHtml(r.depositAmount)} €</strong> con tarjeta`
+      }. Tendrás ${PAYMENT_WINDOW_HOURS} horas para pagarla; si no, la reserva se cancelará automáticamente.`
     )}
     ${CONTACT_HTML}`;
   return {
@@ -181,4 +186,73 @@ export function reservationCancelledEmail(params: {
     subject: isRejected ? 'Tu solicitud de reserva - HappyHub' : 'Reserva cancelada - HappyHub',
     html: layout('HappyHub', isRejected ? 'Solicitud de reserva' : 'Reserva cancelada', body),
   };
+}
+
+export function reservationApprovedEmail(params: {
+  name: string;
+  code: string;
+  date: string;
+  timeSlot: string;
+  depositAmount: number;
+  totalPrice: number;
+  paymentMethod: string;
+  payUrl: string;
+  dueAt: Date;
+}): { subject: string; html: string } {
+  const due = escapeHtml(formatDueAt(params.dueAt));
+  const amount = escapeHtml(params.depositAmount);
+  const button = (label: string) => `<p style="text-align: center; margin: 28px 0;">
+      <a href="${escapeHtml(params.payUrl)}" style="background: #FF6B35; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold;">${label}</a>
+    </p>`;
+
+  const payment =
+    params.paymentMethod === 'bizum'
+      ? `<h3 style="color: #FF6B35; margin-bottom: 8px;">Paga la señal por Bizum</h3>
+    ${rows([
+      ['Importe', `<strong>${amount} €</strong>`],
+      ['Enviar a', `<strong>${escapeHtml(BIZUM_PHONE)}</strong>`],
+      ['Concepto', `<strong>${escapeHtml(params.code)}</strong>`],
+    ])}
+    <p style="font-size: 13px; color: #666;">¿Prefieres pagar con tarjeta? También puedes hacerlo aquí:</p>
+    ${button('Pagar con tarjeta')}`
+      : `<p>Para confirmar tu reserva, paga la señal de <strong>${amount} €</strong> con tarjeta:</p>
+    ${button(`Pagar la señal (${amount} €)`)}`;
+
+  const body = `<h2 style="color: #FF6B35; margin-top: 0;">¡Hola ${escapeHtml(params.name || '')}! Tu reserva está aprobada 🎉</h2>
+    ${rows([
+      ['Nº de reserva', `<strong>${escapeHtml(params.code)}</strong>`],
+      ['Fecha', escapeHtml(formatDateEs(params.date))],
+      ['Horario', escapeHtml(SLOT_LABELS[params.timeSlot] || params.timeSlot)],
+      ['Precio total', `${escapeHtml(params.totalPrice)} €`],
+    ])}
+    ${payment}
+    ${note(`<strong>Tienes hasta el ${due}</strong> (${PAYMENT_WINDOW_HOURS} horas) para pagar la señal. Si no la recibimos a tiempo, la reserva se cancelará automáticamente y la fecha quedará libre.`)}
+    ${CONTACT_HTML}`;
+
+  return {
+    subject: `Reserva ${params.code} aprobada: paga la señal antes del ${formatDueAt(params.dueAt)}`,
+    html: layout('HappyHub', 'Reserva aprobada', body),
+  };
+}
+
+export function depositReceivedEmail(params: {
+  name: string;
+  code: string;
+  date: string;
+  timeSlot: string;
+  depositAmount: number;
+  totalPrice: number;
+}): { subject: string; html: string } {
+  const remaining = Math.max(0, (Number(params.totalPrice) || 0) - (Number(params.depositAmount) || 0));
+  const body = `<h2 style="color: #FF6B35; margin-top: 0;">¡Reserva confirmada, ${escapeHtml(params.name || '')}! 🎉</h2>
+    <p>Hemos recibido la señal. Tu fecha queda reservada:</p>
+    ${rows([
+      ['Nº de reserva', `<strong>${escapeHtml(params.code)}</strong>`],
+      ['Fecha', escapeHtml(formatDateEs(params.date))],
+      ['Horario', escapeHtml(SLOT_LABELS[params.timeSlot] || params.timeSlot)],
+      ['Señal pagada', `${escapeHtml(params.depositAmount)} €`],
+      ['Pendiente', `${escapeHtml(remaining)} €`],
+    ])}
+    ${CONTACT_HTML}`;
+  return { subject: `Reserva ${params.code} confirmada - HappyHub`, html: layout('HappyHub', 'Reserva confirmada', body) };
 }

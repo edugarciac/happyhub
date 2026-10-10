@@ -10,6 +10,8 @@ import {
   type ReservationEmailData,
 } from '@/lib/emailTemplates';
 import { createReservationEvent } from '@/lib/googleCalendar';
+import { ensureReservationFlowColumns, expireUnpaidReservations } from '@/lib/reservationFlow';
+import { isBookingPaymentMethod } from '@/config/payments';
 import { BOOKINGS_FROM_LABEL, isBeforeBookingStart } from '@/config/opening';
 import { isBookableTimeSlot } from '@/utils/pricing';
 
@@ -90,6 +92,13 @@ export default async function handler(
       });
     }
 
+    if (!isBookingPaymentMethod(reservationData.paymentMethod)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Método de pago no válido. Elige tarjeta o Bizum.',
+      });
+    }
+
     const guests = Number.parseInt(String(reservationData.guests), 10) || 0;
     const totalPrice = Number(reservationData.totalPrice) || 0;
     const depositAmount = Number(reservationData.depositAmount) || 0;
@@ -102,15 +111,19 @@ export default async function handler(
 
     // Comprobar disponibilidad y guardar en una sola sentencia: si ya hay una
     // reserva activa en esa fecha y franja, no inserta nada (evita dobles reservas).
+    // Liberar antes las franjas con la señal sin pagar fuera de plazo
+    await expireUnpaidReservations();
+
     let inserted: { id: number } | null;
     try {
+      await ensureReservationFlowColumns();
       const user = await queryOne<{ id: number }>('SELECT id FROM users WHERE LOWER(email) = LOWER($1) LIMIT 1', [
         reservationData.email,
       ]);
       inserted = await queryOne<{ id: number }>(
         `INSERT INTO reservations
-           (user_id, event_type, event_date, time_slot, guests, total_price, deposit_amount, notes, status, needs_kids_furniture, created_at)
-         SELECT $1::int, $2::text, $3::date, $4::text, $5::int, $6::numeric, $7::numeric, $8::text, 'pending', $9::boolean, NOW()
+           (user_id, event_type, event_date, time_slot, guests, total_price, deposit_amount, notes, status, needs_kids_furniture, payment_method, created_at)
+         SELECT $1::int, $2::text, $3::date, $4::text, $5::int, $6::numeric, $7::numeric, $8::text, 'pending', $9::boolean, $10::text, NOW()
          WHERE NOT EXISTS (
            SELECT 1 FROM reservations
            WHERE event_date = $3::date AND time_slot = $4::text AND status IN ('pending', 'approved', 'confirmed')
@@ -129,6 +142,7 @@ export default async function handler(
           depositAmount,
           reservationData.message || '',
           needsKidsFurniture,
+          reservationData.paymentMethod,
         ]
       );
     } catch (dbError: any) {

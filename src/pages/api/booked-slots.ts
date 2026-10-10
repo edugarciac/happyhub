@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
+import { expireUnpaidReservations } from '@/lib/reservationFlow';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -7,6 +8,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
+    // Liberar primero las reservas aprobadas con la señal sin pagar fuera de plazo
+    await expireUnpaidReservations();
+
     const [reservationsResult, blockedResult] = await Promise.all([
       query<{ event_date: string; time_slot: string }>(
         `SELECT TO_CHAR(event_date, 'YYYY-MM-DD') AS event_date, time_slot

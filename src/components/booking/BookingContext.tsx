@@ -15,7 +15,7 @@ export interface Extra {
 export const EXTRAS: Extra[] = [];
 
 export type EventType = 'cumpleaños' | 'celebracion-familiar' | 'eventos-amigos' | 'eventos-colegio-trabajo' | 'taller' | 'otros';
-export type PaymentMethod = 'card' | 'bizum' | 'cash';
+export type PaymentMethod = 'card' | 'bizum';
 
 export interface BookingState {
   step: number;
