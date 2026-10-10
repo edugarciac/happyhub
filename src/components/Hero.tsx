@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import OpeningCountdown from './OpeningCountdown';
 import { ArrowRight, ChevronDown, Star, Users, Clock } from 'lucide-react';
 import { event as gaEvent } from '@/lib/analytics';
 
@@ -59,6 +60,8 @@ export default function Hero() {
       {/* Content — left half only */}
       <div className="container-custom relative z-10 w-full">
         <div className="max-w-xl animate-slide-up">
+
+          <OpeningCountdown />
 
           <h1 className="text-5xl md:text-6xl xl:text-7xl font-bold text-white leading-[1.05] tracking-tight mb-6">
             Celebra Momentos <span className="text-primary-300">Inolvidables</span>

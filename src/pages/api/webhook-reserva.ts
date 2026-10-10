@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import axios from 'axios';
 import { notifyAdminReservationRequest } from '@/lib/whatsapp';
 import { queryOne } from '@/lib/db';
+import { OPENING_LABEL, isBeforeOpening } from '@/config/opening';
 
 interface ReservationData {
   name: string;
@@ -47,6 +48,13 @@ export default async function handler(
       return res.status(400).json({
         success: false,
         error: 'Faltan campos obligatorios',
+      });
+    }
+
+    if (!reservationData.date || isBeforeOpening(reservationData.date)) {
+      return res.status(400).json({
+        success: false,
+        error: `Solo aceptamos reservas a partir del ${OPENING_LABEL}`,
       });
     }
 

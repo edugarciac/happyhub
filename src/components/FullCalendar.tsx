@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { OPENING_DATE, isBeforeOpening, toDateStr } from '@/config/opening';
 
 interface TimeSlotStatus {
   id: 'morning' | 'afternoon' | 'night';
@@ -23,7 +24,11 @@ interface FullCalendarProps {
 }
 
 export default function FullCalendar({ onSlotSelect, bookedSlots = [], selectedDate, selectedTimeSlot }: FullCalendarProps) {
-  const [currentMonth, setCurrentMonth] = useState(new Date());
+  // Abrir en el mes de la inauguración si aún no ha llegado
+  const [currentMonth, setCurrentMonth] = useState(() => {
+    const opening = new Date(`${OPENING_DATE}T12:00:00`);
+    return new Date() < opening ? opening : new Date();
+  });
 
   // Get days in month
   const getDaysInMonth = (date: Date): DaySlots[] => {
@@ -57,7 +62,7 @@ export default function FullCalendar({ onSlotSelect, bookedSlots = [], selectedD
     // Add days of the current month
     for (let day = 1; day <= daysInMonth; day++) {
       const currentDate = new Date(year, month, day);
-      const isPast = currentDate < new Date(new Date().setHours(0, 0, 0, 0));
+      const isPast = currentDate < new Date(new Date().setHours(0, 0, 0, 0)) || isBeforeOpening(toDateStr(currentDate));
 
       days.push({
         date: currentDate,
