@@ -219,12 +219,40 @@ Si tienes alguna pregunta o necesitas hacer cambios, escríbenos por WhatsApp al
   return sendTextMessage({ to: phone, message });
 }
 
+// Avisos al admin vía CallMeBot (https://www.callmebot.com): WhatsApp gratuito al propio número,
+// sin cuenta de Meta. Se activa con CALLMEBOT_API_KEY; si no, se usa WhatsApp Cloud API.
+async function sendViaCallMeBot(phone: string, message: string, apiKey: string): Promise<boolean> {
+  const url =
+    'https://api.callmebot.com/whatsapp.php' +
+    `?phone=${encodeURIComponent('+' + formatPhoneNumber(phone))}` +
+    `&text=${encodeURIComponent(message)}` +
+    `&apikey=${encodeURIComponent(apiKey)}`;
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    const body = await res.text();
+    if (!res.ok || /error|invalid|not allowed/i.test(body)) {
+      console.error('CallMeBot error:', res.status, body.replace(/<[^>]+>/g, ' ').trim().slice(0, 200));
+      return false;
+    }
+    console.log('Admin WhatsApp sent via CallMeBot');
+    return true;
+  } catch (error: any) {
+    console.error('CallMeBot request failed:', error?.message || error);
+    return false;
+  }
+}
+
 // Send notification to admin
 export async function sendAdminNotification(message: string): Promise<boolean> {
   const adminPhone = process.env.ADMIN_WHATSAPP_NUMBER;
   if (!adminPhone) {
     console.log('Admin WhatsApp number not configured');
     return false;
+  }
+
+  const callMeBotKey = process.env.CALLMEBOT_API_KEY;
+  if (callMeBotKey) {
+    return sendViaCallMeBot(adminPhone, message, callMeBotKey);
   }
 
   return sendTextMessage({ to: adminPhone, message });
