@@ -4,7 +4,7 @@ El espacio dispone ahora de una cafetera Dolce Gusto para los clientes y queremo
 
 ## What Changes
 
-- Añadir "Cafetera Dolce Gusto" a la lista "¿Qué incluye el precio?" de la tabla de tarifas.
+- Añadir "Cafetera Dolce Gusto (cápsulas no incluidas)" a la lista "¿Qué incluye el precio?" de la tabla de tarifas.
 
 ## Capabilities
 

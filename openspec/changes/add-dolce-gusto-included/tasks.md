@@ -1,6 +1,6 @@
 ## 1. Implementation
 
-- [x] 1.1 Add "Cafetera Dolce Gusto" to `INCLUDED` in `src/components/PricingTable.tsx`
+- [x] 1.1 Add "Cafetera Dolce Gusto (cápsulas no incluidas)" to `INCLUDED` in `src/components/PricingTable.tsx`
 
 ## 2. Verify
 
