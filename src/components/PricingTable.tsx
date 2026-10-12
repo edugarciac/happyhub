@@ -16,6 +16,7 @@ const INCLUDED = [
   'Mobiliario básico (mesas y sillas)',
   'Sistema de sonido',
   'Microondas y nevera',
+  'Cafetera Dolce Gusto',
 ];
 
 export default function PricingTable() {

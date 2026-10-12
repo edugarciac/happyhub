@@ -8,7 +8,7 @@
 ## 2. Database
 
 - [x] 2.1 Add `database/migrations/025_update_pricing_grid_2026.sql` with the new prices
-- [ ] 2.2 Run the migration on Neon (or edit prices in `/admin/pricing`)
+- [x] 2.2 Run the migration on Neon (or edit prices in `/admin/pricing`)
 
 ## 3. UI
 
@@ -21,4 +21,4 @@
 
 - [x] 4.1 Update `src/__tests__/pricing.test.ts` and run `npm test`
 - [x] 4.2 Update `docs/project_notes/key_facts.md`
-- [ ] 4.3 After deploy: check home table, a holiday eve in the calendar, and a normal Friday afternoon (180 €)
+- [x] 4.3 After deploy: check home table, a holiday eve in the calendar, and a normal Friday afternoon (180 €)
