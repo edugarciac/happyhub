@@ -15,6 +15,7 @@
 - [x] 3.1 Replace duplicated rule logic in `Step1Calendar`, `Step2Configuration`, `ReservationForm`, `disponibilidad` with `resolvePriceFromRules`
 - [x] 3.2 Generic "A consultar" blocking message in `Step1Calendar`
 - [x] 3.3 `PricingTable`: "Festivos y vísperas" row; `disponibilidad` price summary updated
+- [x] 3.4 `/disponibilidad`: "Solicitar reserva" passes the local date (`toDateStr`) instead of `toISOString()` (sent the previous day)
 
 ## 4. Verify
 

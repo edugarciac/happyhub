@@ -18,6 +18,7 @@ Nueva parrilla:
 - La resolución "fecha + franja → regla → precio" se centraliza en `src/utils/pricing.ts` (`getPricingRuleKey`, `resolvePriceFromRules`); se elimina la lógica duplicada en 5 componentes.
 - **BREAKING (bugfix)**: un precio 0 o ausente ya no cae a 110 € (`pricing[key] || 110`); pasa a "A consultar". Sin esto, un festivo se cobraría 110 €.
 - `isHoliday` compara la fecha **local** (antes `toISOString()`, que en España desplaza un día las fechas del calendario y marcaba como festivo el día siguiente).
+- `/disponibilidad` → "Solicitar reserva" enviaba el día anterior (`toISOString()`); ahora usa la fecha local.
 - El flujo de reserva bloquea las fechas "A consultar" con un mensaje genérico (antes era específico de la franja nocturna).
 - Tabla pública: fila "Festivos y vísperas".
 

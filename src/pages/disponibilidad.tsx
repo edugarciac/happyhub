@@ -7,6 +7,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import FullCalendar from '@/components/FullCalendar';
 import { formatDate } from '@/utils/formatters';
+import { toDateStr } from '@/config/opening';
 import { DEFAULT_PRICING_RULES, loadHolidaysFromApi, resolvePriceFromRules, type TimeSlot, AFTERNOON_EXTENSION_NOTE } from '@/utils/pricing';
 
 export default function Disponibilidad() {
@@ -61,7 +62,7 @@ export default function Disponibilidad() {
 
   const handleReserve = () => {
     if (selectedDate && selectedTimeSlot) {
-      const dateStr = selectedDate.toISOString().split('T')[0];
+      const dateStr = toDateStr(selectedDate);
       window.location.href = `/reservas?date=${dateStr}&timeSlot=${selectedTimeSlot}`;
     }
   };
