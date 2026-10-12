@@ -1,7 +1,3 @@
-## 1. Opening date
-
-- [x] 1.1 `src/config/opening.ts`: opening 2026-10-18, bookings from 2026-10-19 (labels too)
-
 ## 2. Discount logic
 
 - [x] 2.1 `src/config/promotions.ts` with config, `isOpeningDiscountEligible` and `openingDiscountAmount`
@@ -22,4 +18,3 @@
 ## 5. Existing requests (manual)
 
 - [ ] 5.1 Run listing SQL; apply −10% on rental in `/admin/reservations` for eligible requests
-- [ ] 5.2 Relocate any request dated 17/10 or 18/10

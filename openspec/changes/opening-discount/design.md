@@ -23,5 +23,4 @@ El precio total y la señal se calculan en el cliente (`BookingContext`) y se en
 
 ## Risks / Trade-offs
 
-- [Riesgo] Solicitudes ya existentes para el 17 o 18/10 quedan fuera del nuevo inicio de reservas → Listarlas con SQL y reubicarlas a mano.
 - [Riesgo] Fechas "A consultar" (festivos/vísperas) no tienen precio → el descuento se aplica a mano al presupuestar.

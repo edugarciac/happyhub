@@ -1,10 +1,9 @@
 ## Why
 
-Queremos premiar a quien reserve pronto: un 10% de descuento para quien solicite su reserva el día de la inauguración o antes. Además, la inauguración se mueve del 16/10 al 18/10.
+Queremos premiar a quien reserve pronto: un 10% de descuento para quien solicite su reserva el día de la inauguración o antes. La inauguración es el 18/10 (cambio `move-opening-to-oct-18`).
 
 ## What Changes
 
-- Inauguración el **18/10/2026**; reservas desde el **19/10/2026** (el día de la inauguración no se alquila, como hasta ahora).
 - **Descuento inauguración: 10% sobre el alquiler** (no sobre extras) para solicitudes hechas hasta el 18/10/2026 (hora de Madrid) con fecha de evento hasta el 30/12/2026.
 - La reserva muestra la línea de descuento en el resumen; total y señal (30%) se calculan ya descontados.
 - El servidor comprueba con su propia hora que la promoción sigue activa; si el cliente envía un descuento fuera de plazo, rechaza la solicitud.
@@ -18,13 +17,9 @@ Queremos premiar a quien reserve pronto: un 10% de descuento para quien solicite
 
 - `opening-discount`: descuento por reserva anticipada a la inauguración.
 
-### Modified Capabilities
-
-- `opening-date`: nueva fecha de inauguración e inicio de reservas.
-
 ## Impact
 
-- **Config**: `src/config/opening.ts`, nuevo `src/config/promotions.ts`.
+- **Config**: nuevo `src/config/promotions.ts`.
 - **Frontend**: `BookingContext`, `PriceSummary`, `Step3CustomerData`, `PricingTable`.
 - **Backend**: `src/pages/api/webhook-reserva.ts`, `src/lib/emailTemplates.ts`.
 - **Sin migración de BD**: el descuento queda reflejado en `total_price`/`deposit_amount`.
