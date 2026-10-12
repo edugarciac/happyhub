@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { OPENING_LABEL, daysUntilOpening } from '@/config/opening';
+import { OPENING_DISCOUNT } from '@/config/promotions';
 
 /** Días que faltan para la inauguración, calculado en cliente (evita desajustes de hidratación). null hasta montar. */
 export function useDaysUntilOpening(): number | null {
@@ -30,6 +31,9 @@ export default function OpeningCountdown() {
           {days === 0 ? '¡Hoy inauguramos!' : 'Inauguración'}
         </span>
         <span className="text-xl md:text-2xl font-extrabold leading-tight">{OPENING_LABEL}</span>
+        <span className="text-xs md:text-sm font-semibold text-white/95 mt-1 max-w-xs">
+          🎁 {OPENING_DISCOUNT.bannerText}
+        </span>
       </div>
     </div>
   );

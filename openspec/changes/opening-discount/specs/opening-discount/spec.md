@@ -24,6 +24,10 @@ The system SHALL apply a 10% discount on the space rental price (excluding extra
 - **WHEN** the server receives a request with a discount after 2026-10-18 (Madrid)
 - **THEN** it SHALL reject it and ask the user to reload the page
 
+#### Scenario: Opening banners announce the discount
+- **WHEN** a visitor sees the opening popup or the countdown card before the opening day ends
+- **THEN** they SHALL read that there is a 10% discount on the rental for bookings made until 18 October (included) for events until 30/12/2026
+
 #### Scenario: Discount shown in emails
 - **WHEN** a discounted reservation is created
 - **THEN** customer and admin emails SHALL show the discount amount

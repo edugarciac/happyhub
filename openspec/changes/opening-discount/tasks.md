@@ -14,6 +14,7 @@
 ## 4. Communication
 
 - [x] 4.1 `PricingTable`: promotion notice while active
+- [x] 4.2 `ComingSoonOverlay` and `OpeningCountdown`: discount message
 
 ## 5. Existing requests (manual)
 

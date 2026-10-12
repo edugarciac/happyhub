@@ -10,6 +10,8 @@ export const OPENING_DISCOUNT = {
   requestedUntil: OPENING_DATE,
   eventUntil: '2026-12-30',
   label: 'Descuento inauguración',
+  /** Texto para banners de la portada */
+  bannerText: '10% de descuento en el alquiler si reservas hasta el 18 de octubre (incluido) para un evento a celebrar hasta el 30/12/2026.',
   requestedUntilLabel: '18/10',
   eventUntilLabel: '30/12/2026',
 };

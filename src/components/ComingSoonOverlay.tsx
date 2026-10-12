@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { BOOKINGS_FROM_LABEL, OPENING_LABEL } from '@/config/opening';
 import { useDaysUntilOpening } from '@/components/OpeningCountdown';
+import { OPENING_DISCOUNT } from '@/config/promotions';
 
 const STORAGE_KEY = 'happyhub_opening_popup_dismissed_at';
 const HIDE_FOR_MS = 24 * 60 * 60 * 1000;
@@ -86,6 +87,11 @@ export default function ComingSoonOverlay() {
             ? `¡Abrimos las puertas de HappyHub! Ya puedes reservar tu celebración a partir del ${BOOKINGS_FROM_LABEL}.`
             : `Ya puedes reservar tu celebración a partir del ${BOOKINGS_FROM_LABEL}. 🎈`}
         </p>
+
+        <div className="mb-7 rounded-2xl border-2 border-dashed border-[#F86F24] bg-orange-50 px-5 py-4">
+          <p className="text-2xl font-extrabold text-[#F86F24] leading-none">🎁 -{OPENING_DISCOUNT.percent}%</p>
+          <p className="text-sm text-[#05585B] font-semibold mt-2">{OPENING_DISCOUNT.bannerText}</p>
+        </div>
 
         <div className="flex flex-wrap gap-3 justify-center">
           <Link

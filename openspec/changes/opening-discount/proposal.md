@@ -9,6 +9,7 @@ Queremos premiar a quien reserve pronto: un 10% de descuento para quien solicite
 - El servidor comprueba con su propia hora que la promoción sigue activa; si el cliente envía un descuento fuera de plazo, rechaza la solicitud.
 - Emails (cliente y admin) muestran el descuento aplicado.
 - La tabla de tarifas muestra un aviso de la promoción mientras está activa.
+- El popup de inauguración y la tarjeta de cuenta atrás de la portada anuncian el descuento.
 - Solicitudes ya existentes: se aplica el descuento a mano desde el panel de admin, con una consulta SQL para listarlas (no se guarda el desglose de extras en BD, así que no se puede recalcular automáticamente sin riesgo).
 
 ## Capabilities
