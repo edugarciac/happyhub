@@ -8,6 +8,8 @@ import {
   getDayTypeDescription,
   getAvailableTimeSlotsWithPricing,
   formatPriceInfo,
+  getPricingRuleKey,
+  resolvePriceFromRules,
   TIME_SLOTS,
 } from '../utils/pricing';
 
@@ -78,42 +80,83 @@ describe('calculateBasePrice', () => {
     expect(calculateBasePrice(new Date('2025-01-04'), 'night')).toBe('consult');
   });
 
-  it('returns 130 for weekend morning', () => {
-    expect(calculateBasePrice(new Date('2025-01-04'), 'morning')).toBe(130); // Saturday
+  it('returns 160 for weekend morning', () => {
+    expect(calculateBasePrice(new Date('2025-01-04'), 'morning')).toBe(160); // Saturday
   });
 
-  it('returns 170 for weekend afternoon', () => {
-    expect(calculateBasePrice(new Date('2025-01-04'), 'afternoon')).toBe(170); // Saturday
+  it('returns 200 for weekend afternoon', () => {
+    expect(calculateBasePrice(new Date('2025-01-04'), 'afternoon')).toBe(200); // Saturday
   });
 
-  it('returns 130 for holiday morning', () => {
-    expect(calculateBasePrice(new Date('2026-05-01'), 'morning')).toBe(130); // Día del Trabajo (Friday)
+  it('returns "consult" for both slots on a holiday', () => {
+    expect(calculateBasePrice(new Date('2026-05-01'), 'morning')).toBe('consult'); // Día del Trabajo (Friday)
+    expect(calculateBasePrice(new Date('2026-05-01'), 'afternoon')).toBe('consult');
   });
 
-  it('returns 170 for holiday afternoon', () => {
-    expect(calculateBasePrice(new Date('2026-05-01'), 'afternoon')).toBe(170);
+  it('returns "consult" for both slots on a holiday eve', () => {
+    // Jun 23 (Tuesday, eve of Jun 24 holiday)
+    expect(calculateBasePrice(new Date('2026-06-23'), 'morning')).toBe('consult');
+    expect(calculateBasePrice(new Date('2026-06-23'), 'afternoon')).toBe('consult');
   });
 
-  it('returns 140 for Friday afternoon', () => {
-    expect(calculateBasePrice(new Date('2025-01-03'), 'afternoon')).toBe(140);
+  it('returns "consult" on a weekend day that is a holiday eve', () => {
+    // Sun Oct 11 2026 is the eve of Oct 12
+    expect(calculateBasePrice(new Date('2026-10-11'), 'morning')).toBe('consult');
   });
 
-  it('returns 110 for Friday morning (weekday rate)', () => {
-    expect(calculateBasePrice(new Date('2025-01-03'), 'morning')).toBe(110);
+  it('returns 180 for Friday afternoon', () => {
+    expect(calculateBasePrice(new Date('2025-01-03'), 'afternoon')).toBe(180);
   });
 
-  it('returns 140 for holiday eve afternoon', () => {
-    // Jan 5 (Monday) is holiday eve of Reyes, but it's also within a holiday week
-    // Use Jun 23 (Tuesday, eve of Jun 24 holiday)
-    expect(calculateBasePrice(new Date('2026-06-23'), 'afternoon')).toBe(140);
+  it('returns 120 for Friday morning (weekday rate)', () => {
+    expect(calculateBasePrice(new Date('2025-01-03'), 'morning')).toBe(120);
   });
 
-  it('returns 110 for regular weekday morning', () => {
-    expect(calculateBasePrice(new Date('2025-01-07'), 'morning')).toBe(110); // Tuesday
+  it('returns 120 for regular weekday morning', () => {
+    expect(calculateBasePrice(new Date('2025-01-07'), 'morning')).toBe(120); // Tuesday
   });
 
-  it('returns 110 for regular weekday afternoon (Mon-Thu)', () => {
-    expect(calculateBasePrice(new Date('2025-01-07'), 'afternoon')).toBe(110); // Tuesday
+  it('returns 130 for regular weekday afternoon (Mon-Thu)', () => {
+    expect(calculateBasePrice(new Date('2025-01-07'), 'afternoon')).toBe(130); // Tuesday
+  });
+});
+
+describe('isHoliday with local dates', () => {
+  it('matches calendar dates built at local midnight', () => {
+    expect(isHoliday(new Date(2026, 9, 12))).toBe(true);
+    expect(isHoliday(new Date(2026, 9, 13))).toBe(false);
+    expect(isHolidayEve(new Date(2026, 9, 11))).toBe(true);
+  });
+});
+
+describe('resolvePriceFromRules', () => {
+  const rules = {
+    weekday_morning: 120,
+    weekday_afternoon: 130,
+    friday_afternoon: 180,
+    weekend_morning: 160,
+    weekend_afternoon: 200,
+    holiday_morning: 0,
+    holiday_afternoon: 0,
+  };
+
+  it('uses the DB rules for each day type', () => {
+    expect(resolvePriceFromRules(rules, new Date('2025-01-07'), 'afternoon')).toBe(130);
+    expect(resolvePriceFromRules(rules, new Date('2025-01-03'), 'afternoon')).toBe(180);
+    expect(resolvePriceFromRules(rules, new Date('2025-01-04'), 'morning')).toBe(160);
+  });
+
+  it('treats price 0 as "consult" instead of falling back to a fixed price', () => {
+    expect(resolvePriceFromRules(rules, new Date('2026-06-23'), 'afternoon')).toBe('consult');
+  });
+
+  it('treats a missing rule as "consult"', () => {
+    expect(resolvePriceFromRules({}, new Date('2025-01-07'), 'morning')).toBe('consult');
+  });
+
+  it('maps holidays and eves to holiday_* rules', () => {
+    expect(getPricingRuleKey(new Date('2026-06-23'), 'morning')).toBe('holiday_morning');
+    expect(getPricingRuleKey(new Date('2026-06-24'), 'afternoon')).toBe('holiday_afternoon');
   });
 });
 
@@ -123,11 +166,11 @@ describe('getPriceLabel', () => {
   });
 
   it('returns formatted euro price for morning weekday', () => {
-    expect(getPriceLabel(new Date('2025-01-07'), 'morning')).toBe('110€');
+    expect(getPriceLabel(new Date('2025-01-07'), 'morning')).toBe('120€');
   });
 
   it('returns formatted euro price for weekend afternoon', () => {
-    expect(getPriceLabel(new Date('2025-01-04'), 'afternoon')).toBe('170€');
+    expect(getPriceLabel(new Date('2025-01-04'), 'afternoon')).toBe('200€');
   });
 });
 
@@ -140,8 +183,8 @@ describe('getDayTypeDescription', () => {
     expect(getDayTypeDescription(new Date('2026-05-01'))).toBe('Festivo');
   });
 
-  it('returns "Víspera de festivo" for Friday', () => {
-    expect(getDayTypeDescription(new Date('2025-01-03'))).toBe('Víspera de festivo');
+  it('returns "Viernes" for Friday', () => {
+    expect(getDayTypeDescription(new Date('2025-01-03'))).toBe('Viernes');
   });
 
   it('returns "Víspera de festivo" for day before a holiday', () => {
@@ -173,19 +216,19 @@ describe('getAvailableTimeSlotsWithPricing', () => {
     const slots = getAvailableTimeSlotsWithPricing(new Date('2025-01-07'));
     const morning = slots.find((s) => s.id === 'morning');
     const afternoon = slots.find((s) => s.id === 'afternoon');
-    expect(morning?.price).toBe(110);
-    expect(afternoon?.price).toBe(110);
+    expect(morning?.price).toBe(120);
+    expect(afternoon?.price).toBe(130);
   });
 });
 
 describe('formatPriceInfo', () => {
   it('returns full info for a weekday morning', () => {
     const info = formatPriceInfo(new Date('2025-01-07'), 'morning');
-    expect(info.price).toBe(110);
-    expect(info.priceLabel).toBe('110€');
+    expect(info.price).toBe(120);
+    expect(info.priceLabel).toBe('120€');
     expect(info.dayType).toBe('Día laborable');
     expect(info.timeSlotLabel).toBe('Mañana');
-    expect(info.fullDescription).toBe('Día laborable - Mañana: 110€');
+    expect(info.fullDescription).toBe('Día laborable - Mañana: 120€');
   });
 
   it('returns "consult" info for night slot', () => {
@@ -197,7 +240,7 @@ describe('formatPriceInfo', () => {
 
   it('returns weekend afternoon info', () => {
     const info = formatPriceInfo(new Date('2025-01-04'), 'afternoon');
-    expect(info.price).toBe(170);
+    expect(info.price).toBe(200);
     expect(info.dayType).toBe('Fin de semana');
     expect(info.timeSlotLabel).toBe('Tarde');
   });

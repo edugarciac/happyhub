@@ -4,7 +4,7 @@
  */
 
 import { query } from '../lib/db';
-import { isWeekend, isFriday, isHoliday, isHolidayEve, TimeSlot } from './pricing';
+import { DEFAULT_PRICING_RULES, resolvePriceFromRules, TimeSlot } from './pricing';
 
 // Cache for pricing rules (5 minutes)
 let pricingCache: Record<string, number> | null = null;
@@ -45,58 +45,15 @@ async function getPricingRules(): Promise<Record<string, number>> {
 }
 
 function getHardcodedPricing(): Record<string, number> {
-  return {
-    weekday_morning: 110,
-    weekday_afternoon: 110,
-    friday_afternoon: 155,
-    weekend_morning: 145,
-    weekend_afternoon: 185,
-    holiday_morning: 145,
-    holiday_afternoon: 185,
-    night_consult: 0,
-    night_consult_weekend: 0,
-  };
+  return { ...DEFAULT_PRICING_RULES };
 }
 
 export async function calculateBasePriceFromDb(
   date: Date,
   timeSlot: TimeSlot
 ): Promise<number | 'consult'> {
-  // Night is always consult
-  if (timeSlot === 'night') {
-    return 'consult';
-  }
-
   const pricing = await getPricingRules();
-
-  // Determine day type
-  const isHolidayDay = isHoliday(date);
-  const isWeekendDay = isWeekend(date);
-  const isFridayDay = isFriday(date);
-  const isHolidayEveDay = isHolidayEve(date);
-
-  let ruleKey: string;
-
-  if (isHolidayDay) {
-    ruleKey = `holiday_${timeSlot}`;
-  } else if (isWeekendDay) {
-    ruleKey = `weekend_${timeSlot}`;
-  } else if (isFridayDay && timeSlot === 'afternoon') {
-    ruleKey = 'friday_afternoon';
-  } else if (isHolidayEveDay && timeSlot === 'afternoon') {
-    ruleKey = 'friday_afternoon'; // Same price as Friday
-  } else {
-    ruleKey = `weekday_${timeSlot}`;
-  }
-
-  const price = pricing[ruleKey];
-
-  if (price === undefined) {
-    console.warn(`No pricing rule found for: ${ruleKey}, using fallback`);
-    return 110; // Fallback price
-  }
-
-  return price === 0 ? 'consult' : price;
+  return resolvePriceFromRules(pricing, date, timeSlot);
 }
 
 export { getPricingRules };

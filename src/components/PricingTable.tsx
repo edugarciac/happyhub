@@ -44,7 +44,7 @@ export default function PricingTable() {
 
   const pricingRows: PriceRow[] = [
     {
-      day: 'Lunes a Jueves',
+      day: 'Lunes a jueves',
       morning: pricing.weekday_morning,
       afternoon: pricing.weekday_afternoon,
     },
@@ -55,13 +55,13 @@ export default function PricingTable() {
       highlight: true
     },
     {
-      day: 'Sábados y Domingos',
+      day: 'Sábados y domingos',
       morning: pricing.weekend_morning,
       afternoon: pricing.weekend_afternoon,
       highlight: true
     },
     {
-      day: 'Festivos',
+      day: 'Festivos y vísperas',
       morning: pricing.holiday_morning,
       afternoon: pricing.holiday_afternoon,
       highlight: true
@@ -195,7 +195,7 @@ export default function PricingTable() {
               Reserva tu fecha
             </Link>
             <p className="text-sm text-gray-500 mt-4">
-              Precios vigentes desde enero 2025
+              Precios vigentes desde octubre 2026
             </p>
           </div>
         </div>
