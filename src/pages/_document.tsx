@@ -19,7 +19,7 @@ export default function Document() {
         <meta property="og:type" content="website" />
         <meta property="og:title" content="HappyHub - Espacio Polivalente para Eventos" />
         <meta property="og:description" content="Espacio polivalente para celebraciones familiares, con amigos, de colegio y trabajo en Esplugues de Llobregat" />
-        <meta property="og:image" content="/favicon.jpeg" />
+        <meta property="og:image" content="/happyhub_logo_white.png" />
       </Head>
       <body>
         <Main />

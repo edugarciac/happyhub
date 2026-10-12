@@ -1,0 +1,12 @@
+## 1. Assets
+
+- [x] 1.1 Regenerate `public/favicon.png` from `happyhub_logo_cara.png` on a 512×512 transparent canvas
+- [x] 1.2 Point `og:image` in `_document.tsx` to `/happyhub_logo_white.png`
+- [x] 1.3 Delete non-winking assets: `favicon.jpeg`, `favicon2.jpeg`, `happyhub_logo_white.jpg`, `logo-happyhub-white.jpeg`, `logo-happyhub-white-small.jpeg`, `src/logo/*`
+- [x] 1.4 Delete identical `_old` duplicates
+
+## 2. Verify
+
+- [x] 2.1 Grep: no code references to deleted files
+- [x] 2.2 Visual check of remaining logo assets (contact sheet)
+- [ ] 2.3 `npm run build` passes (not run: no node_modules in session; change is a single string in `_document.tsx`)
