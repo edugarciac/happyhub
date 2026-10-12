@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { reservationSchema, ReservationFormData } from '@/utils/validators';
-import { isWeekend, isFriday, isHoliday, isHolidayEve, loadHolidaysFromApi, type TimeSlot } from '@/utils/pricing';
+import { loadHolidaysFromApi, resolvePriceFromRules, type TimeSlot } from '@/utils/pricing';
 import { createReservation } from '@/lib/apiClient';
 import { Loader2 } from 'lucide-react';
 
@@ -66,31 +66,8 @@ export default function ReservationForm({
   const timeSlot = watch('timeSlot');
   const guests = watch('guests');
 
-  const calculatePriceFromDb = (dateStr: string, slot: TimeSlot): number | 'consult' => {
-    if (slot === 'night') return 'consult';
-
-    const date = new Date(dateStr);
-    const isHolidayDay = isHoliday(date);
-    const isWeekendDay = isWeekend(date);
-    const isFridayDay = isFriday(date);
-    const isHolidayEveDay = isHolidayEve(date);
-
-    let ruleKey: string;
-
-    if (isHolidayDay) {
-      ruleKey = `holiday_${slot}`;
-    } else if (isWeekendDay) {
-      ruleKey = `weekend_${slot}`;
-    } else if (isFridayDay && slot === 'afternoon') {
-      ruleKey = 'friday_afternoon';
-    } else if (isHolidayEveDay && slot === 'afternoon') {
-      ruleKey = 'friday_afternoon';
-    } else {
-      ruleKey = `weekday_${slot}`;
-    }
-
-    return pricing[ruleKey] || 110;
-  };
+  const calculatePriceFromDb = (dateStr: string, slot: TimeSlot): number | 'consult' =>
+    resolvePriceFromRules(pricing, new Date(dateStr), slot);
 
   const basePrice = date && timeSlot ? calculatePriceFromDb(date, timeSlot) : 0;
   const totalPrice = typeof basePrice === 'number' ? basePrice : 0;

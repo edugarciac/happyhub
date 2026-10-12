@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useBooking } from './BookingContext';
 import FullCalendar from '@/components/FullCalendar';
-import { isWeekend, isFriday, isHoliday, isHolidayEve, loadHolidaysFromApi, TIME_SLOTS, type TimeSlot } from '@/utils/pricing';
+import { loadHolidaysFromApi, resolvePriceFromRules, TIME_SLOTS, type TimeSlot } from '@/utils/pricing';
 import { formatDate } from '@/utils/formatters';
 import { ChevronRight, Calendar, Clock, AlertCircle } from 'lucide-react';
 
@@ -68,30 +68,8 @@ export default function Step1Calendar() {
     fetchData();
   }, []);
 
-  const calculatePriceFromDb = (date: Date, slot: TimeSlot): number | 'consult' => {
-    if (slot === 'night') return 'consult';
-
-    const isHolidayDay = isHoliday(date);
-    const isWeekendDay = isWeekend(date);
-    const isFridayDay = isFriday(date);
-    const isHolidayEveDay = isHolidayEve(date);
-
-    let ruleKey: string;
-
-    if (isHolidayDay) {
-      ruleKey = `holiday_${slot}`;
-    } else if (isWeekendDay) {
-      ruleKey = `weekend_${slot}`;
-    } else if (isFridayDay && slot === 'afternoon') {
-      ruleKey = 'friday_afternoon';
-    } else if (isHolidayEveDay && slot === 'afternoon') {
-      ruleKey = 'friday_afternoon';
-    } else {
-      ruleKey = `weekday_${slot}`;
-    }
-
-    return pricing[ruleKey] || 110;
-  };
+  const calculatePriceFromDb = (date: Date, slot: TimeSlot): number | 'consult' =>
+    resolvePriceFromRules(pricing, date, slot);
 
   const handleSlotSelect = (date: Date, timeSlot: TimeSlot) => {
     // Clear any previous error
@@ -123,8 +101,7 @@ export default function Step1Calendar() {
       return;
     }
     if (state.basePrice === 'consult') {
-      console.warn('Night slot selected - requires consultation');
-      setError('El horario nocturno requiere consulta previa. Por favor, contacta con nosotros.');
+      setError('Festivos y vísperas de festivo tienen precio a consultar. Por favor, contacta con nosotros para reservar esta fecha.');
       return;
     }
 

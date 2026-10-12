@@ -126,7 +126,9 @@ export async function loadHolidaysFromApi(): Promise<void> {
  * usa DEFAULT_HOLIDAYS como resiliencia.
  */
 export function isHoliday(date: Date): boolean {
-  const dateStr = date.toISOString().split('T')[0];
+  // Fecha local: toISOString() pasa a UTC y en España desplaza un día
+  // las fechas creadas a medianoche local (p.ej. las del calendario).
+  const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   const dates = holidayDates ?? new Set(DEFAULT_HOLIDAYS);
   return dates.has(dateStr);
 }
@@ -141,35 +143,48 @@ export function isHolidayEve(date: Date): boolean {
 }
 
 /**
- * Calcula el precio base según el día y la franja horaria
+ * Devuelve la clave de pricing_rules que aplica a una fecha y franja.
+ * Prioridad: festivo o víspera > fin de semana > viernes tarde > laborable.
+ */
+export function getPricingRuleKey(date: Date, timeSlot: TimeSlot): string {
+  if (isHoliday(date) || isHolidayEve(date)) return `holiday_${timeSlot}`;
+  if (isWeekend(date)) return `weekend_${timeSlot}`;
+  if (isFriday(date) && timeSlot === 'afternoon') return 'friday_afternoon';
+  return `weekday_${timeSlot}`;
+}
+
+/**
+ * Calcula el precio a partir de las reglas de /api/pricing/current.
+ * Un precio 0 o una regla ausente es "A consultar": nunca se inventa un precio.
+ */
+export function resolvePriceFromRules(
+  rules: Record<string, number>,
+  date: Date,
+  timeSlot: TimeSlot
+): number | 'consult' {
+  if (timeSlot === 'night') return 'consult';
+  const price = rules[getPricingRuleKey(date, timeSlot)];
+  return price ? price : 'consult';
+}
+
+/** Parrilla vigente, usada como fallback si no hay datos de la BD. 0 = "A consultar". */
+export const DEFAULT_PRICING_RULES: Record<string, number> = {
+  weekday_morning: 120,
+  weekday_afternoon: 130,
+  friday_afternoon: 180,
+  weekend_morning: 160,
+  weekend_afternoon: 200,
+  holiday_morning: 0,
+  holiday_afternoon: 0,
+  night_consult: 0,
+  night_consult_weekend: 0,
+};
+
+/**
+ * Calcula el precio base según el día y la franja horaria (parrilla por defecto)
  */
 export function calculateBasePrice(date: Date, timeSlot: TimeSlot): number | 'consult' {
-  // Horario nocturno siempre es "a consultar"
-  if (timeSlot === 'night') {
-    return 'consult';
-  }
-
-  const isWeekendDay = isWeekend(date);
-  const isFridayDay = isFriday(date);
-  const isHolidayDay = isHoliday(date);
-  const isHolidayEveDay = isHolidayEve(date);
-
-  // Fines de semana y festivos
-  if (isWeekendDay || isHolidayDay) {
-    if (timeSlot === 'morning') {
-      return 130; // Sábados, domingos y festivos - Mañanas
-    } else {
-      return 170; // Sábados, domingos y festivos - Tardes
-    }
-  }
-
-  // Viernes tarde o víspera de festivo tarde
-  if ((isFridayDay || isHolidayEveDay) && timeSlot === 'afternoon') {
-    return 140; // Viernes y vísperas de festivos - Tardes
-  }
-
-  // Días laborables (lunes a jueves) o viernes mañana
-  return 110; // De lunes a viernes - Mañanas, De lunes a jueves - Tardes
+  return resolvePriceFromRules(DEFAULT_PRICING_RULES, date, timeSlot);
 }
 
 /**
@@ -189,14 +204,17 @@ export function getPriceLabel(date: Date, timeSlot: TimeSlot): string {
  * Obtiene la descripción del tipo de día para la tarifa
  */
 export function getDayTypeDescription(date: Date): string {
-  if (isWeekend(date)) {
-    return 'Fin de semana';
-  }
   if (isHoliday(date)) {
     return 'Festivo';
   }
-  if (isHolidayEve(date) || isFriday(date)) {
+  if (isHolidayEve(date)) {
     return 'Víspera de festivo';
+  }
+  if (isWeekend(date)) {
+    return 'Fin de semana';
+  }
+  if (isFriday(date)) {
+    return 'Viernes';
   }
   return 'Día laborable';
 }
@@ -230,7 +248,7 @@ export function formatPriceInfo(date: Date, timeSlot: TimeSlot): {
 
   let fullDescription = '';
   if (price === 'consult') {
-    fullDescription = `Horario nocturno - Precio a consultar`;
+    fullDescription = `${timeSlot === 'night' ? 'Horario nocturno' : dayType} - Precio a consultar`;
   } else {
     fullDescription = `${dayType} - ${timeSlotLabel}: ${priceLabel}`;
   }

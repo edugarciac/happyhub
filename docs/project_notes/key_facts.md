@@ -42,24 +42,21 @@
 - Free early opening at 21:30h
 - Price: "Consult" (variable, requires manual quote)
 
-### Pricing Rules (Actual - 2025)
+### Pricing Rules (since October 2026)
 
-**Weekdays (Mon-Fri Morning):**
-- Morning: 110€
+| Día | Mañana (10-14h) | Tarde (16-20h) |
+|---|---|---|
+| Lunes a jueves | 120€ | 130€ |
+| Viernes | 120€ | 180€ |
+| Sábados y domingos | 160€ | 200€ |
+| Festivos y vísperas | A consultar | A consultar |
 
-**Weekdays (Mon-Thu Afternoon):**
-- Afternoon: 110€
+- Precedence: holiday/eve > weekend > Friday afternoon > weekday
+- Holidays and eves use `holiday_*` rules with price 0 ("A consultar"); they can't be booked online
 
-**Friday & Holiday Eves (Afternoon):**
-- Afternoon: 155€
-
-**Weekends (Sat-Sun) & Holidays:**
-- Morning: 145€
-- Afternoon: 185€
-
-**Source of Truth:** `src/utils/pricing.ts`
-- Function: `calculateBasePrice(date, timeSlot)`
-- Holiday array: `holidays2025` (update annually!)
+**Source of Truth:** `pricing_rules` table (editable in `/admin/pricing`)
+- Rule selection: `getPricingRuleKey` / `resolvePriceFromRules` in `src/utils/pricing.ts`
+- Holidays: `holidays` table (`/admin/holidays`); eves are derived (day before a holiday)
 
 ### Booking Rules
 
@@ -408,8 +405,8 @@
 ## Revenue Model & Digital Services
 
 ### Space Rental (Base Revenue - Año 1)
-- Morning: 110-145€/sesión (según día semana)
-- Afternoon: 110-185€/sesión (según día semana)
+- Morning: 120-160€/sesión (según día semana; festivos y vísperas a consultar)
+- Afternoon: 130-200€/sesión (según día semana; festivos y vísperas a consultar)
 - Evening: Consultar (precio variable)
 - Average per event: ~150€ (weighted mix: 60% weekend, 40% weekday)
 - Target año 1: 25-40 eventos/mes = 3.750-6.000€/mes

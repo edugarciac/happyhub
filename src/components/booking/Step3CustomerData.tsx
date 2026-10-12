@@ -93,7 +93,7 @@ export default function Step3CustomerData() {
       const depositAmount = calculateDepositAmount();
 
       if (totalPrice === 'consult') {
-        setSubmitError('El precio debe estar definido para continuar');
+        setSubmitError('Festivos y vísperas de festivo tienen precio a consultar. Por favor, contacta con nosotros para reservar esta fecha.');
         return;
       }
 

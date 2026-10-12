@@ -7,7 +7,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import FullCalendar from '@/components/FullCalendar';
 import { formatDate } from '@/utils/formatters';
-import { isWeekend, isFriday, isHoliday, isHolidayEve, loadHolidaysFromApi, type TimeSlot, AFTERNOON_EXTENSION_NOTE } from '@/utils/pricing';
+import { DEFAULT_PRICING_RULES, loadHolidaysFromApi, resolvePriceFromRules, type TimeSlot, AFTERNOON_EXTENSION_NOTE } from '@/utils/pricing';
 
 export default function Disponibilidad() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -77,30 +77,8 @@ export default function Disponibilidad() {
     }
   };
 
-  const calculatePriceFromDb = (date: Date, slot: TimeSlot): number | 'consult' => {
-    if (slot === 'night') return 'consult';
-
-    const isHolidayDay = isHoliday(date);
-    const isWeekendDay = isWeekend(date);
-    const isFridayDay = isFriday(date);
-    const isHolidayEveDay = isHolidayEve(date);
-
-    let ruleKey: string;
-
-    if (isHolidayDay) {
-      ruleKey = `holiday_${slot}`;
-    } else if (isWeekendDay) {
-      ruleKey = `weekend_${slot}`;
-    } else if (isFridayDay && slot === 'afternoon') {
-      ruleKey = 'friday_afternoon';
-    } else if (isHolidayEveDay && slot === 'afternoon') {
-      ruleKey = 'friday_afternoon';
-    } else {
-      ruleKey = `weekday_${slot}`;
-    }
-
-    return pricing[ruleKey] || 110; // Fallback to 110
-  };
+  const calculatePriceFromDb = (date: Date, slot: TimeSlot): number | 'consult' =>
+    resolvePriceFromRules(pricing, date, slot);
 
   const getTimeSlotPrice = (date: Date, slot: TimeSlot): string => {
     const price = calculatePriceFromDb(date, slot);
@@ -202,11 +180,12 @@ export default function Disponibilidad() {
               <div className="border-l-4 border-secondary-500 pl-4">
                 <h3 className="font-bold text-gray-900 mb-3 text-lg">💰 Tarifas</h3>
                 <div className="space-y-2 text-gray-600 text-sm">
-                  <p><strong>Lunes a Viernes - Mañanas:</strong> {pricing.weekday_morning || 110}€</p>
-                  <p><strong>Lunes a Jueves - Tardes:</strong> {pricing.weekday_afternoon || 110}€</p>
-                  <p><strong>Viernes - Tardes:</strong> {pricing.friday_afternoon || 155}€</p>
-                  <p><strong>Fines de semana - Mañanas:</strong> {pricing.weekend_morning || 145}€</p>
-                  <p><strong>Fines de semana - Tardes:</strong> {pricing.weekend_afternoon || 185}€</p>
+                  <p><strong>Lunes a Viernes - Mañanas:</strong> {pricing.weekday_morning || DEFAULT_PRICING_RULES.weekday_morning}€</p>
+                  <p><strong>Lunes a Jueves - Tardes:</strong> {pricing.weekday_afternoon || DEFAULT_PRICING_RULES.weekday_afternoon}€</p>
+                  <p><strong>Viernes - Tardes:</strong> {pricing.friday_afternoon || DEFAULT_PRICING_RULES.friday_afternoon}€</p>
+                  <p><strong>Fines de semana - Mañanas:</strong> {pricing.weekend_morning || DEFAULT_PRICING_RULES.weekend_morning}€</p>
+                  <p><strong>Fines de semana - Tardes:</strong> {pricing.weekend_afternoon || DEFAULT_PRICING_RULES.weekend_afternoon}€</p>
+                  <p><strong>Festivos y vísperas:</strong> A consultar</p>
                 </div>
               </div>
 
