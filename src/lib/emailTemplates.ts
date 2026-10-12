@@ -86,6 +86,7 @@ export interface ReservationEmailData {
   paymentMethod: string;
   totalPrice: number;
   depositAmount: number;
+  discountAmount?: number;
   message?: string;
   needsKidsFurniture?: boolean;
   isHoliday?: boolean;
@@ -102,6 +103,9 @@ export function reservationCustomerEmail(r: ReservationEmailData): { subject: st
       ['Invitados', `${escapeHtml(r.guests)} personas`],
       ['Tipo de evento', escapeHtml(EVENT_TYPE_LABELS[r.eventType] || r.eventType)],
       ['Método de pago', escapeHtml(PAYMENT_METHOD_LABELS[r.paymentMethod] || r.paymentMethod)],
+      ...(r.discountAmount
+        ? ([['Descuento inauguración (-10%)', `<span style="color: #15803d;">-${escapeHtml(r.discountAmount)} €</span>`]] as [string, string][])
+        : []),
       ['Precio total', `<strong style="font-size: 18px;">${escapeHtml(r.totalPrice)} €</strong>`],
       ['Señal (30%)', `<strong style="color: #FF6B35;">${escapeHtml(r.depositAmount)} €</strong>`],
     ])}
@@ -132,6 +136,9 @@ export function reservationAdminEmail(r: ReservationEmailData): { subject: strin
       ['Horario', escapeHtml(SLOT_LABELS[r.timeSlot] || r.timeSlot)],
       ['Tipo', escapeHtml(EVENT_TYPE_LABELS[r.eventType] || r.eventType)],
       ['Invitados', `${escapeHtml(r.guests)} personas`],
+      ...(r.discountAmount
+        ? ([['Descuento inauguración', `-${escapeHtml(r.discountAmount)} €`]] as [string, string][])
+        : []),
       ['Total', `<strong style="color: #FF6B35; font-size: 18px;">${escapeHtml(r.totalPrice)} €</strong>`],
       ['Señal', `${escapeHtml(r.depositAmount)} €`],
     ])}

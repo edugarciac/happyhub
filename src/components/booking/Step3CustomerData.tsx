@@ -34,7 +34,7 @@ const customerSchema = z.object({
 type CustomerFormData = z.infer<typeof customerSchema>;
 
 export default function Step3CustomerData() {
-  const { state, dispatch, nextStep, prevStep, goToStep, calculateTotalPrice, calculateDepositAmount } = useBooking();
+  const { state, dispatch, nextStep, prevStep, goToStep, calculateTotalPrice, calculateDiscount, calculateDepositAmount } = useBooking();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitErrorDetail, setSubmitErrorDetail] = useState<string | null>(null);
@@ -131,6 +131,7 @@ export default function Step3CustomerData() {
           extras: state.selectedExtras || [],
           // Pricing
           basePrice: state.basePrice,
+          discountAmount: calculateDiscount(),
           totalPrice,
           depositAmount,
           // Metadata

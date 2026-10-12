@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { AFTERNOON_EXTENSION_NOTE } from '@/utils/pricing';
+import { OPENING_DISCOUNT, isOpeningDiscountActive } from '@/config/promotions';
 import Link from 'next/link';
-import { Check, Info } from 'lucide-react';
+import { Check, Info, Tag } from 'lucide-react';
 import { event as gaEvent, useSectionView } from '@/lib/analytics';
 
 interface PriceRow {
@@ -22,6 +23,8 @@ const INCLUDED = [
 export default function PricingTable() {
   const [pricing, setPricing] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
+  // Se calcula en el navegador: la página es estática y el aviso debe apagarse solo tras la inauguración
+  const [discountActive, setDiscountActive] = useState(false);
 
   useEffect(() => {
     const fetchPricing = async () => {
@@ -41,6 +44,7 @@ export default function PricingTable() {
     };
 
     fetchPricing();
+    setDiscountActive(isOpeningDiscountActive());
   }, []);
 
   const pricingRows: PriceRow[] = [
@@ -86,6 +90,17 @@ export default function PricingTable() {
         </p>
 
         <div className="max-w-5xl mx-auto">
+          {discountActive && (
+            <div className="mb-6 flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 px-5 py-4 text-green-800">
+              <Tag className="w-5 h-5 flex-shrink-0 mt-0.5" />
+              <p>
+                <strong>{OPENING_DISCOUNT.label}: {OPENING_DISCOUNT.percent}% de descuento</strong> en el alquiler
+                si solicitas tu reserva hasta el {OPENING_DISCOUNT.requestedUntilLabel}, para eventos hasta el{' '}
+                {OPENING_DISCOUNT.eventUntilLabel}. Se aplica automáticamente al reservar.
+              </p>
+            </div>
+          )}
+
           {/* Pricing Table */}
           <div className="bg-white rounded-2xl shadow-xl overflow-hidden mb-8">
             <div className="overflow-x-auto">
