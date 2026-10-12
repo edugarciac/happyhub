@@ -30,3 +30,4 @@ La marca se escribe **HappyHub** (segunda H mayúscula). Se eliminan también lo
 - `public/happyhub_home.png` (render con neón «Happyhub»). Sin referencias.
 
 - `public/happyhub_coming.mp4` (vídeo de fondo del Hero, con «Happyhub» y marca de agua PixVerse.ai) y su póster `public/Happyhub-coming2026.jpeg`: el usuario eligió sustituir el vídeo por una foto. El Hero pasa a usar `public/images/Happyhub_eventos_3.png` (panorámica 1584×672, rótulo «HappyHub» sin obstrucciones) con `object-[72%_center]` para que el rótulo quede a la derecha, fuera del degradado del texto. Se descartó `Happyhub_eventos_2.png` porque las copas tapan el rótulo.
+- **Actualización**: el usuario aportó una foto real del local; el Hero pasa a usar `public/images/hero-sala.jpg` (1600×900, EXIF eliminado) con `object-[65%_center]` para mantener la barra visible a la derecha. Sustituye a `Happyhub_eventos_3.png` (render IA), que sigue usándose en `mis-eventos`.

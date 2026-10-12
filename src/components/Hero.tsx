@@ -41,7 +41,7 @@ export default function Hero() {
     <section className="relative flex items-center overflow-hidden mt-20 min-h-[calc(100vh-5rem)]">
 
       {/* Full-screen background image */}
-      <img src="/images/Happyhub_eventos_3.png" alt="HappyHub" className="absolute inset-0 w-full h-full object-cover object-[72%_center]" />
+      <img src="/images/hero-sala.jpg" alt="Sala HappyHub" className="absolute inset-0 w-full h-full object-cover object-[65%_center]" />
 
       {/* Gradient only on the left — keeps right side of image fully visible */}
       <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
