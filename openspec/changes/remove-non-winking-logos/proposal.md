@@ -22,3 +22,11 @@ Tras `update-logo-winking-face` siguen en el repo varios assets con la carita an
 
 - `src/pages/_document.tsx`: una línea (`og:image`).
 - Assets en `public/` y `src/logo/`. URLs eliminadas no están referenciadas en código, n8n ni docs.
+
+## Ampliación: nombre con «H» mayúscula (HappyHub)
+
+La marca se escribe **HappyHub** (segunda H mayúscula). Se eliminan también los assets con «Happyhub»:
+- `public/logo-happyhub-black.jpeg` (sustituido por `public/logo-happyhub-black.png`, que dice HappyHub). Sin referencias.
+- `public/happyhub_home.png` (render con neón «Happyhub»). Sin referencias.
+
+Pendiente de decisión del usuario: `public/happyhub_coming.mp4` (vídeo de fondo del Hero) y su póster `public/Happyhub-coming2026.jpeg` muestran «Happyhub» y están en uso.

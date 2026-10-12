@@ -10,3 +10,8 @@
 - [x] 2.1 Grep: no code references to deleted files
 - [x] 2.2 Visual check of remaining logo assets (contact sheet)
 - [ ] 2.3 `npm run build` passes (not run: no node_modules in session; change is a single string in `_document.tsx`)
+
+## 3. HappyHub con H mayúscula
+
+- [x] 3.1 Delete `public/logo-happyhub-black.jpeg` and `public/happyhub_home.png` (no references)
+- [ ] 3.2 Hero video `happyhub_coming.mp4` + poster `Happyhub-coming2026.jpeg` — awaiting user decision
