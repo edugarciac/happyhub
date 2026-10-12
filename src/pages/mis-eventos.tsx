@@ -79,10 +79,10 @@ export default function MisEventosPage() {
         {/* Hero */}
         <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-black">
           <Image
-            src="/images/Happyhub_eventos_3.png"
-            alt="Evento en HappyHub"
+            src="/images/hero-sala.jpg"
+            alt="Sala HappyHub"
             fill
-            className="object-contain"
+            className="object-cover"
             priority
           />
           <div className="absolute inset-0 bg-black/55" />

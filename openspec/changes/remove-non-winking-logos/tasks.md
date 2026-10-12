@@ -17,3 +17,4 @@
 - [x] 3.2 Replace Hero video with `images/Happyhub_eventos_3.png`; delete `happyhub_coming.mp4` and `Happyhub-coming2026.jpeg`
 - [x] 3.3 Preview Hero crop at 1440px and 390px (Playwright)
 - [x] 3.4 Hero uses real venue photo `images/hero-sala.jpg` (user-provided), previewed at 1440px and 390px
+- [x] 3.5 mis-eventos uses `hero-sala.jpg`; delete AI renders `images/Happyhub_eventos*.png`
