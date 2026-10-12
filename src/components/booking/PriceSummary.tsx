@@ -1,6 +1,7 @@
 import { useBooking } from './BookingContext';
 import { formatDate } from '@/utils/formatters';
 import { TIME_SLOTS } from '@/utils/pricing';
+import { OPENING_DISCOUNT } from '@/config/promotions';
 
 interface PriceSummaryProps {
   showDeposit?: boolean;
@@ -8,11 +9,12 @@ interface PriceSummaryProps {
 }
 
 export default function PriceSummary({ showDeposit = true, compact = false }: PriceSummaryProps) {
-  const { state, calculateTotalPrice, calculateExtrasPrice, calculateDepositAmount } = useBooking();
+  const { state, calculateTotalPrice, calculateExtrasPrice, calculateDiscount, calculateDepositAmount } = useBooking();
 
   const totalPrice = calculateTotalPrice();
   const extrasPrice = calculateExtrasPrice();
   const depositAmount = calculateDepositAmount();
+  const discount = calculateDiscount();
 
   const timeSlotInfo = state.timeSlot ? TIME_SLOTS.find(ts => ts.id === state.timeSlot) : null;
 
@@ -72,6 +74,14 @@ export default function PriceSummary({ showDeposit = true, compact = false }: Pr
           <span className="font-medium">
             {state.basePrice === 'consult' ? 'A consultar' : `${state.basePrice}€`}
           </span>
+        </div>
+      )}
+
+      {/* Opening discount */}
+      {discount > 0 && (
+        <div className="flex justify-between items-center mb-2 text-green-700">
+          <span>{OPENING_DISCOUNT.label} (-{OPENING_DISCOUNT.percent}%):</span>
+          <span className="font-medium">-{discount}€</span>
         </div>
       )}
 

@@ -3,6 +3,8 @@
 import { createContext, useContext, useEffect, useReducer, ReactNode } from 'react';
 import { TimeSlot } from '@/utils/pricing';
 import { event as gaEvent } from '@/lib/analytics';
+import { toDateStr } from '@/config/opening';
+import { openingDiscountAmount } from '@/config/promotions';
 
 export interface Extra {
   id: string;
@@ -124,6 +126,7 @@ interface BookingContextType {
   prevStep: () => void;
   calculateTotalPrice: () => number | 'consult';
   calculateExtrasPrice: () => number;
+  calculateDiscount: () => number;
   calculateDepositAmount: () => number;
 }
 
@@ -185,9 +188,15 @@ export function BookingProvider({ children, initialDate, initialTimeSlot }: Book
     }, 0);
   };
 
+  /** Descuento de inauguración sobre el alquiler (no sobre extras) */
+  const calculateDiscount = (): number => {
+    if (state.basePrice === 'consult' || !state.date) return 0;
+    return openingDiscountAmount(state.basePrice, toDateStr(state.date));
+  };
+
   const calculateTotalPrice = (): number | 'consult' => {
     if (state.basePrice === 'consult') return 'consult';
-    return state.basePrice + calculateExtrasPrice();
+    return state.basePrice - calculateDiscount() + calculateExtrasPrice();
   };
 
   const calculateDepositAmount = (): number => {
@@ -206,6 +215,7 @@ export function BookingProvider({ children, initialDate, initialTimeSlot }: Book
         prevStep,
         calculateTotalPrice,
         calculateExtrasPrice,
+        calculateDiscount,
         calculateDepositAmount,
       }}
     >

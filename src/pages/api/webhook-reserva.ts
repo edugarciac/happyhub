@@ -13,6 +13,7 @@ import { createReservationEvent } from '@/lib/googleCalendar';
 import { ensureReservationFlowColumns, expireUnpaidReservations } from '@/lib/reservationFlow';
 import { isBookingPaymentMethod } from '@/config/payments';
 import { BOOKINGS_FROM_LABEL, isBeforeBookingStart } from '@/config/opening';
+import { isOpeningDiscountEligible, OPENING_DISCOUNT } from '@/config/promotions';
 import { isBookableTimeSlot } from '@/utils/pricing';
 
 interface ReservationData {
@@ -30,6 +31,7 @@ interface ReservationData {
   message?: string;
   needsKidsFurniture?: boolean;
   basePrice: number;
+  discountAmount?: number;
   totalPrice: number;
   depositAmount: number;
   source?: string;
@@ -82,6 +84,15 @@ export default async function handler(
       return res.status(400).json({
         success: false,
         error: `Solo aceptamos reservas a partir del ${BOOKINGS_FROM_LABEL}`,
+      });
+    }
+
+    const discountAmount = Number(reservationData.discountAmount) || 0;
+    if (discountAmount > 0 && !isOpeningDiscountEligible(reservationData.date)) {
+      return res.status(400).json({
+        success: false,
+        error: `El ${OPENING_DISCOUNT.label.toLowerCase()} ya no está disponible para esta reserva. Recarga la página para ver el precio actualizado.`,
+        step: 'discount',
       });
     }
 
@@ -183,6 +194,7 @@ export default async function handler(
       paymentMethod: reservationData.paymentMethod,
       totalPrice,
       depositAmount,
+      discountAmount,
       message: reservationData.message,
       needsKidsFurniture,
       isHoliday: isHolidayDate,
@@ -204,7 +216,7 @@ export default async function handler(
           `Teléfono: ${reservationData.phone}`,
           `Email: ${reservationData.email}`,
           `Invitados: ${guests}`,
-          `Total: ${totalPrice} € (señal ${depositAmount} €)`,
+          `Total: ${totalPrice} € (señal ${depositAmount} €)${discountAmount > 0 ? ` · ${OPENING_DISCOUNT.label} -${discountAmount} €` : ''}`,
           `Pago: ${reservationData.paymentMethod}`,
           reservationData.message ? `Mensaje: ${reservationData.message}` : '',
         ].filter(Boolean).join('\n'),
