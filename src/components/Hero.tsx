@@ -40,19 +40,10 @@ export default function Hero() {
   return (
     <section className="relative flex items-center overflow-hidden mt-20 min-h-[calc(100vh-5rem)]">
 
-      {/* Full-screen video background */}
-      <video
-        autoPlay
-        muted
-        loop
-        playsInline
-        className="absolute inset-0 w-full h-full object-cover"
-      >
-        <source src="/happyhub_coming.mp4" type="video/mp4" />
-        <img src="/Happyhub-coming2026.jpeg" alt="HappyHub" className="absolute inset-0 w-full h-full object-cover" />
-      </video>
+      {/* Full-screen background image */}
+      <img src="/images/Happyhub_eventos_3.png" alt="HappyHub" className="absolute inset-0 w-full h-full object-cover object-[72%_center]" />
 
-      {/* Gradient only on the left — keeps right side of video fully visible */}
+      {/* Gradient only on the left — keeps right side of image fully visible */}
       <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
       {/* Subtle top/bottom vignette */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/10" />

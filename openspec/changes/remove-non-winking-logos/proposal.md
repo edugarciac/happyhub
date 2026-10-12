@@ -29,4 +29,4 @@ La marca se escribe **HappyHub** (segunda H mayúscula). Se eliminan también lo
 - `public/logo-happyhub-black.jpeg` (sustituido por `public/logo-happyhub-black.png`, que dice HappyHub). Sin referencias.
 - `public/happyhub_home.png` (render con neón «Happyhub»). Sin referencias.
 
-Pendiente de decisión del usuario: `public/happyhub_coming.mp4` (vídeo de fondo del Hero) y su póster `public/Happyhub-coming2026.jpeg` muestran «Happyhub» y están en uso.
+- `public/happyhub_coming.mp4` (vídeo de fondo del Hero, con «Happyhub» y marca de agua PixVerse.ai) y su póster `public/Happyhub-coming2026.jpeg`: el usuario eligió sustituir el vídeo por una foto. El Hero pasa a usar `public/images/Happyhub_eventos_3.png` (panorámica 1584×672, rótulo «HappyHub» sin obstrucciones) con `object-[72%_center]` para que el rótulo quede a la derecha, fuera del degradado del texto. Se descartó `Happyhub_eventos_2.png` porque las copas tapan el rótulo.
