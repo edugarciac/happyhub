@@ -1,10 +1,10 @@
 // Inauguración de HappyHub (cuenta atrás)
-export const OPENING_DATE = '2026-10-16';
-export const OPENING_LABEL = '16 de octubre';
+export const OPENING_DATE = '2026-10-18';
+export const OPENING_LABEL = '18 de octubre';
 
 // El día de la inauguración no se alquila: las reservas empiezan al día siguiente
-export const BOOKINGS_FROM_DATE = '2026-10-17';
-export const BOOKINGS_FROM_LABEL = '17 de octubre';
+export const BOOKINGS_FROM_DATE = '2026-10-19';
+export const BOOKINGS_FROM_LABEL = '19 de octubre';
 
 const TIME_ZONE = 'Europe/Madrid';
 
