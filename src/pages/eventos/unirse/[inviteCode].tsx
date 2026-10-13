@@ -3,8 +3,6 @@ import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 import { Loader2, Users, Calendar, MapPin } from 'lucide-react';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
 import type { CollaborativeEvent } from '@/utils/db/collaborative-events';
 
 export default function UnirseEventoPage() {
@@ -72,7 +70,6 @@ export default function UnirseEventoPage() {
         <Head>
           <title>¡Te has unido! – HappyHub</title>
         </Head>
-        <Header />
         <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
           <div className="max-w-md w-full bg-white rounded-2xl shadow-sm border border-gray-200 p-8 text-center">
             <div className="text-5xl mb-4">🎉</div>
@@ -108,7 +105,6 @@ export default function UnirseEventoPage() {
             )}
           </div>
         </main>
-        <Footer />
       </>
     );
   }
@@ -118,7 +114,6 @@ export default function UnirseEventoPage() {
       <Head>
         <title>Unirte al evento – HappyHub</title>
       </Head>
-      <Header />
 
       <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
         <div className="max-w-md w-full bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
@@ -182,7 +177,6 @@ export default function UnirseEventoPage() {
         </div>
       </main>
 
-      <Footer />
     </>
   );
 }

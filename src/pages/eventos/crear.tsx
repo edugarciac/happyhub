@@ -4,8 +4,6 @@ import { useSession } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Loader2 } from 'lucide-react';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
 import EventCategoryPicker from '@/components/events/EventCategoryPicker';
 import DateInput from '@/components/DateInput';
 
@@ -73,7 +71,6 @@ export default function CrearEventoPage() {
       <Head>
         <title>Crear evento colaborativo – HappyHub</title>
       </Head>
-      <Header />
 
       <main className="min-h-screen bg-gray-50 py-10 px-4">
         <div className="max-w-2xl mx-auto">
@@ -182,7 +179,6 @@ export default function CrearEventoPage() {
         </div>
       </main>
 
-      <Footer />
     </>
   );
 }

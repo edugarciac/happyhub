@@ -4,8 +4,6 @@ import Link from 'next/link';
 import { GetServerSideProps } from 'next';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
 import {
   Users, CalendarDays, Gift, Bell, Mail, ImageIcon,
   MessageCircle, MessageSquare, CheckCircle2, ArrowRight, Sparkles
@@ -73,7 +71,6 @@ export default function MisEventosPage() {
           content="Crea eventos colaborativos con tu grupo. Gestiona invitados, timeline, regalo, fotos y más desde un solo lugar. Con soporte WhatsApp y servicios adicionales."
         />
       </Head>
-      <Header />
 
       <main>
         {/* Hero */}
@@ -220,7 +217,6 @@ export default function MisEventosPage() {
         </section>
       </main>
 
-      <Footer />
     </>
   );
 }
