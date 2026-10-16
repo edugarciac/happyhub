@@ -58,7 +58,7 @@ const categories: FaqCategory[] = [
       {
         question: '¿A qué hora puedo acceder el día del evento?',
         answer:
-          'Puedes acceder 30 minutos antes del inicio de tu franja horaria sin coste adicional. Si necesitas más tiempo para montar decoración o preparar el espacio, consúltanos.',
+          'Puedes acceder 30 minutos antes del inicio de tu franja horaria sin coste adicional. Si necesitas más tiempo para montar decoración o preparar el espacio, puedes contratar 1 hora adicional de acceso anticipado por 30 €.',
       },
       {
         question: '¿Qué incluye el alquiler del espacio?',

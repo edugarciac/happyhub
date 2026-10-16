@@ -41,6 +41,7 @@ export default function PoliticaPrivacidad() {
                 <li><strong>Datos de identificación:</strong> nombre, apellidos, DNI/NIE (cuando sea necesario para la facturación).</li>
                 <li><strong>Datos de contacto:</strong> dirección de correo electrónico, número de teléfono.</li>
                 <li><strong>Datos de la reserva:</strong> fecha del evento, tipo de celebración, número de asistentes, servicios contratados.</li>
+                <li><strong>Prueba de aceptación del contrato:</strong> texto de los términos aceptados, fecha y hora de la aceptación, dirección IP y navegador utilizados.</li>
                 <li><strong>Datos de pago:</strong> los datos de tarjeta son procesados directamente por Stripe y HappyHub no almacena datos de tarjeta completos.</li>
                 <li><strong>Datos de navegación:</strong> dirección IP, tipo de navegador, páginas visitadas, mediante cookies técnicas.</li>
                 <li><strong>Datos de cuenta:</strong> email y contraseña cifrada, en caso de registro en la plataforma.</li>
@@ -79,6 +80,7 @@ export default function PoliticaPrivacidad() {
               </p>
               <ul className="list-disc list-inside space-y-2 mt-3">
                 <li><strong>Datos de reservas y facturación:</strong> 5 años (obligación fiscal).</li>
+                <li><strong>Prueba de aceptación del contrato:</strong> 5 años desde la fecha del evento (plazo de prescripción de las acciones contractuales, art. 1964 del Código Civil).</li>
                 <li><strong>Datos de contacto:</strong> mientras exista relación comercial o hasta que se solicite la supresión.</li>
                 <li><strong>Datos de cuenta:</strong> hasta que el usuario solicite la baja.</li>
                 <li><strong>Datos de navegación:</strong> máximo 12 meses.</li>

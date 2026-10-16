@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query, queryOne } from '../../../../../lib/db';
 import { verifyAdminSession } from '../../../../../utils/adminAuth';
+import { getContractAcceptance } from '../../../../../lib/contractAcceptance';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const admin = await verifyAdminSession(req, res);
@@ -37,7 +38,8 @@ async function handleGet(id: number, res: NextApiResponse) {
     if (!reservation) {
       return res.status(404).json({ success: false, error: 'Reserva no encontrada' });
     }
-    return res.status(200).json({ success: true, reservation });
+    const acceptance = await getContractAcceptance(id);
+    return res.status(200).json({ success: true, reservation, acceptance });
   } catch (error) {
     console.error('Error fetching reservation:', error);
     return res.status(500).json({ success: false, error: 'Error al obtener la reserva' });

@@ -18,6 +18,7 @@ const INCLUDED = [
   'Sistema de sonido',
   'Microondas y nevera',
   'Cafetera Dolce Gusto (cápsulas no incluidas)',
+  'Acceso 30 min antes (1 h extra de montaje: 30 €)',
 ];
 
 export default function PricingTable() {

@@ -47,6 +47,12 @@ export default function TermsContent() {
           que se comunican de forma individualizada.
         </p>
         <p className="mt-3">
+          El precio incluye el acceso al espacio <strong>30 minutos antes</strong> del inicio de la franja contratada para
+          preparar el evento. Se puede contratar <strong>1 hora adicional de acceso anticipado por 30 €</strong>.
+          La franja de tarde solo puede ampliarse, como máximo hasta las 23:00, por acuerdo expreso y abonando la
+          tarifa adicional; no se ofrece franja de noche.
+        </p>
+        <p className="mt-3">
           El pago se realiza con tarjeta de crédito/débito (pago seguro mediante Stripe) o por Bizum,
           indicando como concepto el número de reserva.
         </p>
@@ -156,6 +162,10 @@ export default function TermsContent() {
         <p className="mt-3">
           HappyHub no publicará fotografías ni vídeos de los eventos en los que aparezcan asistentes sin su
           consentimiento expreso (o el de sus padres o tutores, en el caso de menores).
+        </p>
+        <p className="mt-3">
+          Al aceptar estos términos durante la reserva, guardamos como prueba del contrato el texto aceptado, la fecha
+          y hora, tu nombre, email y teléfono, la dirección IP y el navegador utilizado.
         </p>
         <p className="mt-3">
           Para más información, consulta nuestra{' '}

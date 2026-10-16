@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useBooking, EventType, PaymentMethod } from './BookingContext';
 import PriceSummary from './PriceSummary';
-import TermsContent from '@/components/TermsContent';
+import TermsContent, { TERMS_LAST_UPDATED } from '@/components/TermsContent';
 import { ChevronLeft, ChevronRight, User, AlertCircle, FileText, Loader2, CreditCard } from 'lucide-react';
 
 const customerSchema = z.object({
@@ -134,6 +134,11 @@ export default function Step3CustomerData() {
           discountAmount: calculateDiscount(),
           totalPrice,
           depositAmount,
+          // Aceptación de los términos: el servidor guarda el texto exacto que el cliente ha leído
+          acceptTerms: data.acceptTerms === true,
+          termsVersion: TERMS_LAST_UPDATED,
+          termsText: termsBoxRef.current?.innerText || '',
+          termsScrolledToEnd: hasReadTerms,
           // Metadata
           source: 'web',
           timestamp: new Date().toISOString(),

@@ -15,6 +15,13 @@ import { isBookingPaymentMethod } from '@/config/payments';
 import { BOOKINGS_FROM_LABEL, isBeforeBookingStart } from '@/config/opening';
 import { isOpeningDiscountEligible, OPENING_DISCOUNT } from '@/config/promotions';
 import { isBookableTimeSlot } from '@/utils/pricing';
+import {
+  ensureContractAcceptancesTable,
+  recordContractAcceptance,
+  markConfirmationEmailSent,
+  TERMS_TEXT_MIN,
+  TERMS_TEXT_MAX,
+} from '@/lib/contractAcceptance';
 
 interface ReservationData {
   name: string;
@@ -36,6 +43,11 @@ interface ReservationData {
   depositAmount: number;
   source?: string;
   timestamp?: string;
+  // Aceptación de los términos (prueba guardada en contract_acceptances)
+  acceptTerms?: boolean;
+  termsVersion?: string;
+  termsText?: string;
+  termsScrolledToEnd?: boolean;
 }
 
 interface ResponseData {
@@ -103,6 +115,21 @@ export default async function handler(
       });
     }
 
+    const termsText = typeof reservationData.termsText === 'string' ? reservationData.termsText.trim() : '';
+    const termsVersion = typeof reservationData.termsVersion === 'string' ? reservationData.termsVersion.trim().slice(0, 100) : '';
+    if (
+      reservationData.acceptTerms !== true ||
+      !termsVersion ||
+      termsText.length < TERMS_TEXT_MIN ||
+      termsText.length > TERMS_TEXT_MAX
+    ) {
+      return res.status(400).json({
+        success: false,
+        error: 'Debes leer y aceptar los términos y condiciones. Si ya lo hiciste, recarga la página e inténtalo de nuevo.',
+        step: 'terms',
+      });
+    }
+
     if (!isBookingPaymentMethod(reservationData.paymentMethod)) {
       return res.status(400).json({
         success: false,
@@ -128,6 +155,8 @@ export default async function handler(
     let inserted: { id: number } | null;
     try {
       await ensureReservationFlowColumns();
+      // Si no se puede preparar el registro de la prueba, no se crea la reserva
+      await ensureContractAcceptancesTable();
       const user = await queryOne<{ id: number }>('SELECT id FROM users WHERE LOWER(email) = LOWER($1) LIMIT 1', [
         reservationData.email,
       ]);
@@ -182,6 +211,46 @@ export default async function handler(
     }
 
     const reservationId = buildReservationCode(reservationData.date, inserted.id);
+
+    // Prueba de aceptación de los términos: sin prueba guardada no hay reserva.
+    let acceptance;
+    try {
+      acceptance = await recordContractAcceptance(req, {
+        reservationId: inserted.id,
+        reservationCode: reservationId,
+        customerName: reservationData.name,
+        customerEmail: reservationData.email,
+        customerPhone: reservationData.phone,
+        termsVersion,
+        termsText,
+        scrolledToEnd: reservationData.termsScrolledToEnd === true,
+        contractSnapshot: {
+          eventDate: reservationData.date,
+          timeSlot: reservationData.timeSlot,
+          eventType: reservationData.eventType || 'otros',
+          guests,
+          extras: Array.isArray(reservationData.extras) ? reservationData.extras : [],
+          basePrice: Number(reservationData.basePrice) || 0,
+          discountAmount,
+          totalPrice,
+          depositAmount,
+          paymentMethod: reservationData.paymentMethod,
+          needsKidsFurniture,
+          isHoliday: isHolidayDate,
+          message: reservationData.message || '',
+        },
+      });
+    } catch (acceptanceError: any) {
+      console.error('Error guardando la prueba de aceptación; se anula la reserva', inserted.id, acceptanceError?.message || acceptanceError);
+      await queryOne('DELETE FROM reservations WHERE id = $1', [inserted.id]).catch((err) =>
+        console.error('No se pudo anular la reserva sin prueba de aceptación', inserted!.id, err)
+      );
+      return res.status(500).json({
+        success: false,
+        error: 'No se ha podido registrar la aceptación de los términos. Inténtalo de nuevo o contáctanos.',
+        step: 'terms',
+      });
+    }
     const emailData: ReservationEmailData = {
       code: reservationId,
       name: reservationData.name,
@@ -199,6 +268,8 @@ export default async function handler(
       needsKidsFurniture,
       isHoliday: isHolidayDate,
       dbId: inserted.id,
+      termsVersion: acceptance.terms_version,
+      termsAcceptedAt: acceptance.accepted_at,
     };
 
     // Efectos secundarios: se esperan (Vercel congela la función al responder),
@@ -235,6 +306,12 @@ export default async function handler(
         isHoliday: isHolidayDate,
       }),
     ]);
+
+    if (customerEmailSent) {
+      await markConfirmationEmailSent(acceptance.id).catch((err) =>
+        console.error('Error registrando el envío del email de confirmación:', err)
+      );
+    }
 
     if (calendarEventId) {
       await queryOne('UPDATE reservations SET google_calendar_event_id = $1 WHERE id = $2', [calendarEventId, inserted.id]).catch(

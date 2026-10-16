@@ -203,7 +203,8 @@ export function generateContractPDF(reservation: ReservationData): Buffer {
     '9. El responsable de la reserva debe ser mayor de edad y estar presente durante todo el evento. Responde del comportamiento de los asistentes.',
     '10. Prohibido servir o permitir el consumo de alcohol a menores de 18 años.',
     '11. HappyHub se reserva el derecho de admisión y puede dar por finalizado el evento, sin devolución, ante incumplimientos graves no corregidos tras aviso.',
-    '12. Condiciones completas en www.happyhub.es/terminos.',
+    '12. Acceso al espacio 30 minutos antes del inicio, sin coste. 1 hora adicional de acceso anticipado: 30 €.',
+    '13. Condiciones completas en www.happyhub.es/terminos.',
   ];
 
   terms.forEach((term) => {

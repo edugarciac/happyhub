@@ -91,6 +91,15 @@ export interface ReservationEmailData {
   needsKidsFurniture?: boolean;
   isHoliday?: boolean;
   dbId?: number;
+  /** Prueba de aceptación de los términos (art. 28 LSSI: confirmar la aceptación por email) */
+  termsVersion?: string;
+  termsAcceptedAt?: string | Date;
+}
+
+function formatAcceptedAt(value: string | Date): string {
+  const d = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(d.getTime())) return String(value);
+  return d.toLocaleString('es-ES', { timeZone: 'Europe/Madrid', dateStyle: 'long', timeStyle: 'medium' });
 }
 
 export function reservationCustomerEmail(r: ReservationEmailData): { subject: string; html: string } {
@@ -118,6 +127,13 @@ export function reservationCustomerEmail(r: ReservationEmailData): { subject: st
           : `con el enlace para pagar la señal de <strong>${escapeHtml(r.depositAmount)} €</strong> con tarjeta`
       }. Tendrás ${PAYMENT_WINDOW_HOURS} horas para pagarla; si no, la reserva se cancelará automáticamente.`
     )}
+    ${
+      r.termsVersion && r.termsAcceptedAt
+        ? `<p style="font-size: 13px; color: #555;">Has aceptado los <a href="https://www.happyhub.es/terminos">términos y condiciones</a> (versión del ${escapeHtml(
+            r.termsVersion
+          )}) el ${escapeHtml(formatAcceptedAt(r.termsAcceptedAt))} (hora peninsular). Guardamos el texto aceptado como prueba del contrato; puedes pedirnos una copia en hola@happyhub.es.</p>`
+        : ''
+    }
     ${CONTACT_HTML}`;
   return {
     subject: `Solicitud de reserva ${r.code} - HappyHub`,

@@ -19,10 +19,33 @@ interface ReservationData {
   customer_message: string | null;
 }
 
+interface AcceptanceData {
+  reservation_code: string | null;
+  accepted_at: string;
+  customer_name: string;
+  customer_email: string;
+  customer_phone: string | null;
+  terms_version: string;
+  terms_sha256: string;
+  app_commit_sha: string | null;
+  acceptance_method: string;
+  scrolled_to_end: boolean;
+  ip_address: string | null;
+  user_agent: string | null;
+  evidence_sha256: string;
+  confirmation_email_sent_at: string | null;
+}
+
+function formatDateTime(value: string | null): string {
+  if (!value) return '-';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+  return d.toLocaleString('es-ES', { timeZone: 'Europe/Madrid' }) + ' (hora peninsular)';
+}
+
 const TIME_SLOT_HOURS: Record<string, { label: string; start: string; end: string }> = {
   morning: { label: 'Manana', start: '10:00', end: '14:00' },
   afternoon: { label: 'Tarde', start: '16:00', end: '20:00' },
-  night: { label: 'Noche', start: '22:00', end: '02:00' },
 };
 
 const EVENT_TYPE_LABELS: Record<string, string> = {
@@ -50,6 +73,7 @@ export default function ContractPage() {
   const router = useRouter();
   const { id } = router.query;
   const [reservation, setReservation] = useState<ReservationData | null>(null);
+  const [acceptance, setAcceptance] = useState<AcceptanceData | null>(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -62,7 +86,10 @@ export default function ContractPage() {
         if (!res.ok) throw new Error('No se pudo cargar la reserva');
         return res.json();
       })
-      .then((data) => setReservation(data.reservation))
+      .then((data) => {
+        setAcceptance(data.acceptance || null);
+        setReservation(data.reservation);
+      })
       .catch((err) => setError(err.message));
   }, [id]);
 
@@ -79,7 +106,13 @@ export default function ContractPage() {
     return <div className="p-8 text-gray-500">Cargando contrato...</div>;
   }
 
-  const r = reservation;
+  // reservations no guarda los datos del cliente sin cuenta: se usan los de la aceptación electrónica
+  const r = {
+    ...reservation,
+    name: reservation.name || acceptance?.customer_name || '',
+    email: reservation.email || acceptance?.customer_email || '',
+    phone: reservation.phone || acceptance?.customer_phone || '',
+  };
   const slot = TIME_SLOT_HOURS[r.time_slot] || { label: r.time_slot, start: '-', end: '-' };
   const eventLabel = EVENT_TYPE_LABELS[r.event_type] || r.event_type;
   const extras = Array.isArray(r.extras) && r.extras.length > 0 ? r.extras.join(', ') : 'Ninguno';
@@ -202,9 +235,10 @@ export default function ContractPage() {
         <p>3.8. Los proveedores externos que contrate el Cliente (catering, animacion, hinchables, etc.) son responsabilidad del Cliente y deberan cumplir la normativa aplicable y disponer de su propio seguro de responsabilidad civil.</p>
 
         <h2>4. Horarios</h2>
-        <p>4.1. Acceso 1 hora antes del inicio del evento para preparacion (sin coste adicional).</p>
+        <p>4.1. Acceso 30 minutos antes del inicio del evento para preparacion (sin coste adicional). Si se necesita mas tiempo, se puede contratar 1 hora adicional de acceso anticipado por 30 EUR.</p>
         <p>4.2. El evento debera finalizar a la hora contratada. Prolongacion no autorizada: 50 EUR por hora o fraccion.</p>
         <p>4.3. 30 minutos despues de la hora de finalizacion para recoger pertenencias.</p>
+        <p>4.4. HappyHub no ofrece franja de noche. La franja de tarde solo puede ampliarse, como maximo hasta las 23:00, si se acuerda expresamente por escrito y se abona la tarifa adicional correspondiente.</p>
 
         <h2>5. Derecho de admision y finalizacion del evento</h2>
         <p>5.1. HappyHub se reserva el derecho de admision y podra negar el acceso o pedir que abandone el espacio a cualquier persona con signos evidentes de embriaguez o consumo de drogas, comportamiento violento o que moleste a los vecinos, que ponga en riesgo la seguridad, o cuya entrada supere el aforo.</p>
@@ -228,6 +262,29 @@ export default function ContractPage() {
         <h2>8. Legislacion aplicable</h2>
         <p>Este contrato se rige por la legislacion espanola. Para cualquier controversia, las partes se someten a los juzgados de Barcelona, salvo que la normativa de consumidores establezca otro fuero.</p>
         <p>El Cliente declara haber leido y aceptado los terminos y condiciones publicados en www.happyhub.es/terminos, que forman parte de este contrato.</p>
+
+        <h2>9. Aceptacion electronica</h2>
+        {acceptance ? (
+          <>
+            <p>El Cliente acepto electronicamente estos terminos y condiciones en la web de HappyHub al solicitar la reserva. Datos de la aceptacion:</p>
+            <table>
+              <tbody>
+                <tr><th>Fecha y hora</th><td>{formatDateTime(acceptance.accepted_at)}</td></tr>
+                <tr><th>Aceptado por</th><td>{acceptance.customer_name} - {acceptance.customer_email}{acceptance.customer_phone ? ` - ${acceptance.customer_phone}` : ''}</td></tr>
+                <tr><th>Version de los terminos</th><td>{acceptance.terms_version}</td></tr>
+                <tr><th>Metodo</th><td>Casilla &quot;He leido y acepto&quot; tras leer el texto completo{acceptance.scrolled_to_end ? ' (lectura hasta el final verificada)' : ''}</td></tr>
+                <tr><th>Direccion IP</th><td>{acceptance.ip_address || '-'}</td></tr>
+                <tr><th>Navegador</th><td style={{ fontSize: 10 }}>{acceptance.user_agent || '-'}</td></tr>
+                <tr><th>Huella del texto aceptado (SHA-256)</th><td style={{ fontSize: 10, wordBreak: 'break-all' }}>{acceptance.terms_sha256}</td></tr>
+                <tr><th>Huella de la prueba (SHA-256)</th><td style={{ fontSize: 10, wordBreak: 'break-all' }}>{acceptance.evidence_sha256}</td></tr>
+                <tr><th>Version de la web</th><td style={{ fontSize: 10 }}>{acceptance.app_commit_sha || '-'}</td></tr>
+                <tr><th>Email de confirmacion enviado</th><td>{formatDateTime(acceptance.confirmation_email_sent_at)}</td></tr>
+              </tbody>
+            </table>
+          </>
+        ) : (
+          <p>No consta aceptacion electronica para esta reserva (reserva anterior al registro de pruebas o creada desde el panel). Se requiere la firma manuscrita de este contrato.</p>
+        )}
 
         <div className="signatures">
           <div className="sig-block">
