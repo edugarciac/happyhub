@@ -125,7 +125,7 @@ const categories: FaqCategory[] = [
       {
         question: '¿Se puede fumar en el espacio?',
         answer:
-          'No está permitido fumar en el interior del espacio. Existe una zona exterior habilitada para fumadores.',
+          'No está permitido fumar en el interior del espacio.',
       },
       {
         question: '¿Se admiten mascotas?',
