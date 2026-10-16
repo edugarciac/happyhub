@@ -27,7 +27,7 @@ export default function PoliticaPrivacidad() {
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-4">1. Responsable del tratamiento</h2>
               <ul className="list-disc list-inside space-y-2">
-                <li><strong>Titular:</strong> HappyHub</li>
+                <li><strong>Titular:</strong> HAPPYHUB CB (NIF E26649814)</li>
                 <li><strong>Domicilio:</strong> C/ Rovellat, 27, 08950 Esplugues de Llobregat, Barcelona, España</li>
                 <li><strong>Email:</strong> <a href="mailto:hola@happyhub.es" className="text-primary-600 hover:underline">hola@happyhub.es</a></li>
                 <li><strong>Teléfono:</strong> <a href="https://wa.me/34624645517" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">+34 624 645 517</a> (WhatsApp)</li>

@@ -126,7 +126,8 @@ export default function ContractPage() {
         <div className="parties">
           <div className="party">
             <h3>ARRENDADOR</h3>
-            <p><strong>HappyHub</strong></p>
+            <p><strong>HAPPYHUB CB</strong> (HappyHub)</p>
+            <p>NIF: E26649814</p>
             <p>C/ Rovellat, 27, 08950 Esplugues de Llobregat, Barcelona</p>
             <p>Email: hola@happyhub.es</p>
             <p>Tel: +34 624 645 517</p>
@@ -195,13 +196,21 @@ export default function ContractPage() {
         <p>3.2. El aforo maximo del espacio es de <strong>50 personas</strong>.</p>
         <p>3.3. El Cliente es responsable de la supervision de todos los asistentes al evento, especialmente de los menores de edad.</p>
         <p>3.4. Esta prohibido fumar cigarrillos y usar vapers o cigarrillos electronicos en el interior del espacio.</p>
+        <p>3.5. El Cliente firmante es el responsable de la reserva: debe ser mayor de edad, estar presente durante todo el evento y responde del comportamiento de todos los asistentes.</p>
+        <p>3.6. Esta prohibido servir o permitir el consumo de bebidas alcoholicas a menores de 18 anos. Las bebidas alcoholicas que aporte el Cliente son solo para consumo privado; esta prohibida su venta.</p>
+        <p>3.7. No se permite el uso de confeti, purpurina, bengalas, pirotecnia ni velas de chispa, ni fijar elementos en paredes o techos con clavos, tornillos, celo, cinta americana o pegamento. No se admiten mascotas, salvo animales de asistencia acreditados. No se permite conectar equipos de sonido propios.</p>
+        <p>3.8. Los proveedores externos que contrate el Cliente (catering, animacion, hinchables, etc.) son responsabilidad del Cliente y deberan cumplir la normativa aplicable y disponer de su propio seguro de responsabilidad civil.</p>
 
         <h2>4. Horarios</h2>
         <p>4.1. Acceso 1 hora antes del inicio del evento para preparacion (sin coste adicional).</p>
         <p>4.2. El evento debera finalizar a la hora contratada. Prolongacion no autorizada: 50 EUR por hora o fraccion.</p>
         <p>4.3. 30 minutos despues de la hora de finalizacion para recoger pertenencias.</p>
 
-        <h2>5. Politica de cancelacion</h2>
+        <h2>5. Derecho de admision y finalizacion del evento</h2>
+        <p>5.1. HappyHub se reserva el derecho de admision y podra negar el acceso o pedir que abandone el espacio a cualquier persona con signos evidentes de embriaguez o consumo de drogas, comportamiento violento o que moleste a los vecinos, que ponga en riesgo la seguridad, o cuya entrada supere el aforo.</p>
+        <p>5.2. Ante un incumplimiento grave de este contrato (aforo, horario, ruido, alcohol a menores, tabaco o vapeo, o comportamientos de riesgo) no corregido tras aviso al Cliente, HappyHub podra dar por finalizado el evento sin derecho a devolucion del importe pagado.</p>
+
+        <h2>6. Politica de cancelacion</h2>
         <table>
           <thead><tr><th>Plazo</th><th>Consecuencia</th></tr></thead>
           <tbody>
@@ -211,16 +220,18 @@ export default function ContractPage() {
           </tbody>
         </table>
         <p>La fianza se devuelve integramente en caso de cancelacion.</p>
+        <p>Al tratarse de un servicio de ocio para una fecha determinada, no es aplicable el derecho de desistimiento de 14 dias (art. 103.l del Real Decreto Legislativo 1/2007).</p>
 
-        <h2>6. Proteccion de datos</h2>
-        <p>Los datos personales seran tratados conforme al RGPD y la LOPDGDD. Finalidad: gestion de la reserva. El Cliente puede ejercer sus derechos en hola@happyhub.es.</p>
+        <h2>7. Proteccion de datos</h2>
+        <p>Los datos personales seran tratados conforme al RGPD y la LOPDGDD. Finalidad: gestion de la reserva. El Cliente puede ejercer sus derechos en hola@happyhub.es. HappyHub no publicara imagenes de los asistentes sin su consentimiento expreso (o el de sus padres o tutores, en el caso de menores).</p>
 
-        <h2>7. Legislacion aplicable</h2>
-        <p>Este contrato se rige por la legislacion espanola. Para cualquier controversia, las partes se someten a los juzgados de Barcelona.</p>
+        <h2>8. Legislacion aplicable</h2>
+        <p>Este contrato se rige por la legislacion espanola. Para cualquier controversia, las partes se someten a los juzgados de Barcelona, salvo que la normativa de consumidores establezca otro fuero.</p>
+        <p>El Cliente declara haber leido y aceptado los terminos y condiciones publicados en www.happyhub.es/terminos, que forman parte de este contrato.</p>
 
         <div className="signatures">
           <div className="sig-block">
-            <p><strong>ARRENDADOR (HappyHub)</strong></p>
+            <p><strong>ARRENDADOR (HAPPYHUB CB)</strong></p>
             <p>Fecha: {formatToday()}</p>
           </div>
           <div className="sig-block">

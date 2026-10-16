@@ -200,6 +200,10 @@ export function generateContractPDF(reservation: ReservationData): Buffer {
     '6. HappyHub no se hace responsable de objetos olvidados en las instalaciones.',
     '7. Está prohibido fumar cigarrillos y usar vapers o cigarrillos electrónicos en el interior del espacio.',
     '8. Cualquier daño a las instalaciones será responsabilidad del cliente.',
+    '9. El responsable de la reserva debe ser mayor de edad y estar presente durante todo el evento. Responde del comportamiento de los asistentes.',
+    '10. Prohibido servir o permitir el consumo de alcohol a menores de 18 años.',
+    '11. HappyHub se reserva el derecho de admisión y puede dar por finalizado el evento, sin devolución, ante incumplimientos graves no corregidos tras aviso.',
+    '12. Condiciones completas en www.happyhub.es/terminos.',
   ];
 
   terms.forEach((term) => {
@@ -214,7 +218,7 @@ export function generateContractPDF(reservation: ReservationData): Buffer {
   yPos += 8;
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
-  addCenteredText('HappyHub - Espacio de celebraciones', yPos, 10);
+  addCenteredText('HAPPYHUB CB - NIF E26649814 - C/ Rovellat 27, Esplugues de Llobregat', yPos, 10);
   yPos += 5;
   doc.setFontSize(9);
   addCenteredText('WhatsApp: 624 645 517 | Email: hola@happyhub.es | Web: www.happyhub.es', yPos, 9);
