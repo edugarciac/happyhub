@@ -42,7 +42,7 @@ const categories: FaqCategory[] = [
       {
         question: '¿Cuál es la política de cancelación?',
         answer:
-          'La cancelación es gratuita hasta 3 días antes del evento y te devolvemos el depósito. Si cancelas con menos de 3 días de antelación, se retiene el depósito.',
+          'Si cancelas con 15 días o más de antelación, te devolvemos el depósito. Entre 14 y 3 días antes no hay devolución, pero puedes cambiar la fecha del evento (sujeto a disponibilidad). Con menos de 3 días de antelación, no se devuelve el depósito.',
       },
       {
         question: '¿Cómo funciona el pago?',
@@ -125,7 +125,7 @@ const categories: FaqCategory[] = [
       {
         question: '¿Se puede fumar en el espacio?',
         answer:
-          'No está permitido fumar en el interior del espacio.',
+          'No. Está prohibido fumar cigarrillos y usar vapers o cigarrillos electrónicos en el interior del espacio.',
       },
       {
         question: '¿Se admiten mascotas?',

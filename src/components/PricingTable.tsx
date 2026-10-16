@@ -191,7 +191,7 @@ export default function PricingTable() {
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-primary-500 font-bold">•</span>
-                  <span><strong>Cancelación gratuita</strong> hasta 15 días antes</span>
+                  <span><strong>Devolución del depósito</strong> hasta 15 días antes; cambio de fecha hasta 3 días antes</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-primary-500 font-bold">•</span>

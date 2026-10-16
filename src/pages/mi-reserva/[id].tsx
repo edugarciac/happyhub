@@ -247,7 +247,12 @@ export default function MiReserva() {
             </div>
 
             <p className="text-gray-600 mb-6">
-              Según nuestra política de cancelación, si cancelas ahora recibirás una devolución del 100% del depósito.
+              {(() => {
+                const days = Math.ceil((new Date(reservationData.date).getTime() - Date.now()) / 86400000);
+                if (days >= 15) return 'Según nuestra política de cancelación, si cancelas ahora recibirás una devolución del 100% del depósito.';
+                if (days >= 3) return 'Quedan menos de 15 días: si cancelas no se devuelve el depósito, pero puedes cambiar la fecha del evento (sujeto a disponibilidad). Contáctanos para reagendarlo.';
+                return 'Quedan menos de 3 días: si cancelas no se devuelve el depósito ni es posible cambiar la fecha.';
+              })()}
             </p>
 
             <div className="flex gap-3">

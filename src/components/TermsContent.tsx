@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-export const TERMS_LAST_UPDATED = '10 de octubre de 2026';
+export const TERMS_LAST_UPDATED = '17 de octubre de 2026';
 
 /** Texto completo de los términos y condiciones. Se usa en /terminos y en el paso 3 de la reserva. */
 export default function TermsContent() {
@@ -55,12 +55,10 @@ export default function TermsContent() {
       <div>
         <h2 className="text-2xl font-bold text-gray-900 mb-4">5. Política de cancelación</h2>
         <ul className="list-disc list-inside space-y-2">
-          <li><strong>3 días o más antes del evento:</strong> cancelación sin coste. Se devuelve el 100% del depósito.</li>
-          <li><strong>Menos de 3 días antes del evento:</strong> se retiene el depósito y no se realiza ninguna devolución.</li>
+          <li><strong>15 días o más antes del evento:</strong> cancelación sin coste. Se devuelve el 100% del depósito.</li>
+          <li><strong>Entre 14 y 3 días antes del evento:</strong> no se devuelve el depósito, pero el cliente puede cambiar la fecha del evento, sujeto a disponibilidad.</li>
+          <li><strong>Menos de 3 días antes del evento:</strong> se retiene el depósito, no se realiza ninguna devolución y no es posible cambiar la fecha.</li>
         </ul>
-        <p className="mt-3">
-          <strong>Cambio de fecha:</strong> gratuito hasta 30 días antes del evento, sujeto a disponibilidad.
-        </p>
         <p className="mt-3">
           Las cancelaciones deben comunicarse por escrito a través de correo electrónico o WhatsApp.
           En caso de fuerza mayor debidamente justificada, HappyHub valorará cada caso de forma individual.
@@ -76,6 +74,7 @@ export default function TermsContent() {
           <li>Respetar los horarios contratados, incluyendo las horas de inicio y finalización del evento.</li>
           <li>No realizar actividades ilegales ni que atenten contra el orden público.</li>
           <li>Supervisar a los menores de edad que asistan al evento en todo momento.</li>
+          <li>No fumar cigarrillos ni usar vapers o cigarrillos electrónicos en el interior del espacio, ni permitir que lo hagan los asistentes.</li>
           <li>Comunicar cualquier incidencia o desperfecto durante el evento.</li>
           <li>Dejar el espacio completamente recogido y en las mismas condiciones en que fue entregado al finalizar el evento. Esto incluye recoger todos los residuos, devolver el mobiliario a su posición original y retirar cualquier decoración o material traído por el cliente.</li>
           <li>No traer ni utilizar equipos de audio o sistemas de sonido propios. El espacio dispone de su propio sistema de sonido. El uso de dispositivos de audio externos no está permitido bajo ninguna circunstancia.</li>

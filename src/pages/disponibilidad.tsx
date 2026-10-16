@@ -206,7 +206,7 @@ export default function Disponibilidad() {
               <div className="border-l-4 border-secondary-500 pl-4">
                 <h3 className="font-bold text-gray-900 mb-3 text-lg">🔄 Cancelaciones</h3>
                 <p className="text-gray-600 mb-2">
-                  Cancelación <strong>gratuita hasta 15 días</strong> antes del evento.
+                  Devolución del depósito <strong>hasta 15 días</strong> antes del evento. Entre 14 y 3 días antes puedes cambiar la fecha. Con menos de 3 días no hay devolución.
                 </p>
                 <p className="text-gray-600">
                   Consulta nuestra política completa de cancelaciones.

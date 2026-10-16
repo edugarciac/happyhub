@@ -192,13 +192,14 @@ export function generateContractPDF(reservation: ReservationData): Buffer {
   doc.setFont('helvetica', 'normal');
 
   const terms = [
-    '1. El depósito del 30% no es reembolsable en caso de cancelación con menos de 3 días de antelación.',
-    '2. El cambio de fecha es gratuito hasta 30 días antes del evento, sujeto a disponibilidad.',
+    '1. Cancelación con 15 días o más de antelación: se devuelve el 100% del depósito.',
+    '2. Entre 14 y 3 días antes del evento: no se devuelve el depósito, pero se puede cambiar la fecha (sujeto a disponibilidad). Con menos de 3 días: no hay devolución ni cambio de fecha.',
     '3. El resto del importe debe abonarse antes de comenzar el evento.',
     '4. El aforo máximo permitido es de 50 personas.',
     '5. El cliente se compromete a dejar el espacio completamente recogido y en las mismas condiciones en que fue entregado. Si no es así, se cobrarán 50 € por la limpieza posterior.',
     '6. HappyHub no se hace responsable de objetos olvidados en las instalaciones.',
-    '7. Cualquier daño a las instalaciones será responsabilidad del cliente.',
+    '7. Está prohibido fumar cigarrillos y usar vapers o cigarrillos electrónicos en el interior del espacio.',
+    '8. Cualquier daño a las instalaciones será responsabilidad del cliente.',
   ];
 
   terms.forEach((term) => {

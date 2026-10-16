@@ -286,7 +286,7 @@ export default function Contacto() {
                 ¿Qué pasa si necesito cancelar?
               </summary>
               <p className="mt-3 text-gray-600">
-                Puedes cancelar sin coste hasta 3 días antes del evento y te devolvemos el depósito. Con menos de 3 días de antelación, se retiene el depósito.
+                Si cancelas con 15 días o más de antelación, te devolvemos el depósito. Entre 14 y 3 días antes no hay devolución, pero puedes cambiar la fecha del evento (sujeto a disponibilidad). Con menos de 3 días de antelación, no se devuelve el depósito.
               </p>
             </details>
 
