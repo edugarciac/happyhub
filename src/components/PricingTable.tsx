@@ -188,7 +188,11 @@ export default function PricingTable() {
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-primary-500 font-bold">•</span>
-                  <span>Resto antes de comenzar el evento</span>
+                  <span>Resto el día del evento, antes de empezar (solo tarjeta)</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-primary-500 font-bold">•</span>
+                  <span><strong>Fianza 150 €</strong>: bloqueo temporal en tu tarjeta el día del evento, se libera tras revisar el espacio</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-primary-500 font-bold">•</span>

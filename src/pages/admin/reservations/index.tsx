@@ -13,6 +13,7 @@ import {
 } from '@/utils/reservationStatus';
 import { buildWhatsAppUrl } from '@/utils/phone';
 import DateInput from '@/components/DateInput';
+import DayOfPaymentModal from '@/components/admin/DayOfPaymentModal';
 
 interface EventTypeOption { id: number; name: string; icon: string; }
 
@@ -38,6 +39,12 @@ interface Reservation {
   paymentDueAt: string | null;
   lastPaymentError: string | null;
   lastPaymentErrorAt: string | null;
+  remainingPaymentMethod: string | null;
+  securityDepositStatus: string;
+  securityDepositMethod: string | null;
+  securityDepositAmountHeld: number | null;
+  securityDepositExpiresAt: string | null;
+  securityDepositCaptured: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -86,6 +93,7 @@ export default function AdminReservations() {
 
   const [generatingLinkFor, setGeneratingLinkFor] = useState<number | null>(null);
   const [paymentLinkModal, setPaymentLinkModal] = useState<{ reservationId: number; url: string } | null>(null);
+  const [dayOfModal, setDayOfModal] = useState<Reservation | null>(null);
 
   // Cancel-full modal
   const [cancelFullModal, setCancelFullModal] = useState<Reservation | null>(null);
@@ -359,6 +367,11 @@ export default function AdminReservations() {
                             <div className={`text-xs mt-1 font-medium ${r.paymentStatus === 'fully_paid' ? 'text-green-600' : r.paymentStatus === 'deposit_paid' ? 'text-amber-600' : 'text-gray-400'}`}>
                               {r.paymentStatus === 'fully_paid' ? '✓ Pagado completo' : r.paymentStatus === 'deposit_paid' ? 'Señal pagada' : ''}
                             </div>
+                            {r.securityDepositStatus && r.securityDepositStatus !== 'none' && (
+                              <div className={`text-xs mt-0.5 ${r.securityDepositStatus === 'held' ? 'text-amber-700 font-medium' : 'text-gray-500'}`}>
+                                Fianza: {{ held: 'bloqueada', released: 'liberada', captured: `cobrada ${r.securityDepositCaptured ?? ''} €`, expired: 'caducada' }[r.securityDepositStatus] || r.securityDepositStatus}
+                              </div>
+                            )}
                             {r.status === 'approved' && r.paymentStatus !== 'deposit_paid' && r.paymentStatus !== 'fully_paid' && r.paymentDueAt && (
                               <div className="text-xs mt-1 text-red-600">
                                 Pendiente de señal ({r.paymentMethod === 'bizum' ? 'Bizum' : 'tarjeta'}) · vence {formatDueAt(r.paymentDueAt)}
@@ -416,8 +429,8 @@ export default function AdminReservations() {
                                   <BadgeCheck className="w-4 h-4" />
                                 </button>
                               )}
-                              {r.paymentStatus === 'deposit_paid' && (
-                                <button onClick={() => handleGeneratePaymentLink(r.id)} disabled={generatingLinkFor === r.id} className="p-1.5 text-amber-600 hover:bg-amber-50 rounded transition-colors" title="Generar enlace de pago">
+                              {(r.paymentStatus === 'deposit_paid' || r.paymentStatus === 'fully_paid') && r.status !== 'cancelled' && r.status !== 'rejected' && (
+                                <button onClick={() => setDayOfModal(r)} className="p-1.5 text-amber-600 hover:bg-amber-50 rounded transition-colors" title="Cobro del día y fianza">
                                   <CreditCard className="w-4 h-4" />
                                 </button>
                               )}
@@ -588,6 +601,17 @@ export default function AdminReservations() {
               </div>
             </div>
           </div>
+        )}
+        {dayOfModal && (
+          <DayOfPaymentModal
+            reservation={dayOfModal}
+            onClose={() => setDayOfModal(null)}
+            onChanged={(message, type) => {
+              showToast(message, type);
+              setDayOfModal(null);
+              fetchReservations();
+            }}
+          />
         )}
         {paymentLinkModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">

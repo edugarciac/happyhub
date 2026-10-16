@@ -4,12 +4,14 @@ import Head from 'next/head';
 import { queryOne } from '@/lib/db';
 import { ensureReservationFlowColumns } from '@/lib/reservationFlow';
 import { buildReservationCode } from '@/utils/reservationCode';
-import { BIZUM_PHONE, formatDueAt } from '@/config/payments';
-import { CreditCard, Calendar, Users, AlertCircle, CheckCircle, Smartphone, Clock } from 'lucide-react';
+import { BIZUM_PHONE, formatDueAt, SECURITY_DEPOSIT_AMOUNT, SECURITY_DEPOSIT_ONLINE_HOLD_DAYS } from '@/config/payments';
+import { CreditCard, Calendar, Users, AlertCircle, CheckCircle, Smartphone, Clock, Lock } from 'lucide-react';
 
 interface PageProps {
   valid: boolean;
   error?: string;
+  /** Todo hecho (resto pagado y fianza bloqueada): se muestra como éxito, no como error */
+  done?: boolean;
   reservation?: {
     id: number;
     code: string;
@@ -24,28 +26,30 @@ interface PageProps {
     customerName: string;
     paymentMethod: string | null;
     dueAt: string | null;
+    remainingPaid: boolean;
+    depositHeld: boolean;
   };
   token: string;
+  justPaid?: 'remaining' | 'security_deposit' | null;
 }
 
 const TIME_SLOT_LABELS: Record<string, string> = {
   morning: 'Mañana (10:00-14:00)',
   afternoon: 'Tarde (16:00-20:00)',
-  night: 'Noche (22:00-02:00)',
 };
 
-export default function PagarPage({ valid, error, reservation, token }: PageProps) {
+export default function PagarPage({ valid, error, done, reservation, token, justPaid }: PageProps) {
   const [loading, setLoading] = useState(false);
   const [payError, setPayError] = useState('');
 
-  const handlePay = async () => {
+  const handlePay = async (step?: 'remaining' | 'security_deposit') => {
     setLoading(true);
     setPayError('');
     try {
       const res = await fetch('/api/payments/remaining', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token }),
+        body: JSON.stringify({ token, step }),
       });
       const data = await res.json();
       if (!res.ok || !data.url) {
@@ -61,6 +65,7 @@ export default function PagarPage({ valid, error, reservation, token }: PageProp
   };
 
   const isDeposit = reservation?.kind === 'deposit';
+  const isDayOf = reservation?.kind === 'remaining';
 
   return (
     <>
@@ -70,7 +75,18 @@ export default function PagarPage({ valid, error, reservation, token }: PageProp
 
       <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-lg max-w-md w-full p-8">
-          {!valid ? (
+          {done ? (
+            <div className="text-center">
+              <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">¡Todo listo!</h1>
+              <p className="text-gray-600 mb-4">
+                El pago está completo y la fianza de {SECURITY_DEPOSIT_AMOUNT} € está bloqueada en tu tarjeta. ¡Disfrutad del evento!
+              </p>
+              <p className="text-sm text-gray-500">
+                Liberaremos la fianza en cuanto revisemos el espacio (como máximo en {SECURITY_DEPOSIT_ONLINE_HOLD_DAYS} días).
+              </p>
+            </div>
+          ) : !valid ? (
             <div className="text-center">
               <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
               <h1 className="text-2xl font-bold text-gray-900 mb-2">Enlace no válido</h1>
@@ -125,6 +141,10 @@ export default function PagarPage({ valid, error, reservation, token }: PageProp
                 </div>
               )}
 
+              {isDayOf ? (
+                <DayOfSteps reservation={reservation} loading={loading} payError={payError} justPaid={justPaid || null} onPay={handlePay} />
+              ) : (
+              <>
               {/* Payment breakdown */}
               <div className="border border-gray-200 rounded-xl p-4 mb-6">
                 <div className="flex justify-between text-sm text-gray-600 mb-2">
@@ -156,7 +176,7 @@ export default function PagarPage({ valid, error, reservation, token }: PageProp
               )}
 
               <button
-                onClick={handlePay}
+                onClick={() => handlePay()}
                 disabled={loading}
                 className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-primary-600 text-white rounded-xl font-semibold text-lg hover:bg-primary-700 transition disabled:opacity-50"
               >
@@ -172,11 +192,96 @@ export default function PagarPage({ valid, error, reservation, token }: PageProp
                   <BizumBox amount={reservation.amountDue} code={reservation.code} title="¿Prefieres Bizum?" />
                 </div>
               )}
+              </>
+              )}
             </div>
           ) : null}
         </div>
       </div>
     </>
+  );
+}
+
+function DayOfSteps({
+  reservation,
+  loading,
+  payError,
+  justPaid,
+  onPay,
+}: {
+  reservation: NonNullable<PageProps['reservation']>;
+  loading: boolean;
+  payError: string;
+  justPaid: 'remaining' | 'security_deposit' | null;
+  onPay: (step: 'remaining' | 'security_deposit') => void;
+}) {
+  const step = !reservation.remainingPaid ? 1 : 2;
+  return (
+    <div>
+      <p className="text-sm text-gray-600 mb-4">
+        Antes de empezar el evento hay que hacer <strong>dos pasos</strong> con tarjeta (crédito o débito). Bizum no está
+        disponible para estos pagos.
+      </p>
+
+      {justPaid === 'remaining' && (
+        <div className="bg-green-50 text-green-800 rounded-lg p-3 text-sm mb-4 flex items-center gap-2">
+          <CheckCircle className="w-4 h-4" /> Pago del resto recibido. Falta el paso 2.
+        </div>
+      )}
+
+      <div className={`border rounded-xl p-4 mb-4 ${step === 1 ? 'border-primary-300 bg-primary-50/40' : 'border-gray-200'}`}>
+        <div className="flex items-center justify-between mb-1">
+          <span className="font-semibold text-gray-900">1. Pagar el resto</span>
+          {reservation.remainingPaid ? (
+            <span className="text-green-600 text-sm flex items-center gap-1"><CheckCircle className="w-4 h-4" /> Pagado</span>
+          ) : (
+            <span className="font-bold text-gray-900">{reservation.amountDue.toFixed(2)} €</span>
+          )}
+        </div>
+        <p className="text-xs text-gray-500">
+          Total {reservation.totalPrice.toFixed(2)} € − señal ya pagada {reservation.depositPaid.toFixed(2)} €.
+        </p>
+        {!reservation.remainingPaid && (
+          <button
+            onClick={() => onPay('remaining')}
+            disabled={loading}
+            className="mt-3 w-full flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 text-white rounded-xl font-semibold hover:bg-primary-700 transition disabled:opacity-50"
+          >
+            <CreditCard className="w-5 h-5" />
+            {loading ? 'Redirigiendo...' : `Pagar ${reservation.amountDue.toFixed(2)} €`}
+          </button>
+        )}
+      </div>
+
+      <div className={`border rounded-xl p-4 mb-4 ${step === 2 ? 'border-primary-300 bg-primary-50/40' : 'border-gray-200 opacity-70'}`}>
+        <div className="flex items-center justify-between mb-1">
+          <span className="font-semibold text-gray-900">2. Bloquear la fianza</span>
+          <span className="font-bold text-gray-900">{SECURITY_DEPOSIT_AMOUNT} €</span>
+        </div>
+        <ul className="text-xs text-gray-600 space-y-1 list-disc list-inside">
+          <li><strong>No es un cobro:</strong> el importe queda retenido en tu tarjeta.</li>
+          <li>Lo liberamos en cuanto revisamos el espacio, como máximo en {SECURITY_DEPOSIT_ONLINE_HOLD_DAYS} días.</li>
+          <li>Solo se cobraría si hay daños, con fotos y aviso previo.</li>
+          <li>Con tarjeta de débito, los {SECURITY_DEPOSIT_AMOUNT} € se retienen de tu saldo hasta la liberación (tu banco puede tardar unos días en reflejarla).</li>
+        </ul>
+        {step === 2 && (
+          <button
+            onClick={() => onPay('security_deposit')}
+            disabled={loading}
+            className="mt-3 w-full flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 text-white rounded-xl font-semibold hover:bg-primary-700 transition disabled:opacity-50"
+          >
+            <Lock className="w-5 h-5" />
+            {loading ? 'Redirigiendo...' : `Bloquear ${SECURITY_DEPOSIT_AMOUNT} € de fianza`}
+          </button>
+        )}
+      </div>
+
+      {payError && <div className="bg-red-50 text-red-700 rounded-lg p-3 text-sm mb-4">{payError}</div>}
+
+      <p className="text-center text-xs text-gray-400">
+        Pago seguro procesado por Stripe. Sin pago del resto y bloqueo de la fianza no puede comenzar el evento.
+      </p>
+    </div>
   );
 }
 
@@ -197,6 +302,8 @@ function BizumBox({ amount, code, title = 'Pagar por Bizum' }: { amount: number;
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const { token } = context.params as { token: string };
+  const okParam = context.query.ok;
+  const justPaid = okParam === 'remaining' || okParam === 'security_deposit' ? okParam : null;
 
   try {
     await ensureReservationFlowColumns();
@@ -204,7 +311,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       `SELECT pt.reservation_id, pt.used, pt.expires_at, pt.token_type,
               r.id, TO_CHAR(r.event_date, 'YYYY-MM-DD') AS event_date, r.time_slot, r.event_type, r.guests,
               r.total_price, r.deposit_paid, r.deposit_amount, r.payment_status, r.status,
-              r.payment_method, r.payment_due_at,
+              r.payment_method, r.payment_due_at, r.security_deposit_status,
               u.name as customer_name
        FROM payment_tokens pt
        JOIN reservations r ON pt.reservation_id::text = r.id::text
@@ -223,6 +330,13 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       return { props: { valid: false, error: 'La señal de esta reserva ya está pagada. ¡Gracias!', token } };
     }
 
+    const remainingPaid = paymentToken.payment_status === 'fully_paid';
+    const depositHeld = paymentToken.security_deposit_status === 'held';
+    if (!isDeposit && remainingPaid && (depositHeld || justPaid === 'security_deposit')) {
+      // justPaid: el webhook de Stripe puede llegar unos segundos después de volver a la página
+      return { props: { valid: true, done: true, token } };
+    }
+
     if (paymentToken.used) {
       return { props: { valid: false, error: 'Este enlace ya fue utilizado', token } };
     }
@@ -237,8 +351,17 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       return { props: { valid: false, error: 'Este enlace de pago ha caducado.', token } };
     }
 
-    if (paymentToken.payment_status === 'fully_paid') {
-      return { props: { valid: false, error: 'Esta reserva ya está totalmente pagada', token } };
+    if (paymentToken.status === 'cancelled' || paymentToken.status === 'rejected') {
+      return { props: { valid: false, error: 'Esta reserva está cancelada.', token } };
+    }
+
+    let customerName = paymentToken.customer_name as string | null;
+    if (!customerName) {
+      const acceptance = await queryOne<{ customer_name: string }>(
+        'SELECT customer_name FROM contract_acceptances WHERE reservation_id = $1 ORDER BY id DESC LIMIT 1',
+        [paymentToken.id]
+      ).catch(() => null);
+      customerName = acceptance?.customer_name || null;
     }
 
     const totalPrice = parseFloat(paymentToken.total_price || '0');
@@ -260,10 +383,14 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
           totalPrice,
           depositPaid,
           amountDue: isDeposit ? depositAmount : totalPrice - depositPaid,
-          customerName: paymentToken.customer_name || 'Cliente',
+          customerName: customerName || 'Cliente',
           paymentMethod: paymentToken.payment_method || null,
           dueAt: paymentToken.payment_due_at ? new Date(paymentToken.payment_due_at).toISOString() : null,
+          // justPaid=remaining: el webhook puede tardar unos segundos; se muestra ya el paso 2
+          remainingPaid: remainingPaid || justPaid === 'remaining',
+          depositHeld,
         },
+        justPaid,
       },
     };
   } catch (error) {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
+import { SECURITY_DEPOSIT_AMOUNT } from '@/config/payments';
 
 interface ReservationData {
   id: number;
@@ -120,7 +121,7 @@ export default function ContractPage() {
   const totalPrice = parseFloat(r.total_price || '0');
   const extrasPrice = totalPrice - basePrice;
   const deposit = parseFloat(r.deposit_amount || '0');
-  const fianza = r.security_deposit ? parseFloat(r.security_deposit) : 200;
+  const fianza = SECURITY_DEPOSIT_AMOUNT;
   const remaining = totalPrice - deposit;
 
   return (
@@ -193,39 +194,42 @@ export default function ContractPage() {
             <tr><th>Alquiler del espacio</th><td>{basePrice.toFixed(2)} EUR</td></tr>
             <tr><th>Servicios adicionales</th><td>{extrasPrice > 0 ? extrasPrice.toFixed(2) : '0.00'} EUR</td></tr>
             <tr><th><strong>Precio total</strong></th><td><strong>{totalPrice.toFixed(2)} EUR</strong></td></tr>
-            <tr><th>Senal (30% del total)</th><td>{deposit.toFixed(2)} EUR</td></tr>
-            <tr><th>Fianza por desperfectos</th><td>{fianza.toFixed(2)} EUR</td></tr>
-            <tr><th>Resto a abonar</th><td>{remaining.toFixed(2)} EUR</td></tr>
+            <tr><th>Senal (30% del total)</th><td>{deposit.toFixed(2)} EUR - al aprobar la reserva (tarjeta o Bizum)</td></tr>
+            <tr><th>Resto a abonar</th><td>{remaining.toFixed(2)} EUR - el dia del evento, antes de empezar (solo tarjeta)</td></tr>
+            <tr><th>Fianza (bloqueo en tarjeta)</th><td>{fianza.toFixed(2)} EUR - el dia del evento, antes de empezar</td></tr>
           </tbody>
         </table>
 
         <div className="clause">
           <p><strong>2.1. Senal (paga y senal)</strong></p>
-          <p>El Cliente abona en el momento de la firma del presente contrato la cantidad de <strong>{deposit.toFixed(2)} EUR</strong> en concepto de senal confirmatoria (arras confirmatorias, art. 1124 del Codigo Civil). Este importe se descontara del precio total.</p>
+          <p>El Cliente abona, en las 24 horas siguientes a la aprobacion de la reserva y con tarjeta o Bizum, la cantidad de <strong>{deposit.toFixed(2)} EUR</strong> en concepto de senal confirmatoria (arras confirmatorias, art. 1124 del Codigo Civil). Este importe se descontara del precio total.</p>
         </div>
 
         <div className="clause">
-          <p><strong>2.2. Fianza por desperfectos</strong></p>
-          <p>El Cliente deposita adicionalmente la cantidad de <strong>{fianza.toFixed(2)} EUR</strong> en concepto de fianza para cubrir posibles desperfectos en las instalaciones, mobiliario o equipamiento. Esta fianza:</p>
+          <p><strong>2.2. Resto del pago</strong></p>
+          <p>El importe restante de <strong>{remaining.toFixed(2)} EUR</strong> se abona el dia del evento, antes de su inicio, con tarjeta bancaria mediante enlace o codigo QR en el movil del Cliente o mediante datafono. <strong>No se admite Bizum para el resto.</strong></p>
+        </div>
+
+        <div className="clause">
+          <p><strong>2.3. Fianza</strong></p>
+          <p>El dia del evento, antes de su inicio y junto con el resto del pago, se bloquean <strong>{fianza.toFixed(2)} EUR</strong> en una tarjeta de credito o debito del Cliente (preautorizacion). No es un cobro:</p>
           <ul>
-            <li>Se retendra hasta un maximo de <strong>15 dias naturales</strong> despues de la celebracion del evento.</li>
-            <li>Si no se aprecian desperfectos ni incidencias, se devolvera integramente al Cliente mediante el mismo medio de pago utilizado.</li>
-            <li>Si se aprecian desperfectos, HappyHub comunicara al Cliente por escrito (email o WhatsApp) la descripcion de los danos y el coste estimado de reparacion o reposicion, acompanado de fotografias. Se descontara dicho importe de la fianza y se devolvera el resto, si lo hubiera.</li>
-            <li>Si el coste de los danos supera el importe de la fianza, HappyHub se reserva el derecho de reclamar la diferencia al Cliente.</li>
+            <li>Con tarjeta de credito, el importe reduce el credito disponible; con tarjeta de debito, queda retenido del saldo hasta su liberacion. Algunas tarjetas prepago o virtuales no admiten bloqueos. No se admite Bizum ni efectivo para la fianza.</li>
+            <li>HappyHub libera el bloqueo tras revisar el espacio, como maximo en 7 dias si se realizo mediante enlace o QR (con datafono el bloqueo dura menos: unos 2 dias, hasta 5 con Visa). La entidad del Cliente puede tardar unos dias mas en reflejar la liberacion.</li>
+            <li>Si se aprecian desperfectos o proceden los cargos de las clausulas 3.1 o 4.2, HappyHub lo comunicara por escrito (email o WhatsApp) con fotografias y cobrara de la fianza solo el importe justificado, liberando el resto. Si el coste supera la fianza, HappyHub podra reclamar la diferencia.</li>
           </ul>
         </div>
 
         <div className="clause">
-          <p><strong>2.3. Resto del pago</strong></p>
-          <p>El importe restante de <strong>{remaining.toFixed(2)} EUR</strong> debera abonarse antes del dia del evento o, a mas tardar, al inicio del mismo.</p>
+          <p><strong>2.4. Sin pago del resto y bloqueo de la fianza no puede comenzar el evento.</strong> El tiempo empleado en completarlos cuenta dentro de la franja contratada.</p>
         </div>
 
         <div className="clause">
-          <p><strong>2.4. Metodos de pago aceptados:</strong> Tarjeta bancaria o Bizum.</p>
+          <p><strong>2.5. Metodos de pago:</strong> senal con tarjeta o Bizum; resto y fianza solo con tarjeta (credito o debito).</p>
         </div>
 
         <h2>3. Condiciones de uso del espacio</h2>
-        <p>3.1. El espacio se entrega al Cliente en perfecto estado de uso. El Cliente se compromete a devolver el espacio completamente recogido y en las mismas condiciones en que le fue entregado. En caso contrario, se cobrara un importe de <strong>50 EUR</strong> en concepto de limpieza posterior, que podra descontarse de la fianza.</p>
+        <p>3.1. El espacio se entrega al Cliente en perfecto estado de uso. El Cliente se compromete a devolver el espacio completamente recogido y en las mismas condiciones en que le fue entregado. En caso contrario, se cobrara un importe de <strong>50 EUR</strong> en concepto de limpieza posterior, que podra cobrarse de la fianza.</p>
         <p>3.2. El aforo maximo del espacio es de <strong>50 personas</strong>.</p>
         <p>3.3. El Cliente es responsable de la supervision de todos los asistentes al evento, especialmente de los menores de edad.</p>
         <p>3.4. Esta prohibido fumar cigarrillos y usar vapers o cigarrillos electronicos en el interior del espacio.</p>
@@ -253,7 +257,7 @@ export default function ContractPage() {
             <tr><td>Menos de 3 dias</td><td>Se retiene la senal, sin cambio de fecha</td></tr>
           </tbody>
         </table>
-        <p>La fianza se devuelve integramente en caso de cancelacion.</p>
+        <p>Si la reserva se cancela, no se bloquea ninguna fianza.</p>
         <p>Al tratarse de un servicio de ocio para una fecha determinada, no es aplicable el derecho de desistimiento de 14 dias (art. 103.l del Real Decreto Legislativo 1/2007).</p>
 
         <h2>7. Proteccion de datos</h2>

@@ -49,7 +49,7 @@ export default function CreateReservation() {
     guests: '',
     totalPrice: '',
     depositAmount: '',
-    securityDeposit: '200',
+    securityDeposit: '150',
     notes: '',
   });
   const [saving, setSaving] = useState(false);
@@ -95,7 +95,7 @@ export default function CreateReservation() {
           guests: parseInt(form.guests),
           totalPrice: parseFloat(form.totalPrice) || 0,
           depositAmount: parseFloat(form.depositAmount) || 0,
-          securityDeposit: parseFloat(form.securityDeposit) || 200,
+          securityDeposit: parseFloat(form.securityDeposit) || 150,
           notes: form.notes.trim(),
         }),
       });

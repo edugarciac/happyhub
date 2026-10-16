@@ -171,7 +171,7 @@ Hola ${name}, tu reserva en HappyHub ha sido confirmada.
 
 ${contractUrl ? `📄 Contrato: ${contractUrl}` : ''}
 
-Resto pendiente: ${totalPrice - depositAmount}€ (a pagar antes de comenzar el evento)
+Resto pendiente: ${totalPrice - depositAmount}€ (el día del evento, antes de empezar, con tarjeta). Ese día también se bloquea una fianza de 150 € en tu tarjeta, que liberamos tras revisar el espacio.
 
 ¿Tienes preguntas? Responde a este mensaje o escríbenos por WhatsApp al 624 645 517.
 

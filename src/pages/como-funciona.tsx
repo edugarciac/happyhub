@@ -47,7 +47,7 @@ const categories: FaqCategory[] = [
       {
         question: '¿Cómo funciona el pago?',
         answer:
-          'Una vez confirmada tu solicitud, te enviamos un enlace de pago seguro vía Stripe. Se requiere un depósito del 30% para formalizar la reserva. El importe restante se abona antes de comenzar el evento.',
+          'Cuando aprobamos tu solicitud, pagas una señal del 30% (con tarjeta o Bizum) en las 24 horas siguientes. El día del evento, antes de empezar, pagas el resto con tarjeta (con un enlace o QR en tu móvil, o en nuestro datáfono) y se bloquea una fianza de 150 € en tu tarjeta de crédito o débito. La fianza no es un cobro: la liberamos en cuanto revisamos el espacio, como máximo en 7 días. Bizum solo se admite para la señal. Detalle completo en los términos y condiciones.',
       },
     ],
   },

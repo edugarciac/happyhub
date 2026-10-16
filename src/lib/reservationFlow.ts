@@ -13,6 +13,18 @@ export function ensureReservationFlowColumns(): Promise<void> {
       await query('ALTER TABLE reservations ADD COLUMN IF NOT EXISTS payment_due_at TIMESTAMPTZ');
       await query('ALTER TABLE reservations ADD COLUMN IF NOT EXISTS last_payment_error TEXT');
       await query('ALTER TABLE reservations ADD COLUMN IF NOT EXISTS last_payment_error_at TIMESTAMPTZ');
+      // Migración 028: cobro del día y fianza por preautorización
+      await query(`ALTER TABLE reservations
+        ADD COLUMN IF NOT EXISTS remaining_payment_method VARCHAR(20),
+        ADD COLUMN IF NOT EXISTS security_deposit_status VARCHAR(20) DEFAULT 'none',
+        ADD COLUMN IF NOT EXISTS security_deposit_method VARCHAR(20),
+        ADD COLUMN IF NOT EXISTS security_deposit_payment_intent VARCHAR(255),
+        ADD COLUMN IF NOT EXISTS security_deposit_amount_held DECIMAL(10,2),
+        ADD COLUMN IF NOT EXISTS security_deposit_held_at TIMESTAMPTZ,
+        ADD COLUMN IF NOT EXISTS security_deposit_expires_at TIMESTAMPTZ,
+        ADD COLUMN IF NOT EXISTS security_deposit_captured DECIMAL(10,2),
+        ADD COLUMN IF NOT EXISTS security_deposit_resolved_at TIMESTAMPTZ,
+        ADD COLUMN IF NOT EXISTS security_deposit_note TEXT`);
       await query(
         `UPDATE reservations SET status = 'confirmed', updated_at = NOW()
          WHERE status = 'approved' AND payment_status IN ('deposit_paid', 'fully_paid')`

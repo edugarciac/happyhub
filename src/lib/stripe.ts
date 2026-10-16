@@ -57,12 +57,17 @@ export async function createCheckoutSession({
   cancelUrl,
   customerEmail,
   metadata,
+  captureMethod,
+  description,
 }: {
   lineItems: Stripe.Checkout.SessionCreateParams.LineItem[];
   successUrl: string;
   cancelUrl: string;
   customerEmail?: string;
   metadata?: Record<string, string>;
+  /** 'manual' = solo bloquear el importe (preautorización), se captura o libera después */
+  captureMethod?: 'automatic' | 'manual';
+  description?: string;
 }) {
   try {
     const session = await stripe.checkout.sessions.create({
@@ -75,7 +80,14 @@ export async function createCheckoutSession({
       metadata,
       // Copiar los datos de la reserva al PaymentIntent: así los avisos de pago
       // rechazado (payment_intent.payment_failed) saben a qué reserva corresponden
-      payment_intent_data: metadata ? { metadata } : undefined,
+      payment_intent_data:
+        metadata || captureMethod || description
+          ? {
+              ...(metadata ? { metadata } : {}),
+              ...(captureMethod ? { capture_method: captureMethod } : {}),
+              ...(description ? { description } : {}),
+            }
+          : undefined,
     });
 
     return session;

@@ -212,7 +212,7 @@ export default function Step4Confirmation() {
           </span>
         </div>
         <p className="text-xs text-gray-600 mt-4">
-          * El resto ({totalPrice !== 'consult' ? totalPrice - depositAmount : 0}€) se abonará antes de comenzar el evento
+          * El resto ({totalPrice !== 'consult' ? totalPrice - depositAmount : 0}€) se paga el día del evento, antes de empezar, con tarjeta (no Bizum), y se bloquea una fianza de 150 € en tu tarjeta que se libera tras revisar el espacio
         </p>
       </div>
 

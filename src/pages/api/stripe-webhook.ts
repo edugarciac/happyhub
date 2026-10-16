@@ -12,6 +12,7 @@ import {
   notifyAdminNewReservation,
 } from '@/lib/whatsapp';
 import { parseReservationCode } from '@/utils/reservationCode';
+import { SECURITY_DEPOSIT_ONLINE_HOLD_DAYS } from '@/config/payments';
 
 export const config = {
   api: {
@@ -51,6 +52,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const failedPayment = event.data.object as Stripe.PaymentIntent;
         console.log('Pago fallido:', failedPayment.id);
         await handlePaymentFailure(failedPayment);
+        break;
+
+      case 'payment_intent.canceled':
+        // Bloqueo de fianza liberado o caducado (Stripe cancela la autorización al vencer)
+        await handlePaymentCanceled(event.data.object as Stripe.PaymentIntent);
         break;
 
       case 'checkout.session.completed':
@@ -109,6 +115,63 @@ async function handlePaymentFailure(paymentIntent: Stripe.PaymentIntent) {
   console.log(`Pago rechazado registrado en la reserva ${dbId}: ${reason}`);
 }
 
+async function handlePaymentCanceled(paymentIntent: Stripe.PaymentIntent) {
+  if (paymentIntent.metadata?.type !== 'security_deposit') return;
+  await ensureReservationFlowColumns();
+  // Si lo liberó el admin ya está en 'released'; si sigue 'held', es que ha caducado
+  const updated = await queryOne<{ id: number }>(
+    `UPDATE reservations
+     SET security_deposit_status = 'expired', security_deposit_resolved_at = NOW(), updated_at = NOW()
+     WHERE security_deposit_payment_intent = $1 AND security_deposit_status = 'held'
+     RETURNING id`,
+    [paymentIntent.id]
+  );
+  if (updated) console.log(`Fianza caducada sin capturar en la reserva ${updated.id} (${paymentIntent.id})`);
+}
+
+/** Bloqueo de la fianza completado en Stripe Checkout (captura manual). */
+async function handleSecurityDepositHold(session: Stripe.Checkout.Session, dbId: number) {
+  const paymentIntentId = typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent?.id;
+  if (!paymentIntentId) {
+    console.error(`CRITICAL: sesión de fianza ${session.id} sin PaymentIntent (reserva ${dbId})`);
+    return;
+  }
+  const pi = await stripe.paymentIntents.retrieve(paymentIntentId, { expand: ['latest_charge'] });
+  if (pi.status !== 'requires_capture') {
+    console.error(`Fianza de la reserva ${dbId}: estado inesperado ${pi.status} (${pi.id})`);
+    return;
+  }
+  const charge = pi.latest_charge && typeof pi.latest_charge !== 'string' ? pi.latest_charge : null;
+  const captureBefore = (charge?.payment_method_details?.card as { capture_before?: number } | undefined)?.capture_before;
+  const expiresAt = captureBefore
+    ? new Date(captureBefore * 1000)
+    : new Date(Date.now() + SECURITY_DEPOSIT_ONLINE_HOLD_DAYS * 24 * 60 * 60 * 1000);
+
+  await query(
+    `UPDATE reservations
+     SET security_deposit_status = 'held',
+         security_deposit_method = 'card_link',
+         security_deposit_payment_intent = $1,
+         security_deposit_amount_held = $2,
+         security_deposit_held_at = NOW(),
+         security_deposit_expires_at = $3,
+         security_deposit_captured = NULL,
+         security_deposit_resolved_at = NULL,
+         last_payment_error = NULL,
+         updated_at = NOW()
+     WHERE id = $4`,
+    [pi.id, pi.amount_capturable / 100, expiresAt.toISOString(), dbId]
+  );
+  // Resto pagado + fianza bloqueada: el enlace del día ya no hace falta
+  await query(
+    `UPDATE payment_tokens SET used = true
+     WHERE reservation_id::text = $1::text AND token_type = 'remaining_payment' AND used = false
+       AND EXISTS (SELECT 1 FROM reservations WHERE id = $2 AND payment_status = 'fully_paid')`,
+    [String(dbId), dbId]
+  );
+  console.log(`✅ Fianza bloqueada en la reserva ${dbId} hasta ${expiresAt.toISOString()} (${pi.id})`);
+}
+
 async function handleCheckoutComplete(session: Stripe.Checkout.Session, host?: string | string[]) {
   console.log('Procesando checkout completado:', {
     id: session.id,
@@ -133,6 +196,16 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session, host?: s
     console.error(
       `CRITICAL: Unknown reservation code "${reservationId}" in Stripe session ${session.id} (${paymentType}, ${amount} EUR). Manual reconciliation required.`
     );
+  }
+
+  if (dbId && paymentType === 'security_deposit') {
+    try {
+      await ensureReservationFlowColumns();
+      await handleSecurityDepositHold(session, dbId);
+    } catch (err) {
+      console.error(`CRITICAL: no se pudo registrar la fianza de la reserva ${dbId} (sesión ${session.id})`, err);
+    }
+    return; // sin avisos de WhatsApp: no es un pago
   }
 
   if (dbId) {
@@ -182,21 +255,24 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session, host?: s
           });
         }
       } else if (paymentType === 'remaining') {
+        await ensureReservationFlowColumns();
         await query(
           `UPDATE reservations
            SET deposit_paid = total_price,
                payment_status = 'fully_paid',
+               remaining_payment_method = 'card_link',
                stripe_remaining_session_id = $1,
                last_payment_error = NULL,
                updated_at = NOW()
            WHERE id = $2`,
           [session.id, dbId]
         );
-        // Mark payment token as used
+        // El enlace del día sigue activo hasta bloquear la fianza (paso 2); si ya está bloqueada, se cierra
         await query(
           `UPDATE payment_tokens SET used = true
-           WHERE reservation_id::text = $1::text AND used = false`,
-          [String(dbId)]
+           WHERE reservation_id::text = $1::text AND used = false
+             AND EXISTS (SELECT 1 FROM reservations WHERE id = $2 AND security_deposit_status = 'held')`,
+          [String(dbId), dbId]
         );
       }
       console.log(`✅ DB updated for ${paymentType} payment, reservation ${reservationId}`);

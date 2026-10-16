@@ -16,7 +16,10 @@
       "name": "Cron 10:00h diario",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.1,
-      "position": [250, 300]
+      "position": [
+        250,
+        300
+      ]
     },
     {
       "parameters": {
@@ -26,7 +29,10 @@
       "name": "CalcularFechasObjetivo",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [450, 300]
+      "position": [
+        450,
+        300
+      ]
     },
     {
       "parameters": {
@@ -38,7 +44,10 @@
       "name": "BuscarReservasPendientes",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.4,
-      "position": [650, 300],
+      "position": [
+        650,
+        300
+      ],
       "credentials": {
         "postgres": {
           "id": "neon_happyhub",
@@ -62,7 +71,10 @@
       "name": "HayReservas",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [850, 300]
+      "position": [
+        850,
+        300
+      ]
     },
     {
       "parameters": {
@@ -72,7 +84,10 @@
       "name": "EnriquecerDatos",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1050, 200]
+      "position": [
+        1050,
+        200
+      ]
     },
     {
       "parameters": {
@@ -81,14 +96,23 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            { "name": "Content-Type", "value": "application/json" },
-            { "name": "x-internal-secret", "value": "={{ $env.INTERNAL_API_SECRET }}" }
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "x-internal-secret",
+              "value": "={{ $env.INTERNAL_API_SECRET }}"
+            }
           ]
         },
         "sendBody": true,
         "bodyParameters": {
           "parameters": [
-            { "name": "reservationId", "value": "={{ $json.id }}" }
+            {
+              "name": "reservationId",
+              "value": "={{ $json.id }}"
+            }
           ]
         },
         "options": {}
@@ -97,7 +121,10 @@
       "name": "GenerarTokenPago",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1250, 200]
+      "position": [
+        1250,
+        200
+      ]
     },
     {
       "parameters": {
@@ -107,7 +134,10 @@
       "name": "PrepararEmail",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1450, 200]
+      "position": [
+        1450,
+        200
+      ]
     },
     {
       "parameters": {
@@ -122,7 +152,10 @@
       "name": "EnviarEmail",
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2,
-      "position": [1650, 200],
+      "position": [
+        1650,
+        200
+      ],
       "credentials": {
         "smtp": {
           "id": "smtp_happyhub",
@@ -133,31 +166,86 @@
   ],
   "connections": {
     "Cron 10:00h diario": {
-      "main": [[{ "node": "CalcularFechasObjetivo", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "CalcularFechasObjetivo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "CalcularFechasObjetivo": {
-      "main": [[{ "node": "BuscarReservasPendientes", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "BuscarReservasPendientes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "BuscarReservasPendientes": {
-      "main": [[{ "node": "HayReservas", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "HayReservas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "HayReservas": {
       "main": [
-        [{ "node": "EnriquecerDatos", "type": "main", "index": 0 }],
+        [
+          {
+            "node": "EnriquecerDatos",
+            "type": "main",
+            "index": 0
+          }
+        ],
         []
       ]
     },
     "EnriquecerDatos": {
-      "main": [[{ "node": "GenerarTokenPago", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "GenerarTokenPago",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "GenerarTokenPago": {
-      "main": [[{ "node": "PrepararEmail", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "PrepararEmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "PrepararEmail": {
-      "main": [[{ "node": "EnviarEmail", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "EnviarEmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
     "executionOrder": "v1"
-  }
+  },
+  "active": false
 }

@@ -1,5 +1,5 @@
 // Plantillas HTML de los correos transaccionales (adaptadas de los workflows de n8n)
-import { BIZUM_PHONE, PAYMENT_WINDOW_HOURS, formatDueAt } from '@/config/payments';
+import { BIZUM_PHONE, PAYMENT_WINDOW_HOURS, SECURITY_DEPOSIT_AMOUNT, formatDueAt } from '@/config/payments';
 
 export function escapeHtml(value: unknown): string {
   return String(value ?? '')
@@ -276,6 +276,9 @@ export function depositReceivedEmail(params: {
       ['Señal pagada', `${escapeHtml(params.depositAmount)} €`],
       ['Pendiente', `${escapeHtml(remaining)} €`],
     ])}
+    ${note(
+      `<strong>El día del evento, antes de empezar:</strong> pagarás el resto (<strong>${escapeHtml(remaining)} €</strong>) con tarjeta, con un enlace o código QR en tu móvil o en nuestro datáfono, y se bloqueará una <strong>fianza de ${SECURITY_DEPOSIT_AMOUNT} €</strong> en tu tarjeta de crédito o débito. La fianza no es un cobro: la liberamos en cuanto revisamos el espacio (como máximo en 7 días). Con tarjeta de débito, ese importe queda retenido de tu saldo hasta entonces. <strong>Bizum no está disponible para el resto ni para la fianza.</strong>`
+    )}
     ${CONTACT_HTML}`;
   return { subject: `Reserva ${params.code} confirmada - HappyHub`, html: layout('HappyHub', 'Reserva confirmada', body) };
 }

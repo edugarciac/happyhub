@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { verifyAdminSession } from '@/utils/adminAuth';
+import { ensureContractAcceptancesTable } from '@/lib/contractAcceptance';
 import { ensureReservationFlowColumns, expireUnpaidReservations } from '@/lib/reservationFlow';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -59,6 +60,7 @@ async function handleList(req: NextApiRequest, res: NextApiResponse) {
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
     await ensureReservationFlowColumns();
+    await ensureContractAcceptancesTable();
     await expireUnpaidReservations();
 
     const countResult = await query(
@@ -79,9 +81,17 @@ async function handleList(req: NextApiRequest, res: NextApiResponse) {
               r.admin_approved_by, r.approved_at, r.needs_kids_furniture,
               r.payment_method, r.payment_due_at,
               r.last_payment_error, r.last_payment_error_at,
-              u.name, u.email, u.phone
+              r.remaining_payment_method, r.security_deposit_status, r.security_deposit_method,
+              r.security_deposit_amount_held, r.security_deposit_expires_at, r.security_deposit_captured,
+              COALESCE(u.name, ca.customer_name) AS name,
+              COALESCE(u.email, ca.customer_email) AS email,
+              COALESCE(u.phone, ca.customer_phone) AS phone
        FROM reservations r
        LEFT JOIN users u ON r.user_id = u.id
+       LEFT JOIN LATERAL (
+         SELECT customer_name, customer_email, customer_phone FROM contract_acceptances
+         WHERE reservation_id = r.id ORDER BY id DESC LIMIT 1
+       ) ca ON true
        ${whereClause}
        ORDER BY r.event_date DESC, r.created_at DESC
        LIMIT $${paramIdx++} OFFSET $${paramIdx++}`,
@@ -110,6 +120,12 @@ async function handleList(req: NextApiRequest, res: NextApiResponse) {
       paymentDueAt: r.payment_due_at || null,
       lastPaymentError: r.last_payment_error || null,
       lastPaymentErrorAt: r.last_payment_error_at || null,
+      remainingPaymentMethod: r.remaining_payment_method || null,
+      securityDepositStatus: r.security_deposit_status || 'none',
+      securityDepositMethod: r.security_deposit_method || null,
+      securityDepositAmountHeld: r.security_deposit_amount_held ? parseFloat(r.security_deposit_amount_held) : null,
+      securityDepositExpiresAt: r.security_deposit_expires_at || null,
+      securityDepositCaptured: r.security_deposit_captured ? parseFloat(r.security_deposit_captured) : null,
       createdAt: r.created_at,
       updatedAt: r.updated_at,
     }));

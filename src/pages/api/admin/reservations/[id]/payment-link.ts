@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import crypto from 'crypto';
 import { query } from '../../../../../lib/db';
 import { verifyAdminSession } from '../../../../../utils/adminAuth';
+import { ensureReservationFlowColumns } from '../../../../../lib/reservationFlow';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -24,8 +25,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ success: false, error: 'ID de reserva inválido' });
     }
 
-    const result = await query<{ id: number; total_price: string; deposit_paid: string }>(
-      'SELECT id, total_price, deposit_paid FROM reservations WHERE id = $1',
+    await ensureReservationFlowColumns();
+    const result = await query<{ id: number; total_price: string; deposit_paid: string; security_deposit_status: string | null }>(
+      'SELECT id, total_price, deposit_paid, security_deposit_status FROM reservations WHERE id = $1',
       [reservationId]
     );
 
@@ -38,8 +40,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const depositPaid = parseFloat(reservation.deposit_paid || '0');
     const remaining = totalPrice - depositPaid;
 
-    if (remaining <= 0) {
-      return res.status(400).json({ success: false, error: 'Esta reserva ya está completamente pagada' });
+    // Enlace del día del evento: resto (si queda) + bloqueo de la fianza
+    if (remaining <= 0 && reservation.security_deposit_status === 'held') {
+      return res.status(400).json({ success: false, error: 'El resto está pagado y la fianza ya está bloqueada' });
     }
 
     const token = crypto.randomBytes(32).toString('hex');

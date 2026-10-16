@@ -34,7 +34,7 @@ export default function TermsContent() {
           <li>Si se aprueba, el cliente recibe un correo con el enlace para pagar un depósito del <strong>30% del precio total</strong> con tarjeta, o con las instrucciones para pagarlo por Bizum.</li>
           <li>El cliente dispone de <strong>24 horas</strong> desde la aprobación para pagar el depósito. Si no se recibe en ese plazo, la reserva se cancela automáticamente y la fecha queda libre.</li>
           <li>Una vez recibido el depósito, la reserva queda confirmada y HappyHub envía la confirmación por correo.</li>
-          <li>El importe restante (70%) se abona antes de comenzar el evento.</li>
+          <li>El día del evento, antes de empezar, se paga el resto (70%) y se bloquea una fianza de 150 € en la tarjeta del cliente (ver apartado 4).</li>
         </ol>
       </div>
 
@@ -52,10 +52,48 @@ export default function TermsContent() {
           La franja de tarde solo puede ampliarse, como máximo hasta las 23:00, por acuerdo expreso y abonando la
           tarifa adicional; no se ofrece franja de noche.
         </p>
+        <h3 className="text-lg font-semibold text-gray-900 mt-6 mb-2">Cómo y cuándo se paga</h3>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm border border-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="text-left p-2 border-b">Qué</th>
+                <th className="text-left p-2 border-b">Cuándo</th>
+                <th className="text-left p-2 border-b">Cómo</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="p-2 border-b"><strong>Señal: 30% del precio</strong></td>
+                <td className="p-2 border-b">En las 24 horas siguientes a que aprobemos la reserva</td>
+                <td className="p-2 border-b">Tarjeta (enlace de pago) <strong>o Bizum</strong></td>
+              </tr>
+              <tr>
+                <td className="p-2 border-b"><strong>Resto: 70% del precio</strong></td>
+                <td className="p-2 border-b">El día del evento, antes de empezar</td>
+                <td className="p-2 border-b">Solo tarjeta: enlace o código QR en tu móvil, o datáfono. <strong>No se admite Bizum.</strong></td>
+              </tr>
+              <tr>
+                <td className="p-2"><strong>Fianza: 150 €</strong></td>
+                <td className="p-2">El día del evento, antes de empezar, junto con el resto</td>
+                <td className="p-2">Bloqueo temporal en tarjeta de crédito o débito. <strong>No se admite Bizum ni efectivo.</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
         <p className="mt-3">
-          El pago se realiza con tarjeta de crédito/débito (pago seguro mediante Stripe) o por Bizum,
-          indicando como concepto el número de reserva.
+          <strong>Sin el pago del resto y el bloqueo de la fianza, el evento no puede comenzar.</strong> El tiempo que
+          se tarde en completarlos cuenta dentro de la franja contratada, por lo que recomendamos hacerlo al llegar.
         </p>
+        <h3 className="text-lg font-semibold text-gray-900 mt-6 mb-2">Cómo funciona la fianza</h3>
+        <ul className="list-disc list-inside space-y-2">
+          <li><strong>No es un cobro.</strong> Es un bloqueo (preautorización) de 150 € en tu tarjeta: el dinero no sale de tu cuenta.</li>
+          <li><strong>Con tarjeta de crédito,</strong> los 150 € reducen tu crédito disponible mientras dure el bloqueo.</li>
+          <li><strong>Con tarjeta de débito,</strong> los 150 € quedan retenidos de tu saldo y no podrás usarlos hasta que se liberen. Si no hay saldo suficiente, el bloqueo no se puede hacer.</li>
+          <li>Algunas tarjetas prepago o virtuales no admiten bloqueos. En ese caso tendrás que usar otra tarjeta.</li>
+          <li><strong>Liberación:</strong> la liberamos en cuanto revisamos el espacio tras el evento, normalmente en 1 o 2 días y como máximo en 7 días si se hace con enlace o QR. Si se hace con datáfono, el bloqueo dura menos (unos 2 días; hasta 5 con Visa). Una vez liberada, tu banco puede tardar unos días más en reflejarlo.</li>
+          <li><strong>Si hay daños</strong> o se aplican los cargos del apartado 6 (limpieza o exceso de horario), te avisaremos por escrito con fotos y cobraremos de la fianza solo el importe justificado; el resto se libera. Si el coste supera los 150 €, podremos reclamar la diferencia.</li>
+        </ul>
       </div>
 
       <div>
@@ -114,10 +152,8 @@ export default function TermsContent() {
           reserva el derecho de reclamar la reparación o reposición de los elementos dañados.
         </p>
         <p className="mt-3">
-          HappyHub podrá exigir una <strong>fianza por desperfectos</strong>, cuyo importe se indica en el contrato de
-          reserva. La fianza se devuelve íntegramente en un máximo de 15 días naturales tras el evento si no hay
-          desperfectos ni incidencias; en caso contrario, se descuenta el coste justificado de reparación o reposición
-          y de los cargos del apartado 6, y se devuelve el resto. La fianza se devuelve íntegramente si la reserva se cancela.
+          Para cubrir posibles daños se bloquea una <strong>fianza de 150 €</strong> en la tarjeta del cliente el día del
+          evento, tal como se explica en el apartado 4.
         </p>
         <p className="mt-3">
           HappyHub no se responsabiliza de los objetos personales de los asistentes al evento ni

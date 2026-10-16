@@ -194,7 +194,7 @@ export function generateContractPDF(reservation: ReservationData): Buffer {
   const terms = [
     '1. Cancelación con 15 días o más de antelación: se devuelve el 100% del depósito.',
     '2. Entre 14 y 3 días antes del evento: no se devuelve el depósito, pero se puede cambiar la fecha (sujeto a disponibilidad). Con menos de 3 días: no hay devolución ni cambio de fecha.',
-    '3. El resto del importe debe abonarse antes de comenzar el evento.',
+    '3. Pagos: señal del 30% al aprobar la reserva (tarjeta o Bizum). El día del evento, antes de empezar: resto con tarjeta (enlace/QR o datáfono, no Bizum) y bloqueo de una fianza de 150 € en tarjeta de crédito o débito, que se libera tras revisar el espacio (máx. 7 días). Sin pago del resto y fianza no comienza el evento.',
     '4. El aforo máximo permitido es de 50 personas.',
     '5. El cliente se compromete a dejar el espacio completamente recogido y en las mismas condiciones en que fue entregado. Si no es así, se cobrarán 50 € por la limpieza posterior.',
     '6. HappyHub no se hace responsable de objetos olvidados en las instalaciones.',
