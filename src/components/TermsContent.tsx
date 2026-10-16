@@ -21,7 +21,7 @@ export default function TermsContent() {
         <p>
           Estos términos y condiciones regulan el acceso y uso del sitio web de HappyHub,
           así como la contratación del servicio de alquiler de espacios para la celebración
-          de eventos privados (cumpleaños, comuniones, reuniones familiares, etc.) y los
+          de eventos privados (cumpleaños, baby showers, reuniones familiares, etc.) y los
           servicios complementarios ofrecidos (catering, animación, decoración, fotografía).
         </p>
       </div>

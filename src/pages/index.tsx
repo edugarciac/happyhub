@@ -126,9 +126,9 @@ export default function Home({ instagramPosts }: HomeProps) {
         <title>HappyHub - Celebra Momentos Inolvidables | Alquiler de Espacios para Eventos</title>
         <meta
           name="description"
-          content="El espacio perfecto para tus celebraciones. Organiza cumpleaños, comuniones, bautizos y eventos únicos con todo incluido. Reserva online en minutos."
+          content="El espacio perfecto para tus celebraciones. Organiza cumpleaños, baby showers, bautizos y eventos únicos con todo incluido. Reserva online en minutos."
         />
-        <meta name="keywords" content="alquiler espacio eventos, cumpleaños, comuniones, bautizos, eventos Madrid, salón de celebraciones" />
+        <meta name="keywords" content="alquiler espacio eventos, cumpleaños, baby shower, bautizos, eventos Esplugues de Llobregat, salón de celebraciones" />
       </Head>
 
       <Hero />
