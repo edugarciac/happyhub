@@ -219,6 +219,18 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session, host?: s
     return; // sin avisos de WhatsApp: no es un pago
   }
 
+  // Stripe reintenta y el admin puede reenviar eventos: si esta sesión ya está registrada,
+  // no se repiten el registro, los correos ni los WhatsApp
+  if (dbId && (paymentType === 'deposit' || paymentType === 'remaining')) {
+    const column = paymentType === 'deposit' ? 'stripe_deposit_session_id' : 'stripe_remaining_session_id';
+    await ensureReservationFlowColumns();
+    const already = await queryOne(`SELECT 1 FROM reservations WHERE id = $1 AND ${column} = $2`, [dbId, session.id]);
+    if (already) {
+      console.log(`Sesión ${session.id} (${paymentType}) ya registrada en la reserva ${dbId}: evento repetido, se ignora`);
+      return;
+    }
+  }
+
   if (dbId) {
     try {
       if (paymentType === 'deposit') {
