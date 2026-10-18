@@ -6,7 +6,6 @@ import Link from 'next/link';
 import AdminLayout from '@/components/admin/AdminLayout';
 import DateInput from '@/components/DateInput';
 import ReservationExtrasFields, { type ExtrasValue } from '@/components/admin/ReservationExtrasFields';
-import { extraHoursPrice } from '@/utils/pricing';
 
 function jsonHeaders(): HeadersInit {
   return { 'Content-Type': 'application/json' };
@@ -16,6 +15,18 @@ const TIME_SLOT_OPTIONS = [
   { value: 'morning', label: 'Mañana (10:00–14:00)' },
   { value: 'afternoon', label: 'Tarde (16:00–20:00)' },
 ];
+
+interface Quote {
+  success: boolean;
+  consult?: boolean;
+  unknownExtras?: boolean;
+  basePrice?: number;
+  discount?: number;
+  extraHoursPrice?: number;
+  extrasTotal?: number;
+  total?: number;
+  deposit?: number;
+}
 
 interface FormData {
   name: string;
@@ -55,6 +66,7 @@ export default function CreateReservation() {
     notes: '',
   });
   const [extras, setExtras] = useState<ExtrasValue>({ extraHours: 0, extraIds: [] });
+  const [quote, setQuote] = useState<Quote | null>(null);
   const [notifyClient, setNotifyClient] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -63,25 +75,41 @@ export default function CreateReservation() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  /** Suma la diferencia al total y deja la señal en el 30% (como en la reserva por calendario) */
-  const applyPriceDelta = (prev: FormData, delta: number): FormData => {
-    if (delta === 0) return prev;
-    const total = Math.max(0, (parseFloat(prev.totalPrice) || 0) + delta);
-    return { ...prev, totalPrice: String(total), depositAmount: String(Math.ceil(total * 0.3)) };
-  };
-
-  const handleExtrasChange = (next: ExtrasValue, delta: number) => {
-    setExtras(next);
-    setForm((prev) => applyPriceDelta(prev, delta));
-  };
+  const handleExtrasChange = (next: ExtrasValue) => setExtras(next);
 
   // Las horas adicionales solo existen en la tarde: al cambiar de franja se quitan
   const handleTimeSlotChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const timeSlot = e.target.value;
-    const removedHours = timeSlot !== 'afternoon' ? extras.extraHours : 0;
-    if (removedHours > 0) setExtras({ ...extras, extraHours: 0 });
-    setForm((prev) => applyPriceDelta({ ...prev, timeSlot }, -extraHoursPrice(removedHours)));
+    if (timeSlot !== 'afternoon' && extras.extraHours > 0) setExtras({ ...extras, extraHours: 0 });
+    setForm((prev) => ({ ...prev, timeSlot }));
   };
+
+  // Precio con la tarifa vigente del día y la franja + horas + servicios (mismo cálculo que la web).
+  // El admin puede sobrescribirlo; se recalcula al cambiar cualquiera de estos datos.
+  useEffect(() => {
+    if (!form.eventDate || !form.timeSlot) {
+      setQuote(null);
+      return;
+    }
+    let cancelled = false;
+    fetch('/api/admin/reservations/quote', {
+      method: 'POST',
+      headers: jsonHeaders(),
+      body: JSON.stringify({ eventDate: form.eventDate, timeSlot: form.timeSlot, extraHours: extras.extraHours, extraIds: extras.extraIds }),
+    })
+      .then((r) => r.json())
+      .then((data: Quote) => {
+        if (cancelled || !data.success) return;
+        setQuote(data);
+        if (data.total !== undefined && data.deposit !== undefined) {
+          setForm((prev) => ({ ...prev, totalPrice: String(data.total), depositAmount: String(data.deposit) }));
+        }
+      })
+      .catch((err) => console.warn('Failed to compute price:', err));
+    return () => {
+      cancelled = true;
+    };
+  }, [form.eventDate, form.timeSlot, extras.extraHours, extras.extraIds]);
 
   const validate = (): string | null => {
     if (!form.name.trim()) return 'El nombre es obligatorio';
@@ -328,6 +356,26 @@ export default function CreateReservation() {
                 </div>
               </div>
             </div>
+
+            {quote?.consult && (
+              <div className="text-amber-700 text-sm bg-amber-50 p-3 rounded-lg -mt-2">
+                La tarifa de esta fecha y franja es «A consultar»: introduce el precio a mano.
+              </div>
+            )}
+            {quote?.unknownExtras && (
+              <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg -mt-2">
+                Alguno de los servicios seleccionados ya no está activo: no se ha podido calcular el precio.
+              </div>
+            )}
+            {quote?.total !== undefined && (
+              <div className="text-xs text-gray-600 bg-gray-50 p-3 rounded-lg -mt-2 space-y-0.5">
+                <div>Tarifa del día y franja: {quote.basePrice} €</div>
+                {!!quote.discount && <div>Descuento de inauguración: −{quote.discount} €</div>}
+                {!!quote.extraHoursPrice && <div>Horas adicionales: {quote.extraHoursPrice} €</div>}
+                {!!quote.extrasTotal && <div>Servicios adicionales: {quote.extrasTotal} €</div>}
+                <div className="font-medium text-gray-800">Total calculado: {quote.total} € · señal (30%): {quote.deposit} €</div>
+              </div>
+            )}
 
             {/* Notes */}
             <div>
