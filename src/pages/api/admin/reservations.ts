@@ -39,7 +39,12 @@ async function handleList(req: NextApiRequest, res: NextApiResponse) {
     const params: any[] = [];
     let paramIdx = 1;
 
-    if (status && status !== 'all') {
+    // «Señal pagada» y «Pagado» son reservas confirmadas según lo cobrado
+    if (status === 'confirmed_deposit') {
+      conditions.push(`r.status = 'confirmed' AND COALESCE(r.payment_status, 'pending') <> 'fully_paid'`);
+    } else if (status === 'confirmed_paid') {
+      conditions.push(`r.status = 'confirmed' AND r.payment_status = 'fully_paid'`);
+    } else if (status && status !== 'all') {
       conditions.push(`r.status = $${paramIdx++}`);
       params.push(status);
     }

@@ -8,8 +8,10 @@ import {
 } from 'lucide-react';
 import { formatDueAt } from '@/config/payments';
 import {
-  ReservationStatus, STATUS_LABELS, STATUS_COLORS,
+  ReservationStatus, STATUS_LABELS,
   TRANSITION_LABELS, getAvailableTransitions,
+  reservationDisplayStatus, DISPLAY_STATUS_LABELS, DISPLAY_STATUS_COLORS,
+  canMarkFullyPaid, MANUAL_FULL_PAYMENT_METHODS, REMAINING_PAYMENT_METHOD_LABELS, type ManualFullPaymentMethod,
 } from '@/utils/reservationStatus';
 import { buildWhatsAppUrl } from '@/utils/phone';
 import DateInput from '@/components/DateInput';
@@ -84,6 +86,11 @@ export default function AdminReservations() {
   const [dateTo, setDateTo] = useState('');
   const [offset, setOffset] = useState(0);
   const limit = 20;
+
+  // Marcar pago total a mano (datáfono, efectivo o transferencia)
+  const [fullPaymentFor, setFullPaymentFor] = useState<Reservation | null>(null);
+  const [fullPaymentMethod, setFullPaymentMethod] = useState<ManualFullPaymentMethod>('terminal');
+  const [fullPaymentSaving, setFullPaymentSaving] = useState(false);
 
   // Cobros adicionales
   const [chargesFor, setChargesFor] = useState<Reservation | null>(null);
@@ -222,6 +229,22 @@ export default function AdminReservations() {
     } catch { showToast('Error de conexión', 'error'); }
   };
 
+  const handleMarkFullyPaid = async () => {
+    if (!fullPaymentFor) return;
+    setFullPaymentSaving(true);
+    try {
+      const res = await fetch(`/api/admin/reservations/${fullPaymentFor.id}/mark-remaining-paid`, {
+        method: 'POST', headers: jsonHeaders(), body: JSON.stringify({ method: fullPaymentMethod }),
+      });
+      const data = await res.json();
+      if (!res.ok) { showToast(data.error || 'Error al registrar el pago total', 'error'); return; }
+      showToast('Pago total registrado: reserva pagada', 'success');
+      setFullPaymentFor(null);
+      fetchReservations();
+    } catch { showToast('Error de conexión', 'error'); }
+    finally { setFullPaymentSaving(false); }
+  };
+
   const handleResendConfirmation = async (r: Reservation) => {
     if (!confirm(`¿Reenviar el correo de la reserva a ${r.email}?`)) return;
     try {
@@ -318,7 +341,8 @@ export default function AdminReservations() {
                   <option value="all">Todos</option>
                   <option value="pending">Pendiente</option>
                   <option value="approved">Aprobada (pendiente de pago)</option>
-                  <option value="confirmed">Confirmada</option>
+                  <option value="confirmed_deposit">Señal pagada</option>
+                  <option value="confirmed_paid">Pagado</option>
                   <option value="cancelled">Cancelada</option>
                   <option value="completed">Evento Realizado</option>
                 </select>
@@ -367,8 +391,9 @@ export default function AdminReservations() {
                   <tbody className="divide-y divide-gray-200">
                     {reservations.map((r) => {
                       const waUrl = buildWhatsAppUrl(r.phone);
-                      const transitions = getAvailableTransitions(r.status);
-                      const colors = STATUS_COLORS[r.status] || STATUS_COLORS.pending;
+                      const transitions = getAvailableTransitions(r.status, r.paymentStatus);
+                      const displayStatus = reservationDisplayStatus(r.status, r.paymentStatus);
+                      const colors = DISPLAY_STATUS_COLORS[displayStatus] || DISPLAY_STATUS_COLORS.pending;
 
                       return (
                         <tr key={r.id} className="hover:bg-gray-50">
@@ -436,11 +461,20 @@ export default function AdminReservations() {
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${colors.bg} ${colors.text}`}>
-                              {STATUS_LABELS[r.status] || r.status}
+                              {DISPLAY_STATUS_LABELS[displayStatus] || r.status}
                             </span>
+                            {displayStatus === 'fully_paid' && r.remainingPaymentMethod && REMAINING_PAYMENT_METHOD_LABELS[r.remainingPaymentMethod] && (
+                              <div className="text-xs text-gray-500 mt-1">Resto: {REMAINING_PAYMENT_METHOD_LABELS[r.remainingPaymentMethod]}</div>
+                            )}
                           </td>
                           <td className="px-4 py-3">
                             <div className="flex flex-wrap gap-1">
+                              {canMarkFullyPaid(r.status, r.paymentStatus) && (
+                                <button onClick={() => { setFullPaymentFor(r); setFullPaymentMethod('terminal'); }}
+                                  className="px-2 py-1 text-xs rounded border border-green-500 text-green-700 hover:bg-green-50 transition-colors">
+                                  Marcar pago total
+                                </button>
+                              )}
                               {transitions.map((t) => (
                                 <button key={t} onClick={() => setStatusModal({ reservation: r, newStatus: t })}
                                   className={`px-2 py-1 text-xs rounded border transition-colors ${
@@ -570,6 +604,35 @@ export default function AdminReservations() {
             onClose={() => setChargesFor(null)}
             notify={showToast}
           />
+        )}
+
+        {/* Marcar pago total */}
+        {fullPaymentFor && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setFullPaymentFor(null)}>
+            <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Marcar pago total · #{fullPaymentFor.id}</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Registra que has cobrado el resto ({Math.max(0, fullPaymentFor.totalPrice - fullPaymentFor.depositPaid).toFixed(2)} €).
+                Si el cliente paga con el enlace o el QR de Stripe, se marca solo.
+              </p>
+              <label className="block text-sm font-medium text-gray-700 mb-2">¿Cómo lo has cobrado?</label>
+              <div className="grid grid-cols-3 gap-2 mb-5">
+                {MANUAL_FULL_PAYMENT_METHODS.map((m) => (
+                  <button key={m} type="button" onClick={() => setFullPaymentMethod(m)}
+                    className={`px-2 py-2 rounded-lg border text-sm capitalize transition-colors ${fullPaymentMethod === m ? 'border-primary-600 bg-primary-50 text-primary-700 font-semibold' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}>
+                    {REMAINING_PAYMENT_METHOD_LABELS[m]}
+                  </button>
+                ))}
+              </div>
+              <div className="flex gap-3">
+                <button onClick={() => setFullPaymentFor(null)} className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg transition-colors">Cancelar</button>
+                <button onClick={handleMarkFullyPaid} disabled={fullPaymentSaving}
+                  className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50">
+                  {fullPaymentSaving ? 'Guardando...' : 'Marcar pagado'}
+                </button>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Edit Modal */}

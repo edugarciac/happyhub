@@ -1,6 +1,9 @@
 import {
   isValidTransition,
   getAvailableTransitions,
+  reservationDisplayStatus,
+  DISPLAY_STATUS_LABELS,
+  canMarkFullyPaid,
   STATUS_LABELS,
   STATUS_COLORS,
   ALLOWED_TRANSITIONS,
@@ -34,7 +37,8 @@ describe('isValidTransition', () => {
   });
 
   it('allows confirmed → completed and confirmed → cancelled', () => {
-    expect(isValidTransition('confirmed', 'completed')).toBe(true);
+    expect(isValidTransition('confirmed', 'completed', 'fully_paid')).toBe(true);
+    expect(isValidTransition('confirmed', 'completed', 'deposit_paid')).toBe(false);
     expect(isValidTransition('confirmed', 'cancelled')).toBe(true);
   });
 
@@ -71,7 +75,8 @@ describe('getAvailableTransitions', () => {
   });
 
   it('returns [cancelled, completed] for confirmed', () => {
-    expect(getAvailableTransitions('confirmed')).toEqual(['cancelled', 'completed']);
+    expect(getAvailableTransitions('confirmed', 'deposit_paid')).toEqual(['cancelled']);
+    expect(getAvailableTransitions('confirmed', 'fully_paid')).toEqual(['cancelled', 'completed']);
   });
 
   it('returns [pending] for rejected', () => {
@@ -122,5 +127,20 @@ describe('ALLOWED_TRANSITIONS completeness', () => {
       expect(ALLOWED_TRANSITIONS).toHaveProperty(status);
       expect(Array.isArray(ALLOWED_TRANSITIONS[status])).toBe(true);
     });
+  });
+});
+
+describe('payment-aware status', () => {
+  it('shows "Señal pagada" until the total is paid, then "Pagado"', () => {
+    expect(DISPLAY_STATUS_LABELS[reservationDisplayStatus('confirmed', 'deposit_paid')]).toBe('Señal pagada');
+    expect(DISPLAY_STATUS_LABELS[reservationDisplayStatus('confirmed', 'fully_paid')]).toBe('Pagado');
+    expect(reservationDisplayStatus('approved', 'pending')).toBe('approved');
+    expect(reservationDisplayStatus('completed', 'fully_paid')).toBe('completed');
+  });
+
+  it('offers "Marcar pago total" only on confirmed reservations not fully paid', () => {
+    expect(canMarkFullyPaid('confirmed', 'deposit_paid')).toBe(true);
+    expect(canMarkFullyPaid('confirmed', 'fully_paid')).toBe(false);
+    expect(canMarkFullyPaid('approved', 'pending')).toBe(false);
   });
 });

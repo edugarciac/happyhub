@@ -38,10 +38,58 @@ export const TRANSITION_LABELS: Record<ReservationStatus, string> = {
   pending: 'Reabrir',
 };
 
-export function isValidTransition(from: ReservationStatus, to: ReservationStatus): boolean {
-  return ALLOWED_TRANSITIONS[from]?.includes(to) ?? false;
+/** 'Marcar Realizado' solo con el total cobrado (a mano o por Stripe) */
+function allowedByPayment(to: ReservationStatus, paymentStatus?: string | null): boolean {
+  return to !== 'completed' || paymentStatus === 'fully_paid';
 }
 
-export function getAvailableTransitions(current: ReservationStatus): ReservationStatus[] {
-  return ALLOWED_TRANSITIONS[current] || [];
+export function isValidTransition(from: ReservationStatus, to: ReservationStatus, paymentStatus?: string | null): boolean {
+  return (ALLOWED_TRANSITIONS[from]?.includes(to) ?? false) && allowedByPayment(to, paymentStatus);
 }
+
+export function getAvailableTransitions(current: ReservationStatus, paymentStatus?: string | null): ReservationStatus[] {
+  return (ALLOWED_TRANSITIONS[current] || []).filter((to) => allowedByPayment(to, paymentStatus));
+}
+
+/** Estado que ve el admin: una reserva confirmada se muestra según lo pagado */
+export type DisplayStatus = Exclude<ReservationStatus, 'confirmed'> | 'deposit_paid' | 'fully_paid';
+
+export function reservationDisplayStatus(status: ReservationStatus, paymentStatus?: string | null): DisplayStatus {
+  if (status !== 'confirmed') return status;
+  return paymentStatus === 'fully_paid' ? 'fully_paid' : 'deposit_paid';
+}
+
+export const DISPLAY_STATUS_LABELS: Record<DisplayStatus, string> = {
+  pending: STATUS_LABELS.pending,
+  approved: STATUS_LABELS.approved,
+  deposit_paid: 'Señal pagada',
+  fully_paid: 'Pagado',
+  rejected: STATUS_LABELS.rejected,
+  cancelled: STATUS_LABELS.cancelled,
+  completed: STATUS_LABELS.completed,
+};
+
+export const DISPLAY_STATUS_COLORS: Record<DisplayStatus, { bg: string; text: string }> = {
+  pending: STATUS_COLORS.pending,
+  approved: STATUS_COLORS.approved,
+  deposit_paid: { bg: 'bg-lime-100', text: 'text-lime-800' },
+  fully_paid: { bg: 'bg-green-100', text: 'text-green-800' },
+  rejected: STATUS_COLORS.rejected,
+  cancelled: STATUS_COLORS.cancelled,
+  completed: STATUS_COLORS.completed,
+};
+
+/** La reserva tiene la señal pagada y queda el resto: se puede marcar el pago total */
+export function canMarkFullyPaid(status: ReservationStatus, paymentStatus?: string | null): boolean {
+  return status === 'confirmed' && paymentStatus !== 'fully_paid';
+}
+
+/** Métodos para registrar a mano el pago total */
+export const MANUAL_FULL_PAYMENT_METHODS = ['terminal', 'cash', 'transfer'] as const;
+export type ManualFullPaymentMethod = (typeof MANUAL_FULL_PAYMENT_METHODS)[number];
+export const REMAINING_PAYMENT_METHOD_LABELS: Record<string, string> = {
+  terminal: 'datáfono',
+  cash: 'efectivo',
+  transfer: 'transferencia',
+  card_link: 'enlace',
+};

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 import { X, CheckCircle, Lock, Unlock, Euro, QrCode, CreditCard, Mail } from 'lucide-react';
 import { SECURITY_DEPOSIT_AMOUNT, SECURITY_DEPOSIT_TERMINAL_HOLD_DAYS, formatDueAt } from '@/config/payments';
+import { REMAINING_PAYMENT_METHOD_LABELS } from '@/utils/reservationStatus';
 
 export interface DayOfReservation {
   id: number;
@@ -125,7 +126,7 @@ export default function DayOfPaymentModal({
             <p className="text-gray-500">Resto</p>
             <p className="font-semibold">
               {remainingPaid
-                ? `Pagado${r.remainingPaymentMethod === 'terminal' ? ' (datáfono)' : r.remainingPaymentMethod === 'card_link' ? ' (enlace)' : ''}`
+                ? `Pagado${r.remainingPaymentMethod && REMAINING_PAYMENT_METHOD_LABELS[r.remainingPaymentMethod] ? ` (${REMAINING_PAYMENT_METHOD_LABELS[r.remainingPaymentMethod]})` : ''}`
                 : `${remaining.toFixed(2)} € pendiente`}
             </p>
           </div>

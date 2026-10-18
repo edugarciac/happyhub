@@ -37,8 +37,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const reservation = await queryOne<{ id: number; status: ReservationStatus }>(
-      'SELECT id, status FROM reservations WHERE id = $1',
+    const reservation = await queryOne<{ id: number; status: ReservationStatus; payment_status: string | null }>(
+      'SELECT id, status, payment_status FROM reservations WHERE id = $1',
       [parseInt(id)]
     );
 
@@ -46,7 +46,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(404).json({ success: false, error: 'Reserva no encontrada' });
     }
 
-    if (!isValidTransition(reservation.status, status)) {
+    if (status === 'completed' && reservation.status === 'confirmed' && reservation.payment_status !== 'fully_paid') {
+      return res.status(400).json({ success: false, error: 'Marca primero el pago total para cerrar el evento' });
+    }
+
+    if (!isValidTransition(reservation.status, status, reservation.payment_status)) {
       return res.status(400).json({
         success: false,
         error: 'Transicion de estado no permitida',
