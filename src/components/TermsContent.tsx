@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-export const TERMS_LAST_UPDATED = '17 de octubre de 2026';
+export const TERMS_LAST_UPDATED = '18 de octubre de 2026';
 
 /** Texto completo de los términos y condiciones. Se usa en /terminos y en el paso 3 de la reserva. */
 export default function TermsContent() {
@@ -32,7 +32,7 @@ export default function TermsContent() {
           <li>El cliente selecciona la fecha y franja horaria deseada y envía la solicitud de reserva a través de la web. En ese momento no se realiza ningún cargo.</li>
           <li>La solicitud queda <strong>pendiente de aprobación</strong>. HappyHub la revisa y la aprueba o rechaza.</li>
           <li>Si se aprueba, el cliente recibe un correo con el enlace para pagar un depósito del <strong>30% del precio total</strong> con tarjeta, o con las instrucciones para pagarlo por Bizum.</li>
-          <li>El cliente dispone de <strong>24 horas</strong> desde la aprobación para pagar el depósito. Si no se recibe en ese plazo, la reserva se cancela automáticamente y la fecha queda libre.</li>
+          <li>El cliente dispone de <strong>24 horas</strong> desde la aprobación para pagar el depósito. Si no se recibe en ese plazo, HappyHub le envía un recordatorio por correo y, si el depósito no se paga en las <strong>24 horas siguientes</strong> (48 horas desde la aprobación), la reserva se cancela y la fecha queda libre.</li>
           <li>Una vez recibido el depósito, la reserva queda confirmada y HappyHub envía la confirmación por correo.</li>
           <li>El día del evento, antes de empezar, se paga el resto (70%) y se bloquea una fianza de 150 € en la tarjeta del cliente (ver apartado 4).</li>
         </ol>

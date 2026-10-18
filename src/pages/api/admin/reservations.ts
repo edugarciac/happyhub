@@ -5,7 +5,7 @@ import bcrypt from 'bcryptjs';
 import { query } from '@/lib/db';
 import { verifyAdminSession } from '@/utils/adminAuth';
 import { ensureContractAcceptancesTable } from '@/lib/contractAcceptance';
-import { ensureReservationFlowColumns, expireUnpaidReservations } from '@/lib/reservationFlow';
+import { ensureReservationFlowColumns, processUnpaidReservations } from '@/lib/reservationFlow';
 import { sendReservationRequestNotifications } from '@/lib/reservationNotifications';
 import { parseReservationExtras, resolveReservationExtras } from '@/lib/reservationExtras';
 import { isValidExtraHours } from '@/utils/pricing';
@@ -67,7 +67,7 @@ async function handleList(req: NextApiRequest, res: NextApiResponse) {
 
     await ensureReservationFlowColumns();
     await ensureContractAcceptancesTable();
-    await expireUnpaidReservations();
+    await processUnpaidReservations();
 
     const countResult = await query(
       `SELECT COUNT(*) as total FROM reservations r LEFT JOIN users u ON r.user_id = u.id ${whereClause}`,
