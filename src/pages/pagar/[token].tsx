@@ -150,7 +150,7 @@ export default function PagarPage({ valid, error, done, advancePaid, reservation
                   <Clock className="w-4 h-4 mt-0.5 flex-shrink-0" />
                   <span>
                     Tienes hasta el <strong>{formatDueAt(reservation.dueAt)}</strong> para pagar la señal. Si no, la reserva
-                    se cancelará automáticamente.
+                    se cancelará y la fecha quedará libre.
                   </span>
                 </div>
               )}

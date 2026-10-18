@@ -396,3 +396,54 @@ export function dayOfPaymentEmail(params: {
     html: layout('HappyHub', 'Pago del día del evento', body),
   };
 }
+
+/** Enlace de pago de un cobro adicional (extensión de horario, servicios, día completo, otros) */
+export function extraChargeEmail(params: {
+  name: string;
+  code: string;
+  date: string;
+  timeSlot: string;
+  concept: string;
+  amount: number;
+  payUrl: string;
+  expiresAt: Date;
+}): { subject: string; html: string } {
+  const amount = escapeHtml(params.amount);
+  const body = `<h2 style="color: #FF6B35; margin-top: 0;">¡Hola ${escapeHtml(params.name || '')}!</h2>
+    <p>Te enviamos el enlace para pagar un cobro adicional de tu reserva:</p>
+    ${rows([
+      ['Nº de reserva', `<strong>${escapeHtml(params.code)}</strong>`],
+      ['Fecha', escapeHtml(formatDateEs(params.date))],
+      ['Horario', escapeHtml(SLOT_LABELS[params.timeSlot] || params.timeSlot)],
+      ['Concepto', escapeHtml(params.concept)],
+      ['Importe', `<strong>${amount} €</strong>`],
+    ])}
+    <p style="text-align: center; margin: 28px 0;">
+      <a href="${escapeHtml(params.payUrl)}" style="background: #FF6B35; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold;">Pagar ${amount} €</a>
+    </p>
+    ${note(`El pago es con tarjeta y lo procesa Stripe de forma segura. El enlace es válido hasta el <strong>${escapeHtml(formatDueAt(params.expiresAt))}</strong>.`)}
+    ${CONTACT_HTML}`;
+  return {
+    subject: `Reserva ${params.code}: pago de ${params.concept} (${params.amount} €)`,
+    html: layout('HappyHub', 'Cobro adicional', body),
+  };
+}
+
+/** Confirmación de un cobro adicional pagado */
+export function extraChargePaidEmail(params: { name: string; code: string; date: string; concept: string; amount: number }): {
+  subject: string;
+  html: string;
+} {
+  const body = `<h2 style="color: #FF6B35; margin-top: 0;">¡Gracias ${escapeHtml(params.name || '')}! Hemos recibido tu pago</h2>
+    ${rows([
+      ['Nº de reserva', `<strong>${escapeHtml(params.code)}</strong>`],
+      ['Fecha', escapeHtml(formatDateEs(params.date))],
+      ['Concepto', escapeHtml(params.concept)],
+      ['Importe pagado', `<strong>${escapeHtml(params.amount)} €</strong>`],
+    ])}
+    ${CONTACT_HTML}`;
+  return {
+    subject: `Pago recibido: ${params.concept} (reserva ${params.code})`,
+    html: layout('HappyHub', 'Pago recibido', body),
+  };
+}
