@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
-import { X, CheckCircle, Lock, Unlock, Euro, QrCode, CreditCard } from 'lucide-react';
+import { X, CheckCircle, Lock, Unlock, Euro, QrCode, CreditCard, Mail } from 'lucide-react';
 import { SECURITY_DEPOSIT_AMOUNT, SECURITY_DEPOSIT_TERMINAL_HOLD_DAYS, formatDueAt } from '@/config/payments';
 
 export interface DayOfReservation {
@@ -36,6 +36,7 @@ export default function DayOfPaymentModal({
   onChanged: (message: string, type: 'success' | 'error') => void;
 }) {
   const [link, setLink] = useState<string | null>(null);
+  const [emailedTo, setEmailedTo] = useState<string | null>(null);
   const [qr, setQr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -80,6 +81,16 @@ export default function DayOfPaymentModal({
   const generateLink = async () => {
     const data = await call(`/api/admin/reservations/${r.id}/payment-link`);
     if (data?.url) setLink(data.url);
+  };
+
+  // Mismo enlace que el QR, enviado además al email de la reserva
+  const emailLink = async () => {
+    if (!confirm('¿Enviar el enlace de pago al email de la reserva?')) return;
+    const data = await call(`/api/admin/reservations/${r.id}/payment-link`, { sendEmail: true });
+    if (data?.url) {
+      setLink(data.url);
+      setEmailedTo(data.emailSentTo || null);
+    }
   };
 
   const markRemainingTerminal = async () => {
@@ -134,14 +145,24 @@ export default function DayOfPaymentModal({
         {/* Opción preferente: enlace / QR */}
         {(!remainingPaid || r.securityDepositStatus === 'none') && (
           <div className="border border-primary-200 bg-primary-50/40 rounded-xl p-4 mb-4">
-            <p className="font-semibold text-gray-900 flex items-center gap-2 mb-1"><QrCode className="w-4 h-4" /> Enlace o QR (recomendado)</p>
+            <p className="font-semibold text-gray-900 flex items-center gap-2 mb-1"><QrCode className="w-4 h-4" /> Enlace, QR o email (recomendado)</p>
             <p className="text-xs text-gray-600 mb-3">
               El cliente paga el resto y bloquea la fianza desde su móvil. El bloqueo dura hasta 7 días.
             </p>
+            {emailedTo && (
+              <p className="text-xs text-green-700 bg-green-50 rounded-lg p-2 mb-3 flex items-center gap-1">
+                <Mail className="w-3 h-3" /> Enlace enviado a {emailedTo}
+              </p>
+            )}
             {!link ? (
-              <button onClick={generateLink} disabled={busy} className="w-full px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50">
-                Generar enlace y QR
-              </button>
+              <div className="grid grid-cols-2 gap-2">
+                <button onClick={generateLink} disabled={busy} className="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50 flex items-center justify-center gap-1">
+                  <QrCode className="w-4 h-4" /> Enseñar QR
+                </button>
+                <button onClick={emailLink} disabled={busy} className="px-4 py-2 border border-primary-600 text-primary-700 rounded-lg text-sm font-medium hover:bg-primary-50 disabled:opacity-50 flex items-center justify-center gap-1">
+                  <Mail className="w-4 h-4" /> Enviar por email
+                </button>
+              </div>
             ) : (
               <div className="text-center">
                 {qr && <img src={qr} alt="QR de pago" className="mx-auto mb-3 w-56 h-56" />}
@@ -150,6 +171,11 @@ export default function DayOfPaymentModal({
                   <button onClick={() => navigator.clipboard.writeText(link)} className="shrink-0 px-3 py-1 bg-primary-600 text-white text-xs rounded-lg">Copiar</button>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">Válido 72 horas. Al terminar, refresca la lista para ver el estado.</p>
+                {!emailedTo && (
+                  <button onClick={emailLink} disabled={busy} className="mt-2 text-xs text-primary-700 hover:underline inline-flex items-center gap-1 disabled:opacity-50">
+                    <Mail className="w-3 h-3" /> Enviar también por email
+                  </button>
+                )}
               </div>
             )}
           </div>

@@ -68,7 +68,7 @@ describe('emailTemplates', () => {
   });
 });
 
-import { reservationApprovedEmail, depositReceivedEmail, depositReminderEmail, remainingPaymentReminderEmail } from '@/lib/emailTemplates';
+import { reservationApprovedEmail, depositReceivedEmail, depositReminderEmail, remainingPaymentReminderEmail, dayOfPaymentEmail } from '@/lib/emailTemplates';
 import { isBookingPaymentMethod } from '@/config/payments';
 
 describe('approval & payment flow emails', () => {
@@ -140,6 +140,21 @@ describe('approval & payment flow emails', () => {
     expect(html).toContain('href="https://www.happyhub.es/pagar/xyz"');
     expect(html).toContain('Pagar 140 €');
     expect(html).toContain('fianza de 150 €');
+  });
+
+  it('day-of email asks to pay the remaining and hold the deposit', () => {
+    const base = { name: 'Ana', code: 'RES-20261020-007', date: '2026-10-20', timeSlot: 'afternoon', payUrl: 'https://www.happyhub.es/pagar/d1', expiresAt: new Date('2026-10-23T10:00:00Z') };
+    const pending = dayOfPaymentEmail({ ...base, remaining: 140 });
+    expect(pending.subject).toBe('Reserva RES-20261020-007: paga el resto (140 €) y bloquea la fianza');
+    expect(pending.html).toContain('Pagar el resto: 140 €');
+    expect(pending.html).toContain('Bloquear la fianza de 150 €');
+    expect(pending.html).toContain('href="https://www.happyhub.es/pagar/d1"');
+    expect(pending.html).toContain('no es un cobro');
+
+    const onlyDeposit = dayOfPaymentEmail({ ...base, remaining: 0 });
+    expect(onlyDeposit.subject).toBe('Reserva RES-20261020-007: bloquea la fianza de 150 €');
+    expect(onlyDeposit.html).toContain('El resto ya está pagado');
+    expect(onlyDeposit.html).not.toContain('Resto pendiente');
   });
 
   it('deposit received email shows remaining amount', () => {

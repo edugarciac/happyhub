@@ -1,8 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import crypto from 'crypto';
-import { query } from '../../../../../lib/db';
+import { query, queryOne } from '../../../../../lib/db';
 import { verifyAdminSession } from '../../../../../utils/adminAuth';
 import { ensureReservationFlowColumns } from '../../../../../lib/reservationFlow';
+import { sendEmail } from '../../../../../lib/mailer';
+import { buildReservationCode, dayOfPaymentEmail } from '../../../../../lib/emailTemplates';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -53,8 +55,42 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       [token, reservationId, 'remaining_payment', expiresAt]
     );
 
-    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+    const baseUrl = process.env.NEXTAUTH_URL || 'https://www.happyhub.es';
     const url = `${baseUrl}/pagar/${token}`;
+
+    // Opcional: enviar el mismo enlace al email de la reserva (además del QR en pantalla)
+    if (req.body?.sendEmail === true) {
+      // Email de la cuenta o, si no tiene, el de la aceptación de los términos
+      const contact = await queryOne<{ event_date: string; time_slot: string; name: string | null; email: string | null }>(
+        `SELECT TO_CHAR(r.event_date, 'YYYY-MM-DD') AS event_date, r.time_slot,
+                COALESCE(u.name, ca.customer_name) AS name, COALESCE(u.email, ca.customer_email) AS email
+         FROM reservations r
+         LEFT JOIN users u ON u.id = r.user_id
+         LEFT JOIN LATERAL (
+           SELECT customer_name, customer_email FROM contract_acceptances
+           WHERE reservation_id = r.id ORDER BY id DESC LIMIT 1
+         ) ca ON true
+         WHERE r.id = $1`,
+        [reservationId]
+      );
+      if (!contact?.email) {
+        return res.status(400).json({ success: false, error: 'La reserva no tiene email: enseña el QR o copia el enlace', url });
+      }
+      const sent = await sendEmail({
+        to: contact.email,
+        ...dayOfPaymentEmail({
+          name: contact.name || '',
+          code: buildReservationCode(contact.event_date, reservationId),
+          date: contact.event_date,
+          timeSlot: contact.time_slot,
+          remaining: Math.max(0, remaining),
+          payUrl: url,
+          expiresAt,
+        }),
+      });
+      if (!sent) return res.status(502).json({ success: false, error: 'No se pudo enviar el correo: enseña el QR o copia el enlace', url });
+      return res.status(200).json({ success: true, token, url, emailSentTo: contact.email });
+    }
 
     return res.status(200).json({ success: true, token, url });
   } catch (error) {

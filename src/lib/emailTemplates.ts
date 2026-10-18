@@ -353,3 +353,46 @@ export function remainingPaymentReminderEmail(params: {
     html: layout('HappyHub', 'Recordatorio de pago', body),
   };
 }
+
+/** Enlace del día del evento enviado por el admin: resto (si queda) + bloqueo de la fianza */
+export function dayOfPaymentEmail(params: {
+  name: string;
+  code: string;
+  date: string;
+  timeSlot: string;
+  remaining: number;
+  payUrl: string;
+  expiresAt: Date;
+}): { subject: string; html: string } {
+  const remaining = Math.round(params.remaining * 100) / 100;
+  const deposit = escapeHtml(SECURITY_DEPOSIT_AMOUNT);
+  const steps =
+    remaining > 0
+      ? `<ol style="padding-left: 20px; line-height: 1.6;">
+      <li><strong>Pagar el resto: ${escapeHtml(remaining)} €</strong></li>
+      <li><strong>Bloquear la fianza de ${deposit} €</strong> en tu tarjeta</li>
+    </ol>`
+      : `<p>El resto ya está pagado. Solo falta <strong>bloquear la fianza de ${deposit} €</strong> en tu tarjeta.</p>`;
+  const body = `<h2 style="color: #FF6B35; margin-top: 0;">¡Hola ${escapeHtml(params.name || '')}! Todo listo para tu evento</h2>
+    <p>Antes de empezar, completa estos pasos con tarjeta (crédito o débito) desde el enlace:</p>
+    ${rows([
+      ['Nº de reserva', `<strong>${escapeHtml(params.code)}</strong>`],
+      ['Fecha', escapeHtml(formatDateEs(params.date))],
+      ['Horario', escapeHtml(SLOT_LABELS[params.timeSlot] || params.timeSlot)],
+      ...(remaining > 0 ? ([['Resto pendiente', `<strong>${escapeHtml(remaining)} €</strong>`]] as [string, string][]) : []),
+      ['Fianza (bloqueo)', `${deposit} €`],
+    ])}
+    ${steps}
+    <p style="text-align: center; margin: 28px 0;">
+      <a href="${escapeHtml(params.payUrl)}" style="background: #FF6B35; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold;">${remaining > 0 ? `Pagar ${escapeHtml(remaining)} € y bloquear la fianza` : 'Bloquear la fianza'}</a>
+    </p>
+    ${note(`<strong>La fianza no es un cobro:</strong> el importe queda retenido en tu tarjeta y lo liberamos en cuanto revisamos el espacio. Solo se cobraría si hay daños, con fotos y aviso previo. El enlace es válido hasta el ${escapeHtml(formatDueAt(params.expiresAt))}.`)}
+    ${CONTACT_HTML}`;
+  return {
+    subject:
+      remaining > 0
+        ? `Reserva ${params.code}: paga el resto (${remaining} €) y bloquea la fianza`
+        : `Reserva ${params.code}: bloquea la fianza de ${SECURITY_DEPOSIT_AMOUNT} €`,
+    html: layout('HappyHub', 'Pago del día del evento', body),
+  };
+}
