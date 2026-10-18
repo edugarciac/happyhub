@@ -2,6 +2,8 @@
 export const PAYMENT_WINDOW_HOURS = 24;
 /** Sin pago al acabar el plazo: recordatorio por correo y cancelación si no se paga en estas horas más (2026-10-18) */
 export const PAYMENT_GRACE_HOURS = 24;
+/** Días antes del evento en que se recuerda pagar el resto */
+export const REMAINING_REMINDER_DAYS_BEFORE = 3;
 export const BIZUM_PHONE = '624 645 517';
 /** Métodos para la señal. El resto y la fianza se pagan solo con tarjeta (enlace/QR o datáfono). */
 export const PAYMENT_METHODS = ['card', 'bizum'] as const;

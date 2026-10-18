@@ -4,7 +4,7 @@ import Link from 'next/link';
 import AdminLayout from '@/components/admin/AdminLayout';
 import {
   Search, Filter, ChevronLeft, ChevronRight, RefreshCw, Calendar,
-  Users, Mail, Phone, MessageCircle, Pencil, Trash2, Plus, X, CreditCard, CalendarX, BadgeCheck, Send, Receipt,
+  Users, Mail, Phone, MessageCircle, Pencil, Trash2, Plus, X, CreditCard, CalendarX, BadgeCheck, Send, Receipt, Workflow,
 } from 'lucide-react';
 import { formatDueAt } from '@/config/payments';
 import {
@@ -16,6 +16,7 @@ import {
 import { buildWhatsAppUrl } from '@/utils/phone';
 import DateInput from '@/components/DateInput';
 import DayOfPaymentModal from '@/components/admin/DayOfPaymentModal';
+import ReservationFlowGuide from '@/components/admin/ReservationFlowGuide';
 import ReservationChargesModal from '@/components/admin/ReservationChargesModal';
 import { slotEndTime, extraHoursPrice } from '@/utils/pricing';
 import ReservationExtrasFields, { type ExtraOption, type ExtrasValue } from '@/components/admin/ReservationExtrasFields';
@@ -86,6 +87,8 @@ export default function AdminReservations() {
   const [dateTo, setDateTo] = useState('');
   const [offset, setOffset] = useState(0);
   const limit = 20;
+
+  const [showFlowGuide, setShowFlowGuide] = useState(false);
 
   // Marcar pago total a mano (datáfono, efectivo o transferencia)
   const [fullPaymentFor, setFullPaymentFor] = useState<Reservation | null>(null);
@@ -308,12 +311,15 @@ export default function AdminReservations() {
 
         <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <div className="mb-6 flex items-start justify-between">
+          <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">Reservas</h1>
               <p className="text-gray-600">{total} reservas encontradas</p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <button onClick={() => setShowFlowGuide(true)} className="flex items-center gap-2 px-4 py-3 bg-white text-gray-700 border border-gray-300 rounded-xl shadow hover:bg-gray-50 transition-colors font-medium text-sm">
+                <Workflow className="w-4 h-4" /> Cómo funciona
+              </button>
               <Link href="/admin/reservations/blocked-dates" className="flex items-center gap-2 px-4 py-3 bg-amber-500 text-white rounded-xl shadow hover:bg-amber-600 transition-colors font-medium text-sm">
                 <CalendarX className="w-4 h-4" /> Bloquear fechas
               </Link>
@@ -605,6 +611,8 @@ export default function AdminReservations() {
             notify={showToast}
           />
         )}
+
+        {showFlowGuide && <ReservationFlowGuide onClose={() => setShowFlowGuide(false)} />}
 
         {/* Marcar pago total */}
         {fullPaymentFor && (

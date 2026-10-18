@@ -2,7 +2,7 @@ import crypto from 'crypto';
 import { query } from '@/lib/db';
 import { sendEmail } from '@/lib/mailer';
 import { buildReservationCode, depositReminderEmail, remainingPaymentReminderEmail, reservationCancelledEmail } from '@/lib/emailTemplates';
-import { PAYMENT_GRACE_HOURS, PAYMENT_WINDOW_HOURS } from '@/config/payments';
+import { PAYMENT_GRACE_HOURS, PAYMENT_WINDOW_HOURS, REMAINING_REMINDER_DAYS_BEFORE } from '@/config/payments';
 import { deleteCalendarEvent } from '@/lib/googleCalendar';
 
 // Aplica la migración 023 de forma idempotente, una vez por instancia (igual que otras migraciones de lib/db.ts).
@@ -194,9 +194,6 @@ export async function sendDepositReminders(): Promise<number> {
     return 0;
   }
 }
-
-/** Días antes del evento en que se recuerda pagar el resto */
-export const REMAINING_REMINDER_DAYS_BEFORE = 3;
 
 /**
  * Recordatorio a las reservas confirmadas con resto pendiente cuyo evento es en los próximos
