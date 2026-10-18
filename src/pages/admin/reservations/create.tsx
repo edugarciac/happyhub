@@ -107,6 +107,7 @@ export default function CreateReservation() {
         return;
       }
 
+      if (data.emailWarning) alert(data.emailWarning);
       router.push('/admin/reservations');
     } catch {
       setError('Error de conexion');

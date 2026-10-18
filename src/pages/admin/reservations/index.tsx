@@ -4,7 +4,7 @@ import Link from 'next/link';
 import AdminLayout from '@/components/admin/AdminLayout';
 import {
   Search, Filter, ChevronLeft, ChevronRight, RefreshCw, Calendar,
-  Users, Mail, Phone, MessageCircle, Pencil, Trash2, Plus, X, CreditCard, CalendarX, BadgeCheck,
+  Users, Mail, Phone, MessageCircle, Pencil, Trash2, Plus, X, CreditCard, CalendarX, BadgeCheck, Send,
 } from 'lucide-react';
 import { formatDueAt } from '@/config/payments';
 import {
@@ -201,6 +201,17 @@ export default function AdminReservations() {
       const data = await res.json();
       if (!res.ok) { showToast(data.error || 'Error al registrar la señal', 'error'); return; }
       showToast(data.warning || 'Señal registrada: reserva confirmada', data.warning ? 'error' : 'success');
+      fetchReservations();
+    } catch { showToast('Error de conexión', 'error'); }
+  };
+
+  const handleResendConfirmation = async (r: Reservation) => {
+    if (!confirm(`¿Reenviar el correo de la reserva a ${r.email}?`)) return;
+    try {
+      const res = await fetch(`/api/admin/reservations/${r.id}/resend-confirmation`, { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) { showToast(data.error || 'Error al reenviar el correo', 'error'); return; }
+      showToast(`Correo enviado a ${r.email}`, 'success');
       fetchReservations();
     } catch { showToast('Error de conexión', 'error'); }
   };
@@ -427,6 +438,11 @@ export default function AdminReservations() {
                                 <a href={`mailto:${r.email}`} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors" title="Email">
                                   <Mail className="w-4 h-4" />
                                 </a>
+                              )}
+                              {r.email && r.status === 'pending' && (
+                                <button onClick={() => handleResendConfirmation(r)} className="p-1.5 text-orange-600 hover:bg-orange-50 rounded transition-colors" title="Reenviar correo de la reserva">
+                                  <Send className="w-4 h-4" />
+                                </button>
                               )}
                               <button onClick={() => openEdit(r)} className="p-1.5 text-gray-600 hover:bg-gray-100 rounded transition-colors" title="Editar">
                                 <Pencil className="w-4 h-4" />

@@ -6,6 +6,7 @@ import { query } from '@/lib/db';
 import { verifyAdminSession } from '@/utils/adminAuth';
 import { ensureContractAcceptancesTable } from '@/lib/contractAcceptance';
 import { ensureReservationFlowColumns, expireUnpaidReservations } from '@/lib/reservationFlow';
+import { sendReservationRequestNotifications } from '@/lib/reservationNotifications';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const admin = await verifyAdminSession(req, res);
@@ -174,7 +175,18 @@ async function handleCreate(req: NextApiRequest, res: NextApiResponse) {
       [userId, eventDate, timeSlot, eventType, parseInt(guests as string) || 0, parseFloat(totalPrice) || 0, parseFloat(depositAmount) || 0, notes?.trim() || '']
     );
 
-    return res.status(201).json({ success: true, id: result.rows[0].id });
+    const reservationId: number = result.rows[0].id;
+
+    // Mismo aviso al cliente que la reserva web (correo de solicitud + evento en Calendar).
+    // Se espera porque Vercel congela la función al responder; si falla, la reserva se mantiene.
+    const notified = await sendReservationRequestNotifications(reservationId);
+    const emailWarning = notified.noEmail
+      ? 'Reserva creada sin email de cliente: no se ha enviado ningún correo'
+      : notified.emailSent
+        ? undefined
+        : 'Reserva creada, pero no se pudo enviar el correo al cliente. Reenvíalo desde el listado.';
+
+    return res.status(201).json({ success: true, id: reservationId, emailSent: notified.emailSent, ...(emailWarning ? { emailWarning } : {}) });
   } catch (error: any) {
     console.error('Error creating reservation:', error);
     // Solo lo ve el admin: el motivo real ayuda a resolverlo sin mirar los logs
