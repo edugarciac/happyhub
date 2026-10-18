@@ -141,7 +141,8 @@ export async function sendDepositReminders(): Promise<number> {
       `WITH reminded AS (
          UPDATE reservations
          SET payment_reminder_sent_at = NOW(),
-             payment_due_at = GREATEST(payment_due_at, NOW()) + make_interval(hours => $1::int),
+             -- En punto: el cron diario de las 07:00 que avisa cancela al día siguiente aunque corra unos segundos antes
+             payment_due_at = date_trunc('hour', GREATEST(payment_due_at, NOW())) + make_interval(hours => $1::int),
              updated_at = NOW()
          WHERE status = 'approved'
            AND payment_due_at IS NOT NULL

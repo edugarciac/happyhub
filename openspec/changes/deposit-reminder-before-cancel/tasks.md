@@ -3,7 +3,6 @@
 - [x] 1.2 `sendDepositReminders()` (atomic mark, extend deadline and tokens, email)
 - [x] 1.3 `expireUnpaidReservations` requires the reminder
 - [x] 1.4 Cron endpoint and lazy callers run expire + reminders
-- [x] 1.5 Hourly GitHub Action
 
 ## 2. Copy
 - [x] 2.1 `depositReminderEmail` template
