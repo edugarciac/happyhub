@@ -32,12 +32,12 @@ const categories: FaqCategory[] = [
       {
         question: '¿Cuáles son las franjas horarias disponibles?',
         answer:
-          'Ofrecemos dos franjas: Mañanas (10:00–14:00h) y Tardes (16:00–20:00h). No abrimos de noche, pero la franja de tarde se puede ampliar unas horas adicionales, hasta las 23:00h.',
+          'Ofrecemos dos franjas: Mañanas (10:00–14:00h) y Tardes (16:00–20:00h). No abrimos de noche, pero la franja de tarde se puede ampliar hasta las 23:00h. Cada hora adicional cuesta 60 €.',
       },
       {
         question: '¿Qué pasa si quiero ampliar el horario?',
         answer:
-          'Puedes solicitar una extensión horaria siempre que el espacio esté disponible. La tarde se puede alargar hasta las 23:00h. Consúltanos y te indicamos la tarifa adicional según el tramo.',
+          'Puedes solicitar una extensión horaria siempre que el espacio esté disponible. La tarde se puede alargar hasta las 23:00h. Cada hora adicional cuesta 60 €.',
       },
       {
         question: '¿Cuál es la política de cancelación?',

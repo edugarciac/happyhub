@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { AFTERNOON_EXTENSION_NOTE } from '@/utils/pricing';
+import { AFTERNOON_EXTENSION_TEXT, EXTRA_HOUR_LABEL } from '@/utils/pricing';
 import { OPENING_DISCOUNT, isOpeningDiscountActive } from '@/config/promotions';
 import Link from 'next/link';
 import { Check, Info, Tag } from 'lucide-react';
@@ -155,7 +155,10 @@ export default function PricingTable() {
             </div>
             <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-start gap-2 text-sm text-gray-600">
               <Info className="w-4 h-4 text-primary-500 flex-shrink-0 mt-0.5" />
-              <span>* {AFTERNOON_EXTENSION_NOTE}</span>
+              <span>
+                * {AFTERNOON_EXTENSION_TEXT}{' '}
+                <strong className="text-gray-900">{EXTRA_HOUR_LABEL}.</strong>
+              </span>
             </div>
           </div>
 

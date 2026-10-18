@@ -23,7 +23,11 @@ export interface TimeSlotInfo {
 
 /** No abrimos de noche, pero la tarde se puede alargar unas horas */
 export const AFTERNOON_EXTENSION_UNTIL = '23:00';
-export const AFTERNOON_EXTENSION_NOTE = `La franja de tarde se puede ampliar unas horas adicionales, hasta las ${AFTERNOON_EXTENSION_UNTIL}h. Consúltanos la tarifa.`;
+/** Precio de cada hora adicional al ampliar la tarde */
+export const EXTRA_HOUR_PRICE = 60;
+export const EXTRA_HOUR_LABEL = `Cada hora adicional: ${EXTRA_HOUR_PRICE} €`;
+export const AFTERNOON_EXTENSION_TEXT = `La franja de tarde se puede ampliar hasta las ${AFTERNOON_EXTENSION_UNTIL}h.`;
+export const AFTERNOON_EXTENSION_NOTE = `${AFTERNOON_EXTENSION_TEXT} ${EXTRA_HOUR_LABEL}.`;
 
 export const TIME_SLOTS: TimeSlotInfo[] = [
   {
