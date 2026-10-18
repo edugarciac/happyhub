@@ -21,3 +21,14 @@ The system SHALL store the extra hours with the reservation and reflect them in 
 #### Scenario: Invalid extra hours
 - **WHEN** the request has extra hours outside 0–3 or extra hours on a non-afternoon slot
 - **THEN** the API SHALL respond 400 and not create the reservation
+
+### Requirement: The server computes the price
+The API SHALL recompute the reservation total and deposit from the pricing rules, holidays, opening discount, extra hours and service catalog, and SHALL NOT trust the total sent by the browser.
+
+#### Scenario: Tampered total
+- **WHEN** the submitted total differs from the server's computed total
+- **THEN** the API SHALL respond 409 with `step: 'price'` and not create the reservation
+
+#### Scenario: Unknown service
+- **WHEN** the request includes a service id not active in the catalog
+- **THEN** the API SHALL respond 400 and not create the reservation

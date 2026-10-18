@@ -10,6 +10,7 @@ import {
   type ReservationEmailData,
 } from '@/lib/emailTemplates';
 import { createReservationEvent } from '@/lib/googleCalendar';
+import { computeReservationPrice } from '@/lib/reservationPricing';
 import { ensureReservationFlowColumns, expireUnpaidReservations } from '@/lib/reservationFlow';
 import { isBookingPaymentMethod } from '@/config/payments';
 import { BOOKINGS_FROM_LABEL, isBeforeBookingStart } from '@/config/opening';
@@ -100,8 +101,7 @@ export default async function handler(
       });
     }
 
-    const discountAmount = Number(reservationData.discountAmount) || 0;
-    if (discountAmount > 0 && !isOpeningDiscountEligible(reservationData.date)) {
+    if ((Number(reservationData.discountAmount) || 0) > 0 && !isOpeningDiscountEligible(reservationData.date)) {
       return res.status(400).json({
         success: false,
         error: `El ${OPENING_DISCOUNT.label.toLowerCase()} ya no está disponible para esta reserva. Recarga la página para ver el precio actualizado.`,
@@ -148,8 +148,45 @@ export default async function handler(
     }
 
     const guests = Number.parseInt(String(reservationData.guests), 10) || 0;
-    const totalPrice = Number(reservationData.totalPrice) || 0;
-    const depositAmount = Number(reservationData.depositAmount) || 0;
+    const extras = Array.isArray(reservationData.extras) ? reservationData.extras.map(String) : [];
+
+    // El precio se recalcula aquí: el total del navegador solo se usa para detectar que ha cambiado
+    let price;
+    try {
+      price = await computeReservationPrice({
+        date: reservationData.date,
+        timeSlot: reservationData.timeSlot,
+        extraHours,
+        extraIds: extras,
+      });
+    } catch (priceError: any) {
+      console.error('Error calculando el precio de la reserva:', priceError?.message || priceError);
+      return res.status(500).json({
+        success: false,
+        error: 'No se ha podido calcular el precio. Inténtalo de nuevo o contáctanos.',
+        step: 'price',
+      });
+    }
+    if (!price.ok) {
+      return res.status(400).json({
+        success: false,
+        error:
+          price.reason === 'consult'
+            ? 'Esta fecha tiene precio a consultar. Por favor, contacta con nosotros para reservarla.'
+            : 'Alguno de los servicios seleccionados ya no está disponible. Recarga la página e inténtalo de nuevo.',
+        step: 'price',
+      });
+    }
+    if (Math.abs(price.total - (Number(reservationData.totalPrice) || 0)) > 0.01) {
+      return res.status(409).json({
+        success: false,
+        error: `El precio de tu reserva ha cambiado (ahora es ${price.total} €). Recarga la página para ver el precio actualizado.`,
+        step: 'price',
+      });
+    }
+    const totalPrice = price.total;
+    const depositAmount = price.deposit;
+    const discountAmount = price.discount;
     const needsKidsFurniture = reservationData.needsKidsFurniture === true;
 
     const holidayRow = await queryOne('SELECT 1 FROM holidays WHERE holiday_date = $1', [reservationData.date]).catch(
@@ -242,8 +279,9 @@ export default async function handler(
           guests,
           extraHours,
           extraHoursPrice: extraHoursPrice(extraHours),
-          extras: Array.isArray(reservationData.extras) ? reservationData.extras : [],
-          basePrice: Number(reservationData.basePrice) || 0,
+          extras,
+          extrasTotal: price.extrasTotal,
+          basePrice: price.basePrice,
           discountAmount,
           totalPrice,
           depositAmount,

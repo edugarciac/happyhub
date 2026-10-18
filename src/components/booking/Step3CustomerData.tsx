@@ -149,7 +149,8 @@ export default function Step3CustomerData() {
       const result = await response.json();
 
       // Handle specific error cases
-      if (response.status === 409) {
+      // 409 también puede ser un cambio de precio (step 'price'): ese cae en el error genérico con su mensaje
+      if (response.status === 409 && result.step !== 'price') {
         setSubmitError('Esta fecha y franja horaria ya esta reservada. Por favor, vuelve al paso 1 y elige otra fecha.');
         setSubmitErrorDetail(`HTTP ${response.status}: ${result.error || result.message || ''}`);
         setIsConflictError(true);

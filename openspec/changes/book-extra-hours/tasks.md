@@ -13,6 +13,8 @@
 - [x] 3.3 Emails show extended schedule and extra hours row
 - [x] 3.4 Admin list shows extra hours
 
+- [x] 3.5 Recompute price server-side (`src/lib/reservationPricing.ts`) and reject mismatches
+
 ## 4. Verify
 - [x] 4.1 Unit tests for pricing helpers and email rows
 - [x] 4.2 Typecheck and tests pass

@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useReducer, ReactNode } from 'react';
-import { TimeSlot, extraHoursPrice } from '@/utils/pricing';
+import { TimeSlot, extraHoursPrice, bookingTotals } from '@/utils/pricing';
 import { event as gaEvent } from '@/lib/analytics';
 import { toDateStr } from '@/config/opening';
 import { openingDiscountAmount } from '@/config/promotions';
@@ -206,14 +206,21 @@ export function BookingProvider({ children, initialDate, initialTimeSlot }: Book
 
   const calculateTotalPrice = (): number | 'consult' => {
     if (state.basePrice === 'consult') return 'consult';
-    return state.basePrice - calculateDiscount() + calculateExtraHoursPrice() + calculateExtrasPrice();
+    return totals(state.basePrice).total;
   };
 
   const calculateDepositAmount = (): number => {
-    const total = calculateTotalPrice();
-    if (total === 'consult') return 0;
-    return Math.ceil(total * 0.3); // 30% deposit, rounded up
+    if (state.basePrice === 'consult') return 0;
+    return totals(state.basePrice).deposit; // 30% deposit, rounded up
   };
+
+  const totals = (basePrice: number) =>
+    bookingTotals({
+      basePrice,
+      discount: calculateDiscount(),
+      extraHours: state.extraHours,
+      extrasTotal: calculateExtrasPrice(),
+    });
 
   return (
     <BookingContext.Provider

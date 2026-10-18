@@ -170,7 +170,12 @@ export function isHolidayEve(date: Date): boolean {
  * Prioridad: festivo o víspera > fin de semana > viernes tarde > laborable.
  */
 export function getPricingRuleKey(date: Date, timeSlot: TimeSlot): string {
-  if (isHoliday(date) || isHolidayEve(date)) return `holiday_${timeSlot}`;
+  return getPricingRuleKeyFor(date, timeSlot, isHoliday(date) || isHolidayEve(date));
+}
+
+/** Igual que getPricingRuleKey, pero con el festivo/víspera ya resuelto (p.ej. en el servidor, desde la BD) */
+export function getPricingRuleKeyFor(date: Date, timeSlot: TimeSlot, isHolidayOrEve: boolean): string {
+  if (isHolidayOrEve) return `holiday_${timeSlot}`;
   if (isWeekend(date)) return `weekend_${timeSlot}`;
   if (isFriday(date) && timeSlot === 'afternoon') return 'friday_afternoon';
   return `weekday_${timeSlot}`;
@@ -188,6 +193,17 @@ export function resolvePriceFromRules(
   if (timeSlot === 'night') return 'consult';
   const price = rules[getPricingRuleKey(date, timeSlot)];
   return price ? price : 'consult';
+}
+
+/** Total y señal (30%, redondeada hacia arriba) de una reserva. Lo usan el wizard y la API. */
+export function bookingTotals(params: {
+  basePrice: number;
+  discount: number;
+  extraHours: number;
+  extrasTotal: number;
+}): { total: number; deposit: number } {
+  const total = params.basePrice - params.discount + extraHoursPrice(params.extraHours) + params.extrasTotal;
+  return { total, deposit: Math.ceil(total * 0.3) };
 }
 
 /** Parrilla vigente, usada como fallback si no hay datos de la BD. 0 = "A consultar". */
