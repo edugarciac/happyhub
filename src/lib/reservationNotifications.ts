@@ -15,8 +15,13 @@ export interface RequestNotificationResult {
 /**
  * Envía al cliente el correo de "Solicitud de reserva" (el mismo que la reserva web) y crea el evento
  * [PENDIENTE] en Google Calendar si aún no existe. Para reservas creadas desde el panel admin. Nunca lanza.
+ * Con `sendEmail: false` solo crea el evento de Calendar.
  */
-export async function sendReservationRequestNotifications(reservationId: number): Promise<RequestNotificationResult> {
+export async function sendReservationRequestNotifications(
+  reservationId: number,
+  options: { sendEmail?: boolean } = {}
+): Promise<RequestNotificationResult> {
+  const shouldSendEmail = options.sendEmail !== false;
   try {
     await ensureReservationFlowColumns();
     const r = await queryOne<{
@@ -50,7 +55,7 @@ export async function sendReservationRequestNotifications(reservationId: number)
     const paymentMethod = r.payment_method || 'card';
 
     const [emailSent, calendarEventId] = await Promise.all([
-      r.email
+      r.email && shouldSendEmail
         ? sendEmail({
             to: r.email,
             ...reservationCustomerEmail({

@@ -8,6 +8,10 @@ When the admin creates a reservation with a client email, the system SHALL send 
 - **THEN** `cliente@example.com` SHALL receive the "Solicitud de reserva RES-YYYYMMDD-NNN" email
 - **AND** a `[PENDIENTE]` Calendar event SHALL be created and its id stored
 
+#### Scenario: Admin opts out of the email
+- **WHEN** the admin unchecks "Enviar correo de la reserva al cliente"
+- **THEN** no email SHALL be sent and the Calendar event SHALL still be created
+
 #### Scenario: Email fails
 - **WHEN** the email cannot be sent
 - **THEN** the reservation SHALL still be created and the admin SHALL see a warning

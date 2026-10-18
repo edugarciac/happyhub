@@ -52,6 +52,7 @@ export default function CreateReservation() {
     securityDeposit: '150',
     notes: '',
   });
+  const [notifyClient, setNotifyClient] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -97,6 +98,7 @@ export default function CreateReservation() {
           depositAmount: parseFloat(form.depositAmount) || 0,
           securityDeposit: parseFloat(form.securityDeposit) || 150,
           notes: form.notes.trim(),
+          notifyClient,
         }),
       });
 
@@ -308,6 +310,20 @@ export default function CreateReservation() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
             </div>
+
+            {/* Client email */}
+            <label className="flex items-start gap-2 text-sm text-gray-700 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={notifyClient}
+                onChange={(e) => setNotifyClient(e.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              />
+              <span>
+                Enviar correo de la reserva al cliente
+                <span className="block text-xs text-gray-500">Desmárcalo para crear la reserva sin avisar al cliente (el evento de Calendar se crea igualmente).</span>
+              </span>
+            </label>
 
             {/* Actions */}
             <div className="flex gap-3 pt-2">

@@ -6,6 +6,7 @@ Las reservas creadas a mano desde el panel admin (`POST /api/admin/reservations`
 
 - La reserva manual envía al cliente el mismo correo de solicitud que la reserva web (`reservationCustomerEmail`) y crea el evento `[PENDIENTE]` en Google Calendar.
 - Nuevo endpoint `POST /api/admin/reservations/[id]/resend-confirmation` y botón "Reenviar correo de la reserva" en el panel (reservas pendientes) para reenviar el correo, p. ej. a #43 y #44.
+- Casilla "Enviar correo de la reserva al cliente" (marcada por defecto) en el alta manual: si se desmarca, no se envía ningún correo, como antes (el evento de Calendar sí se crea).
 - El admin ve un aviso si el correo no se pudo enviar.
 - No se envía al propio admin el correo/WhatsApp de "Nueva reserva - Requiere revisión": la ha creado él.
 

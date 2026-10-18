@@ -143,7 +143,7 @@ async function handleList(req: NextApiRequest, res: NextApiResponse) {
 }
 
 async function handleCreate(req: NextApiRequest, res: NextApiResponse) {
-  const { name, email, phone, eventDate, timeSlot, eventType, guests, totalPrice, depositAmount, securityDeposit, notes } = req.body;
+  const { name, email, phone, eventDate, timeSlot, eventType, guests, totalPrice, depositAmount, securityDeposit, notes, notifyClient } = req.body;
 
   if (!eventDate || !timeSlot || !eventType) {
     return res.status(400).json({ success: false, error: 'Faltan campos obligatorios (fecha, franja, tipo)' });
@@ -179,8 +179,12 @@ async function handleCreate(req: NextApiRequest, res: NextApiResponse) {
 
     // Mismo aviso al cliente que la reserva web (correo de solicitud + evento en Calendar).
     // Se espera porque Vercel congela la función al responder; si falla, la reserva se mantiene.
-    const notified = await sendReservationRequestNotifications(reservationId);
-    const emailWarning = notified.noEmail
+    // notifyClient === false: el admin ha elegido no enviar correo (solo se crea el evento de Calendar)
+    const sendClientEmail = notifyClient !== false;
+    const notified = await sendReservationRequestNotifications(reservationId, { sendEmail: sendClientEmail });
+    const emailWarning = !sendClientEmail
+      ? undefined
+      : notified.noEmail
       ? 'Reserva creada sin email de cliente: no se ha enviado ningún correo'
       : notified.emailSent
         ? undefined
