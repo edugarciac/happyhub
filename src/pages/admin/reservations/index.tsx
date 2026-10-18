@@ -260,6 +260,13 @@ export default function AdminReservations() {
     return new Date(dateStr).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
   };
 
+  const formatDateTime = (dateStr: string | null) => {
+    if (!dateStr) return 'N/A';
+    return new Date(dateStr).toLocaleString('es-ES', {
+      day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid',
+    });
+  };
+
   return (
     <>
       <Head><title>Reservas - Admin HappyHub</title></Head>
@@ -363,7 +370,7 @@ export default function AdminReservations() {
                         <tr key={r.id} className="hover:bg-gray-50">
                           <td className="px-4 py-3 whitespace-nowrap">
                             <div className="text-sm font-medium text-gray-900">#{r.id}</div>
-                            <div className="text-xs text-gray-500">{formatDate(r.createdAt)}</div>
+                            <div className="text-xs text-gray-500 whitespace-nowrap">{formatDateTime(r.createdAt)}</div>
                           </td>
                           <td className="px-4 py-3">
                             <div className="text-sm font-medium text-gray-900">{r.name || '-'}</div>

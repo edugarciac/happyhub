@@ -99,7 +99,7 @@ async function handleList(req: NextApiRequest, res: NextApiResponse) {
          WHERE reservation_id = r.id ORDER BY id DESC LIMIT 1
        ) ca ON true
        ${whereClause}
-       ORDER BY r.event_date DESC, r.created_at DESC
+       ORDER BY r.id DESC
        LIMIT $${paramIdx++} OFFSET $${paramIdx++}`,
       [...params, limitNum, offsetNum]
     );
