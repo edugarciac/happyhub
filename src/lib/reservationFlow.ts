@@ -1,7 +1,8 @@
 import crypto from 'crypto';
 import { query } from '@/lib/db';
 import { sendEmail } from '@/lib/mailer';
-import { reservationCancelledEmail } from '@/lib/emailTemplates';
+import { buildReservationCode, depositReminderEmail, reservationCancelledEmail } from '@/lib/emailTemplates';
+import { PAYMENT_GRACE_HOURS, PAYMENT_WINDOW_HOURS } from '@/config/payments';
 import { deleteCalendarEvent } from '@/lib/googleCalendar';
 
 // Aplica la migración 023 de forma idempotente, una vez por instancia (igual que otras migraciones de lib/db.ts).
@@ -15,6 +16,8 @@ export function ensureReservationFlowColumns(): Promise<void> {
       await query('ALTER TABLE reservations ADD COLUMN IF NOT EXISTS last_payment_error_at TIMESTAMPTZ');
       // Horas adicionales de la tarde (20:00 → 23:00)
       await query('ALTER TABLE reservations ADD COLUMN IF NOT EXISTS extra_hours INTEGER NOT NULL DEFAULT 0');
+      // Migración 032: recordatorio de la señal antes de cancelar
+      await query('ALTER TABLE reservations ADD COLUMN IF NOT EXISTS payment_reminder_sent_at TIMESTAMPTZ');
       // Migración 031: servicios adicionales contratados [{id, title, price}]
       await query("ALTER TABLE reservations ADD COLUMN IF NOT EXISTS extras JSONB NOT NULL DEFAULT '[]'::jsonb");
       // Migración 028: cobro del día y fianza por preautorización
@@ -62,7 +65,8 @@ export async function createDepositPaymentLink(reservationId: number, dueAt: Dat
 }
 
 /**
- * Cancela las reservas aprobadas cuya señal no se ha pagado dentro del plazo, libera la franja,
+ * Cancela las reservas aprobadas cuya señal no se ha pagado dentro del plazo (alargado al enviar el
+ * recordatorio) y que ya recibieron el recordatorio: nunca se cancela sin aviso previo. Libera la franja,
  * borra el evento de Calendar y avisa al cliente. Nunca lanza: devuelve cuántas ha cancelado.
  * El UPDATE ... RETURNING es atómico, así que cada reserva se notifica una sola vez aunque se ejecute en paralelo.
  */
@@ -83,6 +87,7 @@ export async function expireUnpaidReservations(): Promise<number> {
          WHERE status = 'approved'
            AND payment_due_at IS NOT NULL
            AND payment_due_at < NOW()
+           AND payment_reminder_sent_at IS NOT NULL
            AND COALESCE(payment_status, 'pending') NOT IN ('deposit_paid', 'fully_paid')
          RETURNING id, event_date, time_slot, google_calendar_event_id, user_id
        )
@@ -101,7 +106,7 @@ export async function expireUnpaidReservations(): Promise<number> {
             status: 'cancelled',
             date: r.event_date,
             timeSlot: r.time_slot,
-            reason: 'No hemos recibido el pago de la señal dentro del plazo de 24 horas.',
+            reason: `No hemos recibido el pago de la señal en las ${PAYMENT_WINDOW_HOURS + PAYMENT_GRACE_HOURS} horas siguientes a la aprobación, pese al recordatorio que te enviamos.`,
           }),
         });
       }
@@ -111,4 +116,85 @@ export async function expireUnpaidReservations(): Promise<number> {
     console.error('[reservationFlow] Error expiring unpaid reservations:', err);
     return 0;
   }
+}
+
+/**
+ * Recordatorio a las reservas aprobadas que han pasado el plazo de pago sin pagar la señal: alarga el
+ * plazo PAYMENT_GRACE_HOURS desde ahora (también la caducidad de los enlaces de pago) y envía un correo
+ * con un enlace nuevo. El UPDATE ... RETURNING es atómico: cada reserva se avisa una sola vez.
+ * Nunca lanza: devuelve cuántos recordatorios ha procesado.
+ */
+export async function sendDepositReminders(): Promise<number> {
+  try {
+    await ensureReservationFlowColumns();
+    const due = await query<{
+      id: number;
+      event_date: string;
+      time_slot: string;
+      deposit_amount: string | null;
+      total_price: string | null;
+      payment_method: string | null;
+      payment_due_at: Date;
+      name: string | null;
+      email: string | null;
+    }>(
+      `WITH reminded AS (
+         UPDATE reservations
+         SET payment_reminder_sent_at = NOW(),
+             payment_due_at = GREATEST(payment_due_at, NOW()) + make_interval(hours => $1::int),
+             updated_at = NOW()
+         WHERE status = 'approved'
+           AND payment_due_at IS NOT NULL
+           AND payment_due_at < NOW()
+           AND payment_reminder_sent_at IS NULL
+           AND COALESCE(payment_status, 'pending') NOT IN ('deposit_paid', 'fully_paid')
+         RETURNING id, event_date, time_slot, deposit_amount, total_price, payment_method, payment_due_at, user_id
+       )
+       SELECT m.id, TO_CHAR(m.event_date, 'YYYY-MM-DD') AS event_date, m.time_slot, m.deposit_amount, m.total_price,
+              m.payment_method, m.payment_due_at, u.name, u.email
+       FROM reminded m LEFT JOIN users u ON u.id = m.user_id`,
+      [PAYMENT_GRACE_HOURS]
+    );
+
+    for (const r of due.rows) {
+      const dueAt = new Date(r.payment_due_at);
+      console.log(`[reservationFlow] Reservation ${r.id}: deposit reminder, new deadline ${dueAt.toISOString()}`);
+      try {
+        // Los enlaces que ya tiene el cliente siguen valiendo hasta el nuevo plazo
+        await query(
+          "UPDATE payment_tokens SET expires_at = $1 WHERE reservation_id = $2 AND token_type = 'deposit' AND used = false",
+          [dueAt, r.id]
+        );
+        if (!r.email) continue;
+        const payUrl = await createDepositPaymentLink(r.id, dueAt);
+        await sendEmail({
+          to: r.email,
+          ...depositReminderEmail({
+            name: r.name || '',
+            code: buildReservationCode(r.event_date, r.id),
+            date: r.event_date,
+            timeSlot: r.time_slot,
+            depositAmount: Number(r.deposit_amount) || 0,
+            totalPrice: Number(r.total_price) || 0,
+            paymentMethod: r.payment_method || 'card',
+            payUrl,
+            dueAt,
+          }),
+        });
+      } catch (err) {
+        console.error('[reservationFlow] Error sending deposit reminder', r.id, err);
+      }
+    }
+    return due.rows.length;
+  } catch (err) {
+    console.error('[reservationFlow] Error sending deposit reminders:', err);
+    return 0;
+  }
+}
+
+/** Primero cancela (reservas ya avisadas y vencidas) y después avisa: nunca se avisa y cancela en la misma pasada */
+export async function processUnpaidReservations(): Promise<{ cancelled: number; reminded: number }> {
+  const cancelled = await expireUnpaidReservations();
+  const reminded = await sendDepositReminders();
+  return { cancelled, reminded };
 }

@@ -1,5 +1,5 @@
 // Plantillas HTML de los correos transaccionales (adaptadas de los workflows de n8n)
-import { BIZUM_PHONE, PAYMENT_WINDOW_HOURS, SECURITY_DEPOSIT_AMOUNT, formatDueAt } from '@/config/payments';
+import { BIZUM_PHONE, PAYMENT_GRACE_HOURS, PAYMENT_WINDOW_HOURS, SECURITY_DEPOSIT_AMOUNT, formatDueAt } from '@/config/payments';
 import { EXTRA_HOUR_PRICE, extraHoursPrice, slotEndTime } from '@/utils/pricing';
 
 export function escapeHtml(value: unknown): string {
@@ -143,7 +143,7 @@ export function reservationCustomerEmail(r: ReservationEmailData): { subject: st
         r.paymentMethod === 'bizum'
           ? `con las instrucciones para pagar la señal de <strong>${escapeHtml(r.depositAmount)} €</strong> por Bizum`
           : `con el enlace para pagar la señal de <strong>${escapeHtml(r.depositAmount)} €</strong> con tarjeta`
-      }. Tendrás ${PAYMENT_WINDOW_HOURS} horas para pagarla; si no, la reserva se cancelará automáticamente.`
+      }. Tendrás ${PAYMENT_WINDOW_HOURS} horas para pagarla; si no, te enviaremos un recordatorio y la reserva se cancelará si no se paga en las ${PAYMENT_GRACE_HOURS} horas siguientes.`
     )}
     ${
       r.termsVersion && r.termsAcceptedAt
@@ -230,7 +230,7 @@ export function reservationCancelledEmail(params: {
   };
 }
 
-export function reservationApprovedEmail(params: {
+type DepositEmailParams = {
   name: string;
   code: string;
   date: string;
@@ -240,13 +240,14 @@ export function reservationApprovedEmail(params: {
   paymentMethod: string;
   payUrl: string;
   dueAt: Date;
-}): { subject: string; html: string } {
-  const due = escapeHtml(formatDueAt(params.dueAt));
+};
+
+/** Datos de la reserva + instrucciones de pago de la señal (tarjeta o Bizum) */
+function depositPaymentBlock(params: DepositEmailParams): string {
   const amount = escapeHtml(params.depositAmount);
   const button = (label: string) => `<p style="text-align: center; margin: 28px 0;">
       <a href="${escapeHtml(params.payUrl)}" style="background: #FF6B35; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold;">${label}</a>
     </p>`;
-
   const payment =
     params.paymentMethod === 'bizum'
       ? `<h3 style="color: #FF6B35; margin-bottom: 8px;">Paga la señal por Bizum</h3>
@@ -259,16 +260,34 @@ export function reservationApprovedEmail(params: {
     ${button('Pagar con tarjeta')}`
       : `<p>Para confirmar tu reserva, paga la señal de <strong>${amount} €</strong> con tarjeta:</p>
     ${button(`Pagar la señal (${amount} €)`)}`;
-
-  const body = `<h2 style="color: #FF6B35; margin-top: 0;">¡Hola ${escapeHtml(params.name || '')}! Tu reserva está aprobada 🎉</h2>
-    ${rows([
+  return `${rows([
       ['Nº de reserva', `<strong>${escapeHtml(params.code)}</strong>`],
       ['Fecha', escapeHtml(formatDateEs(params.date))],
       ['Horario', escapeHtml(SLOT_LABELS[params.timeSlot] || params.timeSlot)],
       ['Precio total', `${escapeHtml(params.totalPrice)} €`],
     ])}
-    ${payment}
-    ${note(`<strong>Tienes hasta el ${due}</strong> (${PAYMENT_WINDOW_HOURS} horas) para pagar la señal. Si no la recibimos a tiempo, la reserva se cancelará automáticamente y la fecha quedará libre.`)}
+    ${payment}`;
+}
+
+/** Recordatorio a las 24 h sin pagar la señal: último aviso antes de cancelar */
+export function depositReminderEmail(params: DepositEmailParams): { subject: string; html: string } {
+  const due = escapeHtml(formatDueAt(params.dueAt));
+  const body = `<h2 style="color: #FF6B35; margin-top: 0;">¡Hola ${escapeHtml(params.name || '')}! Aún no hemos recibido la señal</h2>
+    <p>Tu reserva sigue aprobada, pero todavía no nos ha llegado el pago de la señal.</p>
+    ${depositPaymentBlock(params)}
+    ${note(`<strong>Si no se abona la señal en las próximas ${PAYMENT_GRACE_HOURS} horas (hasta el ${due}), la reserva se cancelará</strong> y la fecha quedará libre. Si ya la has pagado, ignora este correo.`)}
+    ${CONTACT_HTML}`;
+  return {
+    subject: `Recordatorio: paga la señal de la reserva ${params.code} antes del ${formatDueAt(params.dueAt)}`,
+    html: layout('HappyHub', 'Recordatorio de pago', body),
+  };
+}
+
+export function reservationApprovedEmail(params: DepositEmailParams): { subject: string; html: string } {
+  const due = escapeHtml(formatDueAt(params.dueAt));
+  const body = `<h2 style="color: #FF6B35; margin-top: 0;">¡Hola ${escapeHtml(params.name || '')}! Tu reserva está aprobada 🎉</h2>
+    ${depositPaymentBlock(params)}
+    ${note(`<strong>Tienes hasta el ${due}</strong> (${PAYMENT_WINDOW_HOURS} horas) para pagar la señal. Si no la recibimos a tiempo, te enviaremos un recordatorio y, si no se paga en las ${PAYMENT_GRACE_HOURS} horas siguientes, la reserva se cancelará y la fecha quedará libre.`)}
     ${CONTACT_HTML}`;
 
   return {

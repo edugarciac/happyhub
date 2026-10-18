@@ -68,6 +68,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
              admin_approved_by = $1,
              approved_at = CURRENT_TIMESTAMP,
              payment_due_at = NOW() + make_interval(hours => $2::int),
+             payment_reminder_sent_at = NULL,
              updated_at = CURRENT_TIMESTAMP
          WHERE id = $3 RETURNING *`,
         [admin.email, PAYMENT_WINDOW_HOURS, parseInt(id)]

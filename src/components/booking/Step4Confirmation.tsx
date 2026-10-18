@@ -3,7 +3,7 @@ import { Check, Calendar, Clock, Users, MessageSquare, Mail, Phone, Home, AlertT
 import { formatDate } from '@/utils/formatters';
 import { isHoliday, EXTRA_HOUR_PRICE, extraHoursPrice, slotEndTime } from '@/utils/pricing';
 import Link from 'next/link';
-import { PAYMENT_WINDOW_HOURS } from '@/config/payments';
+import { PAYMENT_GRACE_HOURS, PAYMENT_WINDOW_HOURS } from '@/config/payments';
 
 export default function Step4Confirmation() {
   const { state, calculateTotalPrice, calculateDepositAmount } = useBooking();
@@ -102,7 +102,8 @@ export default function Step4Confirmation() {
               </li>
               <li>
                 <strong>Tendrás {PAYMENT_WINDOW_HOURS} horas para pagarla.</strong> Al recibir el pago, tu reserva queda
-                confirmada. Si no se paga a tiempo, se cancelará automáticamente y la fecha quedará libre.
+                confirmada. Si no se paga a tiempo, te enviaremos un recordatorio por correo y, si no se paga en las{' '}
+                {PAYMENT_GRACE_HOURS} horas siguientes, se cancelará y la fecha quedará libre.
               </li>
             </ol>
             <p className="text-xs text-blue-700 mt-3">No se ha realizado ningún cargo.</p>

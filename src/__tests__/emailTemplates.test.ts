@@ -68,7 +68,7 @@ describe('emailTemplates', () => {
   });
 });
 
-import { reservationApprovedEmail, depositReceivedEmail } from '@/lib/emailTemplates';
+import { reservationApprovedEmail, depositReceivedEmail, depositReminderEmail } from '@/lib/emailTemplates';
 import { isBookingPaymentMethod } from '@/config/payments';
 
 describe('approval & payment flow emails', () => {
@@ -104,6 +104,28 @@ describe('approval & payment flow emails', () => {
     const { html } = reservationApprovedEmail({ ...approved, paymentMethod: 'bizum' });
     expect(html).toContain('624 645 517');
     expect(html).toContain('RES-20261020-007');
+    expect(html).toContain('Pagar con tarjeta');
+  });
+
+  it('approval email warns about the reminder before cancelling', () => {
+    const { html } = reservationApprovedEmail({ ...approved, paymentMethod: 'card' });
+    expect(html).toContain('te enviaremos un recordatorio');
+    expect(html).not.toContain('se cancelará automáticamente');
+  });
+
+  it('reminder email has the pay link, the new deadline and the 24 h cancellation warning', () => {
+    const { subject, html } = depositReminderEmail({ ...approved, paymentMethod: 'card' });
+    expect(subject).toContain('Recordatorio');
+    expect(subject).toContain('RES-20261020-007');
+    expect(html).toContain('https://www.happyhub.es/pagar/abc');
+    expect(html).toContain('Pagar la señal (60 €)');
+    expect(html).toContain('próximas 24 horas (hasta el 11/10/2026, 18:30)');
+    expect(html).toContain('la reserva se cancelará');
+  });
+
+  it('reminder email for bizum keeps the Bizum instructions', () => {
+    const { html } = depositReminderEmail({ ...approved, paymentMethod: 'bizum' });
+    expect(html).toContain('624 645 517');
     expect(html).toContain('Pagar con tarjeta');
   });
 
