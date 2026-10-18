@@ -2,6 +2,10 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { query, queryOne } from '../../../../../lib/db';
 import { verifyAdminSession } from '../../../../../utils/adminAuth';
 import { getContractAcceptance } from '../../../../../lib/contractAcceptance';
+import { ensureReservationFlowColumns } from '../../../../../lib/reservationFlow';
+import { parseReservationExtras, resolveReservationExtras } from '../../../../../lib/reservationExtras';
+import { updateReservationEventTimes } from '../../../../../lib/googleCalendar';
+import { isValidExtraHours } from '../../../../../utils/pricing';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const admin = await verifyAdminSession(req, res);
@@ -48,12 +52,23 @@ async function handleGet(id: number, res: NextApiResponse) {
 
 async function handlePatch(id: number, req: NextApiRequest, res: NextApiResponse) {
   try {
-    const existing = await queryOne('SELECT id FROM reservations WHERE id = $1', [id]);
+    await ensureReservationFlowColumns();
+    const existing = await queryOne<{
+      event_date: string;
+      time_slot: string;
+      extra_hours: number | null;
+      extras: unknown;
+      google_calendar_event_id: string | null;
+    }>(
+      `SELECT TO_CHAR(event_date, 'YYYY-MM-DD') AS event_date, time_slot, extra_hours, extras, google_calendar_event_id
+       FROM reservations WHERE id = $1`,
+      [id]
+    );
     if (!existing) {
       return res.status(404).json({ success: false, error: 'Reserva no encontrada' });
     }
 
-    const { eventDate, timeSlot, eventType, guests, totalPrice, depositAmount, securityDeposit, notes, needsKidsFurniture } = req.body;
+    const { eventDate, timeSlot, eventType, guests, totalPrice, depositAmount, securityDeposit, notes, needsKidsFurniture, extraHours, extraIds } = req.body;
 
     if (eventDate) {
       const d = new Date(eventDate);
@@ -70,6 +85,19 @@ async function handlePatch(id: number, req: NextApiRequest, res: NextApiResponse
       return res.status(400).json({ success: false, error: 'El precio no puede ser negativo' });
     }
 
+    const nextTimeSlot = timeSlot ?? existing.time_slot;
+    const nextExtraHours = extraHours ?? (Number(existing.extra_hours) || 0);
+    if (!isValidExtraHours(nextTimeSlot, nextExtraHours)) {
+      return res.status(400).json({ success: false, error: 'Horas adicionales no válidas (0–3, solo en la franja de tarde)' });
+    }
+    let extras;
+    if (extraIds !== undefined) {
+      extras = await resolveReservationExtras(extraIds, parseReservationExtras(existing.extras));
+      if (!extras) {
+        return res.status(400).json({ success: false, error: 'Alguno de los servicios seleccionados no existe o no está activo' });
+      }
+    }
+
     const sets: string[] = [];
     const params: any[] = [];
     let idx = 1;
@@ -82,6 +110,8 @@ async function handlePatch(id: number, req: NextApiRequest, res: NextApiResponse
     if (depositAmount !== undefined) { sets.push(`deposit_amount = $${idx++}`); params.push(depositAmount); }
     if (notes !== undefined) { sets.push(`notes = $${idx++}`); params.push(notes); }
     if (needsKidsFurniture !== undefined) { sets.push(`needs_kids_furniture = $${idx++}`); params.push(needsKidsFurniture); }
+    if (extraHours !== undefined) { sets.push(`extra_hours = $${idx++}`); params.push(extraHours); }
+    if (extras !== undefined) { sets.push(`extras = $${idx++}::jsonb`); params.push(JSON.stringify(extras)); }
 
     if (sets.length === 0) {
       return res.status(400).json({ success: false, error: 'No se proporcionaron campos para actualizar' });
@@ -94,6 +124,18 @@ async function handlePatch(id: number, req: NextApiRequest, res: NextApiResponse
       `UPDATE reservations SET ${sets.join(', ')} WHERE id = $${idx} RETURNING *`,
       params
     );
+
+    // El evento de Calendar sigue a la fecha, la franja y las horas adicionales
+    const nextDate = eventDate ? String(eventDate).split('T')[0] : existing.event_date;
+    const timesChanged =
+      nextDate !== existing.event_date || nextTimeSlot !== existing.time_slot || nextExtraHours !== (Number(existing.extra_hours) || 0);
+    if (timesChanged && existing.google_calendar_event_id) {
+      await updateReservationEventTimes(existing.google_calendar_event_id, {
+        date: nextDate,
+        timeSlot: nextTimeSlot,
+        extraHours: nextExtraHours,
+      });
+    }
 
     return res.status(200).json({ success: true, reservation: updated });
   } catch (error) {

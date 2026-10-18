@@ -14,7 +14,8 @@ import {
 import { buildWhatsAppUrl } from '@/utils/phone';
 import DateInput from '@/components/DateInput';
 import DayOfPaymentModal from '@/components/admin/DayOfPaymentModal';
-import { slotEndTime } from '@/utils/pricing';
+import { slotEndTime, extraHoursPrice } from '@/utils/pricing';
+import ReservationExtrasFields, { type ExtraOption, type ExtrasValue } from '@/components/admin/ReservationExtrasFields';
 
 interface EventTypeOption { id: number; name: string; icon: string; }
 
@@ -27,6 +28,7 @@ interface Reservation {
   eventDate: string;
   timeSlot: string;
   extraHours: number;
+  extras: ExtraOption[];
   guests: number;
   totalPrice: number;
   depositAmount: number;
@@ -84,7 +86,7 @@ export default function AdminReservations() {
 
   // Edit modal
   const [editReservation, setEditReservation] = useState<Reservation | null>(null);
-  const [editForm, setEditForm] = useState({ eventDate: '', timeSlot: '', eventType: '', guests: 0, totalPrice: 0, depositAmount: 0, notes: '', needsKidsFurniture: false });
+  const [editForm, setEditForm] = useState({ eventDate: '', timeSlot: '', eventType: '', guests: 0, totalPrice: 0, depositAmount: 0, notes: '', needsKidsFurniture: false, extraHours: 0, extraIds: [] as string[] });
   const [editError, setEditError] = useState('');
   const [editSaving, setEditSaving] = useState(false);
 
@@ -162,9 +164,20 @@ export default function AdminReservations() {
       timeSlot: r.timeSlot, eventType: r.eventType, guests: r.guests,
       totalPrice: r.totalPrice, depositAmount: r.depositAmount, notes: r.notes,
       needsKidsFurniture: r.needsKidsFurniture,
+      extraHours: r.extraHours, extraIds: (r.extras || []).map((e) => e.id),
     });
     setEditError('');
   };
+
+  // Al editar, las horas y servicios ajustan el total; la señal no se toca (puede estar ya pagada)
+  const handleEditExtrasChange = (next: ExtrasValue, delta: number) =>
+    setEditForm((prev) => ({ ...prev, ...next, totalPrice: Math.max(0, prev.totalPrice + delta) }));
+
+  const handleEditTimeSlotChange = (timeSlot: string) =>
+    setEditForm((prev) => {
+      const removed = timeSlot !== 'afternoon' ? prev.extraHours : 0;
+      return { ...prev, timeSlot, extraHours: prev.extraHours - removed, totalPrice: Math.max(0, prev.totalPrice - extraHoursPrice(removed)) };
+    });
 
   const handleEditSave = async () => {
     if (!editReservation) return;
@@ -367,6 +380,11 @@ export default function AdminReservations() {
                                 +{r.extraHours}h extra (hasta {slotEndTime('afternoon', r.extraHours)})
                               </div>
                             )}
+                            {r.extras?.length > 0 && (
+                              <div className="text-xs mt-1 text-gray-600 whitespace-normal">
+                                {r.extras.map((e) => e.title).join(', ')}
+                              </div>
+                            )}
                           </td>
                           <td className="px-4 py-3">
                             <div className="text-sm text-gray-900 flex items-center gap-1">
@@ -532,7 +550,7 @@ export default function AdminReservations() {
         {/* Edit Modal */}
         {editReservation && (
           <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setEditReservation(null)}>
-            <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-gray-900">Editar reserva #{editReservation.id}</h3>
                 <button onClick={() => setEditReservation(null)} className="p-1 hover:bg-gray-100 rounded-lg"><X className="w-5 h-5" /></button>
@@ -547,7 +565,7 @@ export default function AdminReservations() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Franja horaria</label>
-                    <select value={editForm.timeSlot} onChange={(e) => setEditForm({ ...editForm, timeSlot: e.target.value })}
+                    <select value={editForm.timeSlot} onChange={(e) => handleEditTimeSlotChange(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
                       <option value="morning">Mañana</option><option value="afternoon">Tarde</option>
                     </select>
@@ -571,6 +589,12 @@ export default function AdminReservations() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
                   </div>
                 </div>
+                <ReservationExtrasFields
+                  timeSlot={editForm.timeSlot}
+                  value={{ extraHours: editForm.extraHours, extraIds: editForm.extraIds }}
+                  stored={editReservation.extras}
+                  onChange={handleEditExtrasChange}
+                />
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Precio total (EUR)</label>

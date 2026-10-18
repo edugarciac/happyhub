@@ -66,3 +66,25 @@ export async function deleteCalendarEvent(eventId: string): Promise<void> {
     console.error('[googleCalendar] Error deleting event:', err);
   }
 }
+
+/** Mueve el evento de una reserva a otra fecha/franja o ajusta su fin por las horas adicionales */
+export async function updateReservationEventTimes(
+  eventId: string,
+  params: { date: string; timeSlot: string; extraHours?: number }
+): Promise<void> {
+  const gcal = getClient();
+  const hours = SLOT_HOURS[params.timeSlot];
+  if (!gcal || !hours) return;
+  try {
+    await gcal.calendar.events.patch({
+      calendarId: gcal.calendarId,
+      eventId,
+      requestBody: {
+        start: { dateTime: `${params.date}T${hours.start}:00`, timeZone: 'Europe/Madrid' },
+        end: { dateTime: `${params.date}T${addHours(hours.end, params.extraHours || 0)}:00`, timeZone: 'Europe/Madrid' },
+      },
+    });
+  } catch (err) {
+    console.error('[googleCalendar] Error updating event:', err);
+  }
+}

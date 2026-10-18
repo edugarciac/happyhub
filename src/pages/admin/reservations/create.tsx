@@ -5,6 +5,8 @@ import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import AdminLayout from '@/components/admin/AdminLayout';
 import DateInput from '@/components/DateInput';
+import ReservationExtrasFields, { type ExtrasValue } from '@/components/admin/ReservationExtrasFields';
+import { extraHoursPrice } from '@/utils/pricing';
 
 function jsonHeaders(): HeadersInit {
   return { 'Content-Type': 'application/json' };
@@ -52,12 +54,33 @@ export default function CreateReservation() {
     securityDeposit: '150',
     notes: '',
   });
+  const [extras, setExtras] = useState<ExtrasValue>({ extraHours: 0, extraIds: [] });
   const [notifyClient, setNotifyClient] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  /** Suma la diferencia al total y deja la señal en el 30% (como en la reserva por calendario) */
+  const applyPriceDelta = (prev: FormData, delta: number): FormData => {
+    if (delta === 0) return prev;
+    const total = Math.max(0, (parseFloat(prev.totalPrice) || 0) + delta);
+    return { ...prev, totalPrice: String(total), depositAmount: String(Math.ceil(total * 0.3)) };
+  };
+
+  const handleExtrasChange = (next: ExtrasValue, delta: number) => {
+    setExtras(next);
+    setForm((prev) => applyPriceDelta(prev, delta));
+  };
+
+  // Las horas adicionales solo existen en la tarde: al cambiar de franja se quitan
+  const handleTimeSlotChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const timeSlot = e.target.value;
+    const removedHours = timeSlot !== 'afternoon' ? extras.extraHours : 0;
+    if (removedHours > 0) setExtras({ ...extras, extraHours: 0 });
+    setForm((prev) => applyPriceDelta({ ...prev, timeSlot }, -extraHoursPrice(removedHours)));
   };
 
   const validate = (): string | null => {
@@ -98,6 +121,8 @@ export default function CreateReservation() {
           depositAmount: parseFloat(form.depositAmount) || 0,
           securityDeposit: parseFloat(form.securityDeposit) || 150,
           notes: form.notes.trim(),
+          extraHours: extras.extraHours,
+          extraIds: extras.extraIds,
           notifyClient,
         }),
       });
@@ -209,7 +234,7 @@ export default function CreateReservation() {
                   <select
                     name="timeSlot"
                     value={form.timeSlot}
-                    onChange={handleChange}
+                    onChange={handleTimeSlotChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   >
                     <option value="">Seleccionar franja</option>
@@ -250,6 +275,12 @@ export default function CreateReservation() {
                   />
                 </div>
               </div>
+            </div>
+
+            {/* Extras */}
+            <div>
+              <h2 className="text-base font-semibold text-gray-800 mb-4">Extras</h2>
+              <ReservationExtrasFields timeSlot={form.timeSlot} value={extras} onChange={handleExtrasChange} />
             </div>
 
             {/* Pricing */}

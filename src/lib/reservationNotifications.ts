@@ -4,6 +4,7 @@ import { buildReservationCode, reservationCustomerEmail, EVENT_TYPE_LABELS } fro
 import { createReservationEvent } from '@/lib/googleCalendar';
 import { ensureReservationFlowColumns } from '@/lib/reservationFlow';
 import { extraHoursPrice, slotEndTime } from '@/utils/pricing';
+import { parseReservationExtras } from '@/lib/reservationExtras';
 
 export interface RequestNotificationResult {
   /** No hay email de cliente: no se ha enviado nada */
@@ -33,6 +34,7 @@ export async function sendReservationRequestNotifications(
       deposit_amount: string | null;
       payment_method: string | null;
       extra_hours: number | null;
+      extras: unknown;
       notes: string | null;
       google_calendar_event_id: string | null;
       name: string | null;
@@ -40,7 +42,7 @@ export async function sendReservationRequestNotifications(
       phone: string | null;
     }>(
       `SELECT TO_CHAR(r.event_date, 'YYYY-MM-DD') AS event_date, r.time_slot, r.event_type, r.guests,
-              r.total_price, r.deposit_amount, r.payment_method, r.extra_hours, r.notes,
+              r.total_price, r.deposit_amount, r.payment_method, r.extra_hours, r.extras, r.notes,
               r.google_calendar_event_id, u.name, u.email, u.phone
        FROM reservations r LEFT JOIN users u ON r.user_id = u.id WHERE r.id = $1`,
       [reservationId]
@@ -49,6 +51,7 @@ export async function sendReservationRequestNotifications(
 
     const code = buildReservationCode(r.event_date, reservationId);
     const extraHours = Number(r.extra_hours) || 0;
+    const extras = parseReservationExtras(r.extras);
     const totalPrice = Number(r.total_price) || 0;
     const depositAmount = Number(r.deposit_amount) || 0;
     const eventType = r.event_type || 'otros';
@@ -89,6 +92,7 @@ export async function sendReservationRequestNotifications(
               r.email ? `Email: ${r.email}` : '',
               `Invitados: ${Number(r.guests) || 0}`,
               extraHours > 0 ? `Horas adicionales: ${extraHours} (${extraHoursPrice(extraHours)} €), hasta las ${slotEndTime('afternoon', extraHours)}h` : '',
+              extras.length > 0 ? `Servicios: ${extras.map((e) => `${e.title} (${e.price} €)`).join(', ')}` : '',
               `Total: ${totalPrice} € (señal ${depositAmount} €)`,
               r.notes ? `Notas: ${r.notes}` : '',
             ].filter(Boolean).join('\n'),

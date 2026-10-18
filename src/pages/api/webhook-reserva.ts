@@ -11,6 +11,7 @@ import {
   type ReservationEmailData,
 } from '@/lib/emailTemplates';
 import { createReservationEvent } from '@/lib/googleCalendar';
+import { resolveReservationExtras } from '@/lib/reservationExtras';
 import { computeReservationPrice } from '@/lib/reservationPricing';
 import { ensureReservationFlowColumns, expireUnpaidReservations } from '@/lib/reservationFlow';
 import { isBookingPaymentMethod } from '@/config/payments';
@@ -185,6 +186,8 @@ async function handler(
         step: 'price',
       });
     }
+    // Mismos ids que acaba de validar computeReservationPrice; se guardan con título y precio
+    const reservedExtras = (await resolveReservationExtras(extras)) || [];
     const totalPrice = price.total;
     const depositAmount = price.deposit;
     const discountAmount = price.discount;
@@ -210,8 +213,8 @@ async function handler(
       ]);
       inserted = await queryOne<{ id: number }>(
         `INSERT INTO reservations
-           (user_id, event_type, event_date, time_slot, guests, total_price, deposit_amount, notes, status, needs_kids_furniture, payment_method, extra_hours, created_at)
-         SELECT $1::int, $2::text, $3::date, $4::text, $5::int, $6::numeric, $7::numeric, $8::text, 'pending', $9::boolean, $10::text, $11::int, NOW()
+           (user_id, event_type, event_date, time_slot, guests, total_price, deposit_amount, notes, status, needs_kids_furniture, payment_method, extra_hours, extras, created_at)
+         SELECT $1::int, $2::text, $3::date, $4::text, $5::int, $6::numeric, $7::numeric, $8::text, 'pending', $9::boolean, $10::text, $11::int, $12::jsonb, NOW()
          WHERE NOT EXISTS (
            SELECT 1 FROM reservations
            WHERE event_date = $3::date AND time_slot = $4::text AND status IN ('pending', 'approved', 'confirmed')
@@ -232,6 +235,7 @@ async function handler(
           needsKidsFurniture,
           reservationData.paymentMethod,
           extraHours,
+          JSON.stringify(reservedExtras),
         ]
       );
     } catch (dbError: any) {

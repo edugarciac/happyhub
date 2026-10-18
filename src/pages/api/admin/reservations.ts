@@ -7,6 +7,8 @@ import { verifyAdminSession } from '@/utils/adminAuth';
 import { ensureContractAcceptancesTable } from '@/lib/contractAcceptance';
 import { ensureReservationFlowColumns, expireUnpaidReservations } from '@/lib/reservationFlow';
 import { sendReservationRequestNotifications } from '@/lib/reservationNotifications';
+import { parseReservationExtras, resolveReservationExtras } from '@/lib/reservationExtras';
+import { isValidExtraHours } from '@/utils/pricing';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const admin = await verifyAdminSession(req, res);
@@ -83,7 +85,7 @@ async function handleList(req: NextApiRequest, res: NextApiResponse) {
               r.status, r.notes, r.created_at, r.updated_at,
               r.rejection_reason, r.cancellation_reason,
               r.admin_approved_by, r.approved_at, r.needs_kids_furniture,
-              r.payment_method, r.payment_due_at, r.extra_hours,
+              r.payment_method, r.payment_due_at, r.extra_hours, r.extras,
               r.last_payment_error, r.last_payment_error_at,
               r.remaining_payment_method, r.security_deposit_status, r.security_deposit_method,
               r.security_deposit_amount_held, r.security_deposit_expires_at, r.security_deposit_captured,
@@ -111,6 +113,7 @@ async function handleList(req: NextApiRequest, res: NextApiResponse) {
       eventDate: r.event_date,
       timeSlot: r.time_slot,
       extraHours: Number(r.extra_hours) || 0,
+      extras: parseReservationExtras(r.extras),
       guests: r.guests || 0,
       totalPrice: parseFloat(r.total_price || '0'),
       depositAmount: parseFloat(r.deposit_amount || '0'),
@@ -143,13 +146,23 @@ async function handleList(req: NextApiRequest, res: NextApiResponse) {
 }
 
 async function handleCreate(req: NextApiRequest, res: NextApiResponse) {
-  const { name, email, phone, eventDate, timeSlot, eventType, guests, totalPrice, depositAmount, securityDeposit, notes, notifyClient } = req.body;
+  const { name, email, phone, eventDate, timeSlot, eventType, guests, totalPrice, depositAmount, securityDeposit, notes, notifyClient, extraIds } = req.body;
+  const extraHours = req.body.extraHours ?? 0;
 
   if (!eventDate || !timeSlot || !eventType) {
     return res.status(400).json({ success: false, error: 'Faltan campos obligatorios (fecha, franja, tipo)' });
   }
+  if (!isValidExtraHours(timeSlot, extraHours)) {
+    return res.status(400).json({ success: false, error: 'Horas adicionales no válidas (0–3, solo en la franja de tarde)' });
+  }
 
   try {
+    await ensureReservationFlowColumns();
+    const extras = await resolveReservationExtras(extraIds);
+    if (!extras) {
+      return res.status(400).json({ success: false, error: 'Alguno de los servicios seleccionados no existe o no está activo' });
+    }
+
     // Find or create user by email
     let userId: number | null = null;
     if (email?.trim()) {
@@ -169,10 +182,10 @@ async function handleCreate(req: NextApiRequest, res: NextApiResponse) {
     }
 
     const result = await query(
-      `INSERT INTO reservations (user_id, event_date, time_slot, event_type, guests, total_price, deposit_amount, status, notes, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending', $8, NOW(), NOW())
+      `INSERT INTO reservations (user_id, event_date, time_slot, event_type, guests, total_price, deposit_amount, status, notes, extra_hours, extras, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending', $8, $9, $10::jsonb, NOW(), NOW())
        RETURNING id`,
-      [userId, eventDate, timeSlot, eventType, parseInt(guests as string) || 0, parseFloat(totalPrice) || 0, parseFloat(depositAmount) || 0, notes?.trim() || '']
+      [userId, eventDate, timeSlot, eventType, parseInt(guests as string) || 0, parseFloat(totalPrice) || 0, parseFloat(depositAmount) || 0, notes?.trim() || '', extraHours, JSON.stringify(extras)]
     );
 
     const reservationId: number = result.rows[0].id;

@@ -15,6 +15,8 @@ export function ensureReservationFlowColumns(): Promise<void> {
       await query('ALTER TABLE reservations ADD COLUMN IF NOT EXISTS last_payment_error_at TIMESTAMPTZ');
       // Horas adicionales de la tarde (20:00 → 23:00)
       await query('ALTER TABLE reservations ADD COLUMN IF NOT EXISTS extra_hours INTEGER NOT NULL DEFAULT 0');
+      // Migración 031: servicios adicionales contratados [{id, title, price}]
+      await query("ALTER TABLE reservations ADD COLUMN IF NOT EXISTS extras JSONB NOT NULL DEFAULT '[]'::jsonb");
       // Migración 028: cobro del día y fianza por preautorización
       await query(`ALTER TABLE reservations
         ADD COLUMN IF NOT EXISTS remaining_payment_method VARCHAR(20),
