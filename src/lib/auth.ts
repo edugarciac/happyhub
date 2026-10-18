@@ -4,6 +4,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { verifyPassword, getUserByEmail, createUser } from '../utils/db/users';
 import { ensureUsersTable } from './db';
 import { linkParticipantsToUser } from '../utils/db/collaborative-events';
+import { recordAuditEvent } from './audit';
 
 const providers: AuthOptions['providers'] = [
   CredentialsProvider({
@@ -12,21 +13,37 @@ const providers: AuthOptions['providers'] = [
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
+        const audit = (outcome: 'success' | 'failure', reason: string, userId?: number) =>
+          recordAuditEvent(req?.headers as any, { eventType: 'auth.login', outcome, reason, email: credentials?.email, userId });
+
         if (!credentials?.email || !credentials?.password) {
+          await audit('failure', 'missing_credentials');
           throw new Error('Email y contraseña son requeridos');
         }
 
-        await ensureUsersTable();
-        const user = await verifyPassword(credentials.email, credentials.password);
+        let user;
+        try {
+          await ensureUsersTable();
+          user = await verifyPassword(credentials.email, credentials.password);
+        } catch (err: any) {
+          await audit('failure', `error: ${err?.message || err}`);
+          throw err;
+        }
 
         if (!user) {
+          // Distingue "no existe" de "contraseña incorrecta" solo en el registro, nunca al usuario
+          const exists = await getUserByEmail(credentials.email).catch(() => null);
+          await audit('failure', exists ? 'bad_password' : 'unknown_email');
           throw new Error('Email o contraseña incorrectos');
         }
 
         if (!user.email_verified) {
+          await audit('failure', 'email_not_verified', user.id);
           throw new Error('Debes verificar tu email antes de iniciar sesión. Revisa tu bandeja de entrada.');
         }
+
+        await audit('success', 'ok', user.id);
 
         return {
           id: user.id.toString(),
@@ -89,8 +106,10 @@ export const authOptions: NextAuthOptions = {
             });
             console.log('[AUTH] Created Google user:', { id: newUser.id, email: newUser.email });
           }
-        } catch (error) {
+          await recordAuditEvent(undefined, { eventType: 'auth.google', outcome: 'success', reason: existingUser ? 'existing_user' : 'created_user', email: user.email });
+        } catch (error: any) {
           console.error('[AUTH] Error in Google sign-in:', error);
+          await recordAuditEvent(undefined, { eventType: 'auth.google', outcome: 'failure', reason: `error: ${error?.message || error}`, email: user.email });
           return false;
         }
       }

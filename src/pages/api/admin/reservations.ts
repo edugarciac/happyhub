@@ -1,10 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { withAudit } from '@/lib/audit';
+import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
 import { query } from '@/lib/db';
 import { verifyAdminSession } from '@/utils/adminAuth';
 import { ensureContractAcceptancesTable } from '@/lib/contractAcceptance';
 import { ensureReservationFlowColumns, expireUnpaidReservations } from '@/lib/reservationFlow';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   const admin = await verifyAdminSession(req, res);
   if (!admin) {
     return res.status(401).json({ success: false, error: 'No autorizado' });
@@ -149,14 +152,16 @@ async function handleCreate(req: NextApiRequest, res: NextApiResponse) {
     // Find or create user by email
     let userId: number | null = null;
     if (email?.trim()) {
-      const userResult = await query('SELECT id FROM users WHERE email = $1', [email.trim().toLowerCase()]);
+      const userResult = await query('SELECT id FROM users WHERE LOWER(email) = $1', [email.trim().toLowerCase()]);
       if (userResult.rows.length > 0) {
         userId = userResult.rows[0].id;
       } else {
-        // Create basic user
+        // Create basic user. password_hash es NOT NULL: contraseña aleatoria que nadie conoce;
+        // el cliente la fija con "¿Has olvidado tu contraseña?" (igual que el alta con Google)
+        const unusablePasswordHash = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 10);
         const newUser = await query(
-          'INSERT INTO users (name, email, phone, role, email_verified, created_at) VALUES ($1, $2, $3, $4, true, NOW()) RETURNING id',
-          [name?.trim() || '', email.trim().toLowerCase(), phone?.trim() || '', 'client']
+          'INSERT INTO users (name, email, phone, role, password_hash, email_verified, created_at) VALUES ($1, $2, $3, $4, $5, true, NOW()) RETURNING id',
+          [name?.trim() || '', email.trim().toLowerCase(), phone?.trim() || '', 'client', unusablePasswordHash]
         );
         userId = newUser.rows[0].id;
       }
@@ -172,6 +177,9 @@ async function handleCreate(req: NextApiRequest, res: NextApiResponse) {
     return res.status(201).json({ success: true, id: result.rows[0].id });
   } catch (error: any) {
     console.error('Error creating reservation:', error);
-    return res.status(500).json({ success: false, error: 'Error al crear la reserva' });
+    // Solo lo ve el admin: el motivo real ayuda a resolverlo sin mirar los logs
+    return res.status(500).json({ success: false, error: `Error al crear la reserva: ${error?.message || error}` });
   }
 }
+
+export default withAudit('reservation.admin', handler, { methods: ['POST'] });

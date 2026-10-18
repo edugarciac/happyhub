@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { withAudit } from '../../../lib/audit';
 import { z } from 'zod';
 import { createUser, getUserByEmail } from '../../../utils/db/users';
 import { linkParticipantsToUser } from '../../../utils/db/collaborative-events';
@@ -36,7 +37,7 @@ interface RegisterResponse {
   error?: string;
 }
 
-export default async function handler(
+async function handler(
   req: NextApiRequest,
   res: NextApiResponse<RegisterResponse>
 ) {
@@ -143,3 +144,5 @@ export default async function handler(
     });
   }
 }
+
+export default withAudit('auth.register', handler, { methods: ['POST'] });

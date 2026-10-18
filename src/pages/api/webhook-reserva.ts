@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { withAudit } from '@/lib/audit';
 import { notifyAdminReservationRequest } from '@/lib/whatsapp';
 import { queryOne } from '@/lib/db';
 import { sendEmail, getAdminEmails } from '@/lib/mailer';
@@ -76,7 +77,7 @@ async function notifyAdminSafely(params: Parameters<typeof notifyAdminReservatio
   }
 }
 
-export default async function handler(
+async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ResponseData>
 ) {
@@ -390,3 +391,5 @@ export default async function handler(
     });
   }
 }
+
+export default withAudit('reservation.web', handler, { methods: ['POST'] });
