@@ -4,7 +4,7 @@ import Link from 'next/link';
 import AdminLayout from '@/components/admin/AdminLayout';
 import {
   Search, Filter, ChevronLeft, ChevronRight, RefreshCw, Calendar,
-  Users, Mail, Phone, MessageCircle, Pencil, Trash2, Plus, X, CreditCard, CalendarX, BadgeCheck, Send,
+  Users, Mail, Phone, MessageCircle, Pencil, Trash2, Plus, X, CreditCard, CalendarX, BadgeCheck, Send, Receipt,
 } from 'lucide-react';
 import { formatDueAt } from '@/config/payments';
 import {
@@ -14,6 +14,7 @@ import {
 import { buildWhatsAppUrl } from '@/utils/phone';
 import DateInput from '@/components/DateInput';
 import DayOfPaymentModal from '@/components/admin/DayOfPaymentModal';
+import ReservationChargesModal from '@/components/admin/ReservationChargesModal';
 import { slotEndTime, extraHoursPrice } from '@/utils/pricing';
 import ReservationExtrasFields, { type ExtraOption, type ExtrasValue } from '@/components/admin/ReservationExtrasFields';
 
@@ -83,6 +84,9 @@ export default function AdminReservations() {
   const [dateTo, setDateTo] = useState('');
   const [offset, setOffset] = useState(0);
   const limit = 20;
+
+  // Cobros adicionales
+  const [chargesFor, setChargesFor] = useState<Reservation | null>(null);
 
   // Edit modal
   const [editReservation, setEditReservation] = useState<Reservation | null>(null);
@@ -469,6 +473,11 @@ export default function AdminReservations() {
                                   <Send className="w-4 h-4" />
                                 </button>
                               )}
+                              {['pending', 'approved', 'confirmed'].includes(r.status) && (
+                                <button onClick={() => setChargesFor(r)} className="p-1.5 text-purple-600 hover:bg-purple-50 rounded transition-colors" title="Cobros adicionales (enlace de pago)">
+                                  <Receipt className="w-4 h-4" />
+                                </button>
+                              )}
                               <button onClick={() => openEdit(r)} className="p-1.5 text-gray-600 hover:bg-gray-100 rounded transition-colors" title="Editar">
                                 <Pencil className="w-4 h-4" />
                               </button>
@@ -552,6 +561,15 @@ export default function AdminReservations() {
               </div>
             </div>
           </div>
+        )}
+
+        {chargesFor && (
+          <ReservationChargesModal
+            reservationId={chargesFor.id}
+            title={`#${chargesFor.id}${chargesFor.name ? ` · ${chargesFor.name}` : ''}`}
+            onClose={() => setChargesFor(null)}
+            notify={showToast}
+          />
         )}
 
         {/* Edit Modal */}

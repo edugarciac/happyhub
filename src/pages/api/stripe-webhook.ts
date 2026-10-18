@@ -6,7 +6,9 @@ import { ensureReservationFlowColumns } from '@/lib/reservationFlow';
 import { stripeDeclineMessage } from '@/utils/stripeErrors';
 import { query, queryOne } from '@/lib/db';
 import { getAdminEmails, sendEmail } from '@/lib/mailer';
-import { buildReservationCode, depositReceivedEmail } from '@/lib/emailTemplates';
+import { buildReservationCode, depositReceivedEmail, escapeHtml, extraChargePaidEmail } from '@/lib/emailTemplates';
+import { ensureReservationChargesTable, getChargeReservation } from '@/lib/reservationCharges';
+import { chargeConceptLabel } from '@/utils/charges';
 import {
   sendReservationConfirmation,
   notifyAdminNewReservation,
@@ -198,6 +200,15 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session, host?: s
     );
   }
 
+  if (paymentType === 'extra_charge') {
+    try {
+      await handleExtraChargePaid(session, amount);
+    } catch (err) {
+      console.error(`CRITICAL: no se pudo registrar el cobro adicional ${metadata.chargeId} (sesión ${session.id}, ${amount} EUR)`, err);
+    }
+    return; // sin avisos de WhatsApp de nueva reserva
+  }
+
   if (dbId && paymentType === 'security_deposit') {
     try {
       await ensureReservationFlowColumns();
@@ -323,4 +334,41 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session, host?: s
   } catch (error) {
     console.error('Error sending admin WhatsApp notification:', error);
   }
+}
+
+/** Cobro adicional pagado con su enlace: se marca pagado (una sola vez) y se avisa al cliente y al admin */
+async function handleExtraChargePaid(session: Stripe.Checkout.Session, amount: number) {
+  await ensureReservationChargesTable();
+  const chargeId = parseInt(session.metadata?.chargeId || '');
+  const charge = await queryOne<{ reservation_id: number; concept: string; hours: number | null; description: string; prev_status: string }>(
+    `WITH prev AS (SELECT id, status FROM reservation_charges WHERE id = $1)
+     UPDATE reservation_charges c
+     SET status = 'paid', paid_at = NOW(), paid_method = 'card', stripe_session_id = $2
+     FROM prev
+     WHERE c.id = prev.id AND c.status <> 'paid'
+     RETURNING c.reservation_id, c.concept, c.hours, c.description, prev.status AS prev_status`,
+    [chargeId, session.id]
+  );
+  if (!charge) {
+    console.log(`Cobro adicional ${chargeId} ya registrado o inexistente (sesión ${session.id})`);
+    return;
+  }
+
+  const reservation = await getChargeReservation(charge.reservation_id);
+  const code = reservation ? buildReservationCode(reservation.event_date, reservation.id) : String(charge.reservation_id);
+  const concept = chargeConceptLabel(charge);
+  console.log(`✅ Cobro adicional ${chargeId} pagado: ${concept}, ${amount} EUR, reserva ${code}`);
+
+  if (reservation?.email) {
+    await sendEmail({
+      to: reservation.email,
+      ...extraChargePaidEmail({ name: reservation.name || '', code, date: reservation.event_date, concept, amount }),
+    });
+  }
+  const warning = charge.prev_status === 'cancelled' ? ' ⚠️ El cobro estaba ANULADO: revisa si hay que devolverlo desde Stripe.' : '';
+  await sendEmail({
+    to: getAdminEmails(),
+    subject: `💶 Cobro adicional pagado: ${concept} (${amount} €) - ${code}`,
+    html: `<p>El cliente${reservation?.name ? ` <strong>${escapeHtml(reservation.name)}</strong>` : ''} ha pagado <strong>${amount} €</strong> por <strong>${escapeHtml(concept)}</strong> de la reserva <strong>${code}</strong> (sesión de Stripe ${escapeHtml(session.id)}).${warning}</p>`,
+  });
 }
