@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import { query } from '@/lib/db';
 import { sendEmail } from '@/lib/mailer';
-import { buildReservationCode, depositReminderEmail, reservationCancelledEmail } from '@/lib/emailTemplates';
+import { buildReservationCode, depositReminderEmail, remainingPaymentReminderEmail, reservationCancelledEmail } from '@/lib/emailTemplates';
 import { PAYMENT_GRACE_HOURS, PAYMENT_WINDOW_HOURS } from '@/config/payments';
 import { deleteCalendarEvent } from '@/lib/googleCalendar';
 
@@ -16,6 +16,8 @@ export function ensureReservationFlowColumns(): Promise<void> {
       await query('ALTER TABLE reservations ADD COLUMN IF NOT EXISTS last_payment_error_at TIMESTAMPTZ');
       // Horas adicionales de la tarde (20:00 → 23:00)
       await query('ALTER TABLE reservations ADD COLUMN IF NOT EXISTS extra_hours INTEGER NOT NULL DEFAULT 0');
+      // Migración 034: recordatorio del pago del resto 3 días antes del evento
+      await query('ALTER TABLE reservations ADD COLUMN IF NOT EXISTS remaining_reminder_sent_at TIMESTAMPTZ');
       // Migración 032: recordatorio de la señal antes de cancelar
       await query('ALTER TABLE reservations ADD COLUMN IF NOT EXISTS payment_reminder_sent_at TIMESTAMPTZ');
       // Migración 031: servicios adicionales contratados [{id, title, price}]
@@ -193,9 +195,88 @@ export async function sendDepositReminders(): Promise<number> {
   }
 }
 
+/** Días antes del evento en que se recuerda pagar el resto */
+export const REMAINING_REMINDER_DAYS_BEFORE = 3;
+
+/**
+ * Recordatorio a las reservas confirmadas con resto pendiente cuyo evento es en los próximos
+ * REMAINING_REMINDER_DAYS_BEFORE días: correo con un enlace que cobra solo el resto
+ * (la fianza se bloquea el día del evento). Atómico: cada reserva se avisa una sola vez.
+ * Nunca lanza: devuelve cuántas reservas ha procesado.
+ */
+export async function sendRemainingPaymentReminders(): Promise<number> {
+  try {
+    await ensureReservationFlowColumns();
+    const due = await query<{
+      id: number;
+      event_date: string;
+      time_slot: string;
+      total_price: string | null;
+      deposit_paid: string | null;
+      name: string | null;
+      email: string | null;
+    }>(
+      `WITH reminded AS (
+         UPDATE reservations
+         SET remaining_reminder_sent_at = NOW(), updated_at = NOW()
+         WHERE status = 'confirmed'
+           AND remaining_reminder_sent_at IS NULL
+           AND COALESCE(payment_status, 'pending') <> 'fully_paid'
+           AND COALESCE(total_price, 0) > COALESCE(deposit_paid, 0)
+           AND event_date >= (NOW() AT TIME ZONE 'Europe/Madrid')::date
+           AND event_date <= (NOW() AT TIME ZONE 'Europe/Madrid')::date + $1::int
+         RETURNING id, event_date, time_slot, total_price, deposit_paid, user_id
+       )
+       SELECT m.id, TO_CHAR(m.event_date, 'YYYY-MM-DD') AS event_date, m.time_slot, m.total_price, m.deposit_paid,
+              COALESCE(u.name, ca.customer_name) AS name, COALESCE(u.email, ca.customer_email) AS email
+       FROM reminded m
+       LEFT JOIN users u ON u.id = m.user_id
+       LEFT JOIN LATERAL (
+         SELECT customer_name, customer_email FROM contract_acceptances
+         WHERE reservation_id = m.id ORDER BY id DESC LIMIT 1
+       ) ca ON true`,
+      [REMAINING_REMINDER_DAYS_BEFORE]
+    );
+
+    for (const r of due.rows) {
+      console.log(`[reservationFlow] Reservation ${r.id}: remaining payment reminder`);
+      if (!r.email) continue;
+      try {
+        // Válido hasta el final del día del evento (hora de Madrid)
+        const token = crypto.randomBytes(32).toString('hex');
+        await query(
+          `INSERT INTO payment_tokens (token, reservation_id, token_type, expires_at)
+           VALUES ($1, $2, 'remaining_advance', (($3::date + 1)::timestamp AT TIME ZONE 'Europe/Madrid') AT TIME ZONE 'UTC')`,
+          [token, r.id, r.event_date]
+        );
+        const baseUrl = process.env.NEXTAUTH_URL || 'https://www.happyhub.es';
+        await sendEmail({
+          to: r.email,
+          ...remainingPaymentReminderEmail({
+            name: r.name || '',
+            code: buildReservationCode(r.event_date, r.id),
+            date: r.event_date,
+            timeSlot: r.time_slot,
+            totalPrice: Number(r.total_price) || 0,
+            depositPaid: Number(r.deposit_paid) || 0,
+            payUrl: `${baseUrl}/pagar/${token}`,
+          }),
+        });
+      } catch (err) {
+        console.error('[reservationFlow] Error sending remaining payment reminder', r.id, err);
+      }
+    }
+    return due.rows.length;
+  } catch (err) {
+    console.error('[reservationFlow] Error sending remaining payment reminders:', err);
+    return 0;
+  }
+}
+
 /** Primero cancela (reservas ya avisadas y vencidas) y después avisa: nunca se avisa y cancela en la misma pasada */
-export async function processUnpaidReservations(): Promise<{ cancelled: number; reminded: number }> {
+export async function processUnpaidReservations(): Promise<{ cancelled: number; reminded: number; remainingReminded: number }> {
   const cancelled = await expireUnpaidReservations();
   const reminded = await sendDepositReminders();
-  return { cancelled, reminded };
+  const remainingReminded = await sendRemainingPaymentReminders();
+  return { cancelled, reminded, remainingReminded };
 }

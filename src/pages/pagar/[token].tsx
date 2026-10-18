@@ -12,10 +12,14 @@ interface PageProps {
   error?: string;
   /** Todo hecho (resto pagado y fianza bloqueada): se muestra como éxito, no como error */
   done?: boolean;
+  /** Resto pagado por adelantado con el enlace del recordatorio: la fianza queda para el día del evento */
+  advancePaid?: boolean;
   reservation?: {
     id: number;
     code: string;
     kind: 'deposit' | 'remaining';
+    /** Enlace del recordatorio previo al evento: solo el resto */
+    advance: boolean;
     eventDate: string;
     timeSlot: string;
     eventType: string;
@@ -38,7 +42,7 @@ const TIME_SLOT_LABELS: Record<string, string> = {
   afternoon: 'Tarde (16:00-20:00)',
 };
 
-export default function PagarPage({ valid, error, done, reservation, token, justPaid }: PageProps) {
+export default function PagarPage({ valid, error, done, advancePaid, reservation, token, justPaid }: PageProps) {
   const [loading, setLoading] = useState(false);
   const [payError, setPayError] = useState('');
 
@@ -75,7 +79,17 @@ export default function PagarPage({ valid, error, done, reservation, token, just
 
       <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-lg max-w-md w-full p-8">
-          {done ? (
+          {advancePaid ? (
+            <div className="text-center">
+              <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">¡Resto pagado!</h1>
+              <p className="text-gray-600 mb-4">Hemos recibido el pago del resto de tu reserva. ¡Gracias!</p>
+              <p className="text-sm text-gray-500">
+                El día del evento, antes de empezar, solo quedará bloquear la fianza de {SECURITY_DEPOSIT_AMOUNT} € en tu tarjeta
+                (no es un cobro).
+              </p>
+            </div>
+          ) : done ? (
             <div className="text-center">
               <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
               <h1 className="text-2xl font-bold text-gray-900 mb-2">¡Todo listo!</h1>
@@ -218,10 +232,17 @@ function DayOfSteps({
   const step = !reservation.remainingPaid ? 1 : 2;
   return (
     <div>
-      <p className="text-sm text-gray-600 mb-4">
-        Antes de empezar el evento hay que hacer <strong>dos pasos</strong> con tarjeta (crédito o débito). Bizum no está
-        disponible para estos pagos.
-      </p>
+      {reservation.advance ? (
+        <p className="text-sm text-gray-600 mb-4">
+          Paga ahora el resto de tu reserva con tarjeta (crédito o débito) y llega al evento sin pagos pendientes. La fianza
+          se bloquea el mismo día del evento.
+        </p>
+      ) : (
+        <p className="text-sm text-gray-600 mb-4">
+          Antes de empezar el evento hay que hacer <strong>dos pasos</strong> con tarjeta (crédito o débito). Bizum no está
+          disponible para estos pagos.
+        </p>
+      )}
 
       {justPaid === 'remaining' && (
         <div className="bg-green-50 text-green-800 rounded-lg p-3 text-sm mb-4 flex items-center gap-2">
@@ -231,7 +252,7 @@ function DayOfSteps({
 
       <div className={`border rounded-xl p-4 mb-4 ${step === 1 ? 'border-primary-300 bg-primary-50/40' : 'border-gray-200'}`}>
         <div className="flex items-center justify-between mb-1">
-          <span className="font-semibold text-gray-900">1. Pagar el resto</span>
+          <span className="font-semibold text-gray-900">{reservation.advance ? 'Pagar el resto' : '1. Pagar el resto'}</span>
           {reservation.remainingPaid ? (
             <span className="text-green-600 text-sm flex items-center gap-1"><CheckCircle className="w-4 h-4" /> Pagado</span>
           ) : (
@@ -253,6 +274,7 @@ function DayOfSteps({
         )}
       </div>
 
+      {!reservation.advance && (
       <div className={`border rounded-xl p-4 mb-4 ${step === 2 ? 'border-primary-300 bg-primary-50/40' : 'border-gray-200 opacity-70'}`}>
         <div className="flex items-center justify-between mb-1">
           <span className="font-semibold text-gray-900">2. Bloquear la fianza</span>
@@ -275,11 +297,14 @@ function DayOfSteps({
           </button>
         )}
       </div>
+      )}
 
       {payError && <div className="bg-red-50 text-red-700 rounded-lg p-3 text-sm mb-4">{payError}</div>}
 
       <p className="text-center text-xs text-gray-400">
-        Pago seguro procesado por Stripe. Sin pago del resto y bloqueo de la fianza no puede comenzar el evento.
+        {reservation.advance
+          ? 'Pago seguro procesado por Stripe.'
+          : 'Pago seguro procesado por Stripe. Sin pago del resto y bloqueo de la fianza no puede comenzar el evento.'}
       </p>
     </div>
   );
@@ -332,6 +357,10 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
     const remainingPaid = paymentToken.payment_status === 'fully_paid';
     const depositHeld = paymentToken.security_deposit_status === 'held';
+    const isAdvance = paymentToken.token_type === 'remaining_advance';
+    if (isAdvance && (remainingPaid || justPaid === 'remaining')) {
+      return { props: { valid: true, advancePaid: true, token } };
+    }
     if (!isDeposit && remainingPaid && (depositHeld || justPaid === 'security_deposit')) {
       // justPaid: el webhook de Stripe puede llegar unos segundos después de volver a la página
       return { props: { valid: true, done: true, token } };
@@ -376,6 +405,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
           id: paymentToken.id,
           code: buildReservationCode(paymentToken.event_date, paymentToken.id),
           kind: isDeposit ? 'deposit' : 'remaining',
+          advance: isAdvance,
           eventDate: `${paymentToken.event_date}T12:00:00`,
           timeSlot: paymentToken.time_slot,
           eventType: paymentToken.event_type || '',

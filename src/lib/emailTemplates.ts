@@ -320,3 +320,36 @@ export function depositReceivedEmail(params: {
     ${CONTACT_HTML}`;
   return { subject: `Reserva ${params.code} confirmada - HappyHub`, html: layout('HappyHub', 'Reserva confirmada', body) };
 }
+
+/** Recordatorio 3 días antes del evento: el resto debe estar abonado antes de empezar */
+export function remainingPaymentReminderEmail(params: {
+  name: string;
+  code: string;
+  date: string;
+  timeSlot: string;
+  totalPrice: number;
+  depositPaid: number;
+  payUrl: string;
+}): { subject: string; html: string } {
+  const remaining = Math.round((params.totalPrice - params.depositPaid) * 100) / 100;
+  const amount = escapeHtml(remaining);
+  const body = `<h2 style="color: #FF6B35; margin-top: 0;">¡Hola ${escapeHtml(params.name || '')}! Tu evento es en 3 días 🎉</h2>
+    <p>Te recordamos que el resto de la reserva debe estar abonado <strong>antes del evento</strong>. Puedes pagarlo ya con tarjeta:</p>
+    ${rows([
+      ['Nº de reserva', `<strong>${escapeHtml(params.code)}</strong>`],
+      ['Fecha', escapeHtml(formatDateEs(params.date))],
+      ['Horario', escapeHtml(SLOT_LABELS[params.timeSlot] || params.timeSlot)],
+      ['Precio total', `${escapeHtml(params.totalPrice)} €`],
+      ['Señal pagada', `${escapeHtml(params.depositPaid)} €`],
+      ['Pendiente', `<strong>${amount} €</strong>`],
+    ])}
+    <p style="text-align: center; margin: 28px 0;">
+      <a href="${escapeHtml(params.payUrl)}" style="background: #FF6B35; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold;">Pagar ${amount} €</a>
+    </p>
+    ${note(`Si no lo pagas antes, tendrás que abonarlo el mismo día, antes de empezar. El día del evento, además, se bloquea una <strong>fianza de ${escapeHtml(SECURITY_DEPOSIT_AMOUNT)} €</strong> en tu tarjeta: no es un cobro y la liberamos en cuanto revisamos el espacio.`)}
+    ${CONTACT_HTML}`;
+  return {
+    subject: `Tu evento es en 3 días: paga el resto de la reserva ${params.code} (${remaining} €)`,
+    html: layout('HappyHub', 'Recordatorio de pago', body),
+  };
+}

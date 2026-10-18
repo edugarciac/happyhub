@@ -267,11 +267,13 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session, host?: s
            WHERE id = $2`,
           [session.id, dbId]
         );
-        // El enlace del día sigue activo hasta bloquear la fianza (paso 2); si ya está bloqueada, se cierra
+        // El enlace del día sigue activo hasta bloquear la fianza (paso 2); si ya está bloqueada, se cierra.
+        // El enlace del recordatorio previo (remaining_advance) solo cobra el resto: se cierra siempre.
         await query(
           `UPDATE payment_tokens SET used = true
            WHERE reservation_id::text = $1::text AND used = false
-             AND EXISTS (SELECT 1 FROM reservations WHERE id = $2 AND security_deposit_status = 'held')`,
+             AND (token_type = 'remaining_advance'
+                  OR EXISTS (SELECT 1 FROM reservations WHERE id = $2 AND security_deposit_status = 'held'))`,
           [String(dbId), dbId]
         );
       }

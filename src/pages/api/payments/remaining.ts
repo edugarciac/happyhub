@@ -96,6 +96,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const depositPaid = parseFloat(reservation.deposit_paid || '0');
     const isDeposit = tokenType === 'deposit';
     const isSecurityDeposit = !isDeposit && step === 'security_deposit';
+    // Enlace del recordatorio previo al evento: solo el resto, la fianza se bloquea el día del evento
+    if (tokenType === 'remaining_advance' && isSecurityDeposit) {
+      return res.status(400).json({ error: 'La fianza se bloquea el día del evento' });
+    }
     let amount: number;
 
     if (isDeposit) {
