@@ -1,7 +1,7 @@
 import { useBooking, EXTRAS } from './BookingContext';
 import { Check, Calendar, Clock, Users, MessageSquare, Mail, Phone, Home, AlertTriangle, PartyPopper } from 'lucide-react';
 import { formatDate } from '@/utils/formatters';
-import { isHoliday } from '@/utils/pricing';
+import { isHoliday, EXTRA_HOUR_PRICE, extraHoursPrice, slotEndTime } from '@/utils/pricing';
 import Link from 'next/link';
 import { PAYMENT_WINDOW_HOURS } from '@/config/payments';
 
@@ -11,7 +11,7 @@ export default function Step4Confirmation() {
 
   const timeSlotLabels: Record<string, string> = {
     morning: 'Mañana (10:00 - 14:00h)',
-    afternoon: 'Tarde (16:00 - 20:00h)',
+    afternoon: `Tarde (16:00 - ${slotEndTime('afternoon', state.extraHours)}h)`,
     night: 'Noche (22:00 - 02:00h)',
   };
 
@@ -138,6 +138,11 @@ export default function Step4Confirmation() {
               <p className="font-semibold text-gray-900">
                 {state.timeSlot ? timeSlotLabels[state.timeSlot] : 'No seleccionado'}
               </p>
+              {state.extraHours > 0 && (
+                <p className="text-sm text-gray-600">
+                  Incluye {state.extraHours} {state.extraHours === 1 ? 'hora adicional' : 'horas adicionales'} ({state.extraHours} × {EXTRA_HOUR_PRICE}€ = {extraHoursPrice(state.extraHours)}€)
+                </p>
+              )}
             </div>
           </div>
 

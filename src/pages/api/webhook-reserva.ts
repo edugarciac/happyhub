@@ -14,7 +14,7 @@ import { ensureReservationFlowColumns, expireUnpaidReservations } from '@/lib/re
 import { isBookingPaymentMethod } from '@/config/payments';
 import { BOOKINGS_FROM_LABEL, isBeforeBookingStart } from '@/config/opening';
 import { isOpeningDiscountEligible, OPENING_DISCOUNT } from '@/config/promotions';
-import { isBookableTimeSlot } from '@/utils/pricing';
+import { isBookableTimeSlot, isValidExtraHours, extraHoursPrice, slotEndTime } from '@/utils/pricing';
 import {
   ensureContractAcceptancesTable,
   recordContractAcceptance,
@@ -33,6 +33,7 @@ interface ReservationData {
   timeSlot: string;
   guests: number;
   duration: string;
+  extraHours?: number;
   extras?: string[];
   paymentMethod: string;
   message?: string;
@@ -115,6 +116,15 @@ export default async function handler(
       });
     }
 
+    const extraHours = reservationData.extraHours ?? 0;
+    if (!isValidExtraHours(reservationData.timeSlot, extraHours)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Las horas adicionales solo se pueden añadir a la franja de tarde (máximo hasta las 23:00h).',
+        step: 'extra_hours',
+      });
+    }
+
     const termsText = typeof reservationData.termsText === 'string' ? reservationData.termsText.trim() : '';
     const termsVersion = typeof reservationData.termsVersion === 'string' ? reservationData.termsVersion.trim().slice(0, 100) : '';
     if (
@@ -162,8 +172,8 @@ export default async function handler(
       ]);
       inserted = await queryOne<{ id: number }>(
         `INSERT INTO reservations
-           (user_id, event_type, event_date, time_slot, guests, total_price, deposit_amount, notes, status, needs_kids_furniture, payment_method, created_at)
-         SELECT $1::int, $2::text, $3::date, $4::text, $5::int, $6::numeric, $7::numeric, $8::text, 'pending', $9::boolean, $10::text, NOW()
+           (user_id, event_type, event_date, time_slot, guests, total_price, deposit_amount, notes, status, needs_kids_furniture, payment_method, extra_hours, created_at)
+         SELECT $1::int, $2::text, $3::date, $4::text, $5::int, $6::numeric, $7::numeric, $8::text, 'pending', $9::boolean, $10::text, $11::int, NOW()
          WHERE NOT EXISTS (
            SELECT 1 FROM reservations
            WHERE event_date = $3::date AND time_slot = $4::text AND status IN ('pending', 'approved', 'confirmed')
@@ -183,6 +193,7 @@ export default async function handler(
           reservationData.message || '',
           needsKidsFurniture,
           reservationData.paymentMethod,
+          extraHours,
         ]
       );
     } catch (dbError: any) {
@@ -229,6 +240,8 @@ export default async function handler(
           timeSlot: reservationData.timeSlot,
           eventType: reservationData.eventType || 'otros',
           guests,
+          extraHours,
+          extraHoursPrice: extraHoursPrice(extraHours),
           extras: Array.isArray(reservationData.extras) ? reservationData.extras : [],
           basePrice: Number(reservationData.basePrice) || 0,
           discountAmount,
@@ -259,6 +272,7 @@ export default async function handler(
       date: reservationData.date,
       timeSlot: reservationData.timeSlot,
       guests,
+      extraHours,
       eventType: reservationData.eventType,
       paymentMethod: reservationData.paymentMethod,
       totalPrice,
@@ -280,6 +294,7 @@ export default async function handler(
       createReservationEvent({
         date: reservationData.date,
         timeSlot: reservationData.timeSlot,
+        extraHours,
         summary: `${isHolidayDate ? '[FESTIVO] ' : ''}[PENDIENTE] ${EVENT_TYPE_LABELS[reservationData.eventType] || reservationData.eventType} - ${reservationData.name}`,
         description: [
           `Reserva: ${reservationId}`,
@@ -287,6 +302,7 @@ export default async function handler(
           `Teléfono: ${reservationData.phone}`,
           `Email: ${reservationData.email}`,
           `Invitados: ${guests}`,
+          extraHours > 0 ? `Horas adicionales: ${extraHours} (${extraHoursPrice(extraHours)} €), hasta las ${slotEndTime('afternoon', extraHours)}h` : '',
           `Total: ${totalPrice} € (señal ${depositAmount} €)${discountAmount > 0 ? ` · ${OPENING_DISCOUNT.label} -${discountAmount} €` : ''}`,
           `Pago: ${reservationData.paymentMethod}`,
           reservationData.message ? `Mensaje: ${reservationData.message}` : '',

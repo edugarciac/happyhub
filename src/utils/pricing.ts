@@ -28,6 +28,17 @@ export const EXTRA_HOUR_PRICE = 60;
 export const EXTRA_HOUR_LABEL = `Cada hora adicional: ${EXTRA_HOUR_PRICE} €`;
 export const AFTERNOON_EXTENSION_TEXT = `La franja de tarde se puede ampliar hasta las ${AFTERNOON_EXTENSION_UNTIL}h.`;
 export const AFTERNOON_EXTENSION_NOTE = `${AFTERNOON_EXTENSION_TEXT} ${EXTRA_HOUR_LABEL}.`;
+/** Horas que se pueden añadir a la tarde (20:00 → 23:00) */
+export const MAX_EXTRA_HOURS = 3;
+
+export function isValidExtraHours(timeSlot: unknown, extraHours: unknown): boolean {
+  if (!Number.isInteger(extraHours) || (extraHours as number) < 0 || (extraHours as number) > MAX_EXTRA_HOURS) return false;
+  return extraHours === 0 || timeSlot === 'afternoon';
+}
+
+export function extraHoursPrice(extraHours: number): number {
+  return extraHours * EXTRA_HOUR_PRICE;
+}
 
 export const TIME_SLOTS: TimeSlotInfo[] = [
   {
@@ -53,6 +64,14 @@ export const TIME_SLOTS: TimeSlotInfo[] = [
     description: 'Apertura a las 22:00h (21:30h sin coste adicional)',
   },
 ];
+
+/** Hora de fin de la franja, ampliada con las horas adicionales ('20:00' + 2 → '22:00') */
+export function slotEndTime(timeSlot: TimeSlot, extraHours = 0): string {
+  const slot = TIME_SLOTS.find((ts) => ts.id === timeSlot);
+  if (!slot) return '';
+  const [h, m] = slot.endTime.split(':').map(Number);
+  return `${String((h + extraHours) % 24).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
 
 /**
  * Verifica si una fecha es fin de semana (sábado o domingo)

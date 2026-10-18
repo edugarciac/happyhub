@@ -119,3 +119,16 @@ describe('approval & payment flow emails', () => {
     expect(isBookingPaymentMethod(undefined)).toBe(false);
   });
 });
+
+describe('emailTemplates extra hours', () => {
+  it('shows the extended schedule and the extra hours cost', () => {
+    const { html } = reservationCustomerEmail({ ...base, extraHours: 2 });
+    expect(html).toContain('Tarde (16:00 - 22:00h)');
+    expect(html).toContain('2 × 60 € = 120 €');
+    expect(reservationAdminEmail({ ...base, extraHours: 2 }).html).toContain('Horas adicionales');
+  });
+
+  it('omits extra hours when there are none', () => {
+    expect(reservationCustomerEmail(base).html).not.toContain('Horas adicionales');
+  });
+});

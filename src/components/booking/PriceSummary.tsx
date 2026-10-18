@@ -1,6 +1,6 @@
 import { useBooking } from './BookingContext';
 import { formatDate } from '@/utils/formatters';
-import { TIME_SLOTS } from '@/utils/pricing';
+import { TIME_SLOTS, EXTRA_HOUR_PRICE, slotEndTime } from '@/utils/pricing';
 import { OPENING_DISCOUNT } from '@/config/promotions';
 
 interface PriceSummaryProps {
@@ -9,7 +9,7 @@ interface PriceSummaryProps {
 }
 
 export default function PriceSummary({ showDeposit = true, compact = false }: PriceSummaryProps) {
-  const { state, calculateTotalPrice, calculateExtrasPrice, calculateDiscount, calculateDepositAmount } = useBooking();
+  const { state, calculateTotalPrice, calculateExtrasPrice, calculateExtraHoursPrice, calculateDiscount, calculateDepositAmount } = useBooking();
 
   const totalPrice = calculateTotalPrice();
   const extrasPrice = calculateExtrasPrice();
@@ -51,7 +51,7 @@ export default function PriceSummary({ showDeposit = true, compact = false }: Pr
               </p>
               {timeSlotInfo && (
                 <p className="text-sm text-gray-600">
-                  {timeSlotInfo.label} ({timeSlotInfo.startTime} - {timeSlotInfo.endTime})
+                  {timeSlotInfo.label} ({timeSlotInfo.startTime} - {slotEndTime(timeSlotInfo.id, state.extraHours)})
                 </p>
               )}
             </div>
@@ -82,6 +82,14 @@ export default function PriceSummary({ showDeposit = true, compact = false }: Pr
         <div className="flex justify-between items-center mb-2 text-green-700">
           <span>{OPENING_DISCOUNT.label} (-{OPENING_DISCOUNT.percent}%):</span>
           <span className="font-medium">-{discount}€</span>
+        </div>
+      )}
+
+      {/* Extra hours */}
+      {state.extraHours > 0 && (
+        <div className="flex justify-between items-center mb-2">
+          <span className="text-gray-600">Horas adicionales ({state.extraHours} × {EXTRA_HOUR_PRICE}€):</span>
+          <span className="font-medium">{calculateExtraHoursPrice()}€</span>
         </div>
       )}
 

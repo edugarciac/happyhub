@@ -8,6 +8,11 @@ const SLOT_HOURS: Record<string, { start: string; end: string }> = {
   afternoon: { start: '16:00', end: '20:00' },
 };
 
+function addHours(time: string, hours: number): string {
+  const [h, m] = time.split(':').map(Number);
+  return `${String(h + hours).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
+
 function getClient() {
   const { GOOGLE_CLIENT_EMAIL, GOOGLE_PRIVATE_KEY, GOOGLE_CALENDAR_ID } = process.env;
   if (!GOOGLE_CLIENT_EMAIL || !GOOGLE_PRIVATE_KEY || !GOOGLE_CALENDAR_ID) return null;
@@ -25,6 +30,8 @@ function getClient() {
 export async function createReservationEvent(params: {
   date: string;
   timeSlot: string;
+  /** Horas adicionales tras el fin de la franja */
+  extraHours?: number;
   summary: string;
   description: string;
 }): Promise<string | null> {
@@ -40,7 +47,7 @@ export async function createReservationEvent(params: {
         description: params.description,
         location: 'Happyhub - C/ Rovellat, 27, 08950 Esplugues de Llobregat',
         start: { dateTime: `${params.date}T${hours.start}:00`, timeZone: 'Europe/Madrid' },
-        end: { dateTime: `${params.date}T${hours.end}:00`, timeZone: 'Europe/Madrid' },
+        end: { dateTime: `${params.date}T${addHours(hours.end, params.extraHours || 0)}:00`, timeZone: 'Europe/Madrid' },
       },
     });
     return event.data.id || null;

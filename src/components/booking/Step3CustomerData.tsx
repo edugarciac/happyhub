@@ -127,7 +127,8 @@ export default function Step3CustomerData() {
           time: timeStr,
           timeSlot: state.timeSlot,
           guests: state.guests,
-          duration: '4', // Default 4 hours
+          duration: String(4 + state.extraHours),
+          extraHours: state.extraHours,
           extras: state.selectedExtras || [],
           // Pricing
           basePrice: state.basePrice,

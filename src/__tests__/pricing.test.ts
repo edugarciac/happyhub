@@ -265,3 +265,26 @@ describe('TIME_SLOTS constant', () => {
     });
   });
 });
+
+import { isValidExtraHours, extraHoursPrice, slotEndTime } from '@/utils/pricing';
+
+describe('extra hours', () => {
+  it('prices each extra hour at 60 €', () => {
+    expect(extraHoursPrice(0)).toBe(0);
+    expect(extraHoursPrice(3)).toBe(180);
+  });
+
+  it('extends the afternoon end time up to 23:00', () => {
+    expect(slotEndTime('afternoon')).toBe('20:00');
+    expect(slotEndTime('afternoon', 3)).toBe('23:00');
+  });
+
+  it('only allows 0-3 whole hours, and only in the afternoon', () => {
+    expect(isValidExtraHours('afternoon', 2)).toBe(true);
+    expect(isValidExtraHours('morning', 0)).toBe(true);
+    expect(isValidExtraHours('morning', 1)).toBe(false);
+    expect(isValidExtraHours('afternoon', 4)).toBe(false);
+    expect(isValidExtraHours('afternoon', 1.5)).toBe(false);
+    expect(isValidExtraHours('afternoon', '1')).toBe(false);
+  });
+});

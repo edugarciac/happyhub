@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useBooking, Extra } from './BookingContext';
 import PriceSummary from './PriceSummary';
-import { loadHolidaysFromApi, resolvePriceFromRules, type TimeSlot } from '@/utils/pricing';
-import { ChevronLeft, ChevronRight, Users, Package, Check, AlertCircle } from 'lucide-react';
+import { loadHolidaysFromApi, resolvePriceFromRules, EXTRA_HOUR_PRICE, MAX_EXTRA_HOURS, extraHoursPrice, slotEndTime, type TimeSlot } from '@/utils/pricing';
+import { ChevronLeft, ChevronRight, Users, Package, Check, AlertCircle, Clock } from 'lucide-react';
 
 export default function Step2Configuration() {
   const { state, dispatch, nextStep, prevStep, calculateExtrasPrice } = useBooking();
@@ -154,6 +154,47 @@ export default function Step2Configuration() {
             </div>
 
           </div>
+
+          {/* Extra hours (afternoon only) */}
+          {state.timeSlot === 'afternoon' && state.basePrice !== 'consult' && (
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="bg-primary-100 rounded-full p-2">
+                  <Clock className="w-5 h-5 text-primary-600" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900">Horas adicionales</h3>
+                <span className="text-sm text-gray-500">(opcional)</span>
+              </div>
+              <p className="text-sm text-gray-600 mb-4">
+                Alarga tu evento después de las 20:00h, hasta las 23:00h. <strong className="text-gray-900">{EXTRA_HOUR_PRICE} € por cada hora adicional.</strong>
+              </p>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {Array.from({ length: MAX_EXTRA_HOURS + 1 }, (_, hours) => {
+                  const isSelected = state.extraHours === hours;
+                  return (
+                    <button
+                      key={hours}
+                      onClick={() => dispatch({ type: 'SET_EXTRA_HOURS', extraHours: hours })}
+                      className={`p-3 rounded-xl border-2 text-center transition-all ${
+                        isSelected
+                          ? 'border-primary-500 bg-primary-50'
+                          : 'border-gray-200 hover:border-gray-300 bg-white'
+                      }`}
+                    >
+                      <div className="font-semibold text-gray-900">
+                        {hours === 0 ? 'Sin horas extra' : `+${hours} ${hours === 1 ? 'hora' : 'horas'}`}
+                      </div>
+                      <div className="text-xs text-gray-500">Hasta las {slotEndTime('afternoon', hours)}h</div>
+                      <div className="text-sm font-bold text-primary-600 mt-1">
+                        {hours === 0 ? '0 €' : `+${extraHoursPrice(hours)} €`}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Extras */}
           <div className="bg-white rounded-xl shadow-lg p-6">

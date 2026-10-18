@@ -14,6 +14,7 @@ import {
 import { buildWhatsAppUrl } from '@/utils/phone';
 import DateInput from '@/components/DateInput';
 import DayOfPaymentModal from '@/components/admin/DayOfPaymentModal';
+import { slotEndTime } from '@/utils/pricing';
 
 interface EventTypeOption { id: number; name: string; icon: string; }
 
@@ -25,6 +26,7 @@ interface Reservation {
   eventType: string;
   eventDate: string;
   timeSlot: string;
+  extraHours: number;
   guests: number;
   totalPrice: number;
   depositAmount: number;
@@ -349,6 +351,11 @@ export default function AdminReservations() {
                               <Calendar className="w-4 h-4 text-gray-400" />{formatDate(r.eventDate)}
                             </div>
                             <div className="text-xs text-gray-500">{TIME_SLOT_LABELS[r.timeSlot] || r.timeSlot}</div>
+                            {r.extraHours > 0 && (
+                              <div className="text-xs mt-1 inline-flex items-center gap-1 bg-primary-50 text-primary-700 px-2 py-0.5 rounded-full font-medium">
+                                +{r.extraHours}h extra (hasta {slotEndTime('afternoon', r.extraHours)})
+                              </div>
+                            )}
                           </td>
                           <td className="px-4 py-3">
                             <div className="text-sm text-gray-900 flex items-center gap-1">

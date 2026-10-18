@@ -1,5 +1,6 @@
 // Plantillas HTML de los correos transaccionales (adaptadas de los workflows de n8n)
 import { BIZUM_PHONE, PAYMENT_WINDOW_HOURS, SECURITY_DEPOSIT_AMOUNT, formatDueAt } from '@/config/payments';
+import { EXTRA_HOUR_PRICE, extraHoursPrice, slotEndTime } from '@/utils/pricing';
 
 export function escapeHtml(value: unknown): string {
   return String(value ?? '')
@@ -82,6 +83,8 @@ export interface ReservationEmailData {
   date: string; // YYYY-MM-DD
   timeSlot: string;
   guests: number;
+  /** Horas adicionales tras las 20:00 (solo tarde) */
+  extraHours?: number;
   eventType: string;
   paymentMethod: string;
   totalPrice: number;
@@ -96,6 +99,20 @@ export interface ReservationEmailData {
   termsAcceptedAt?: string | Date;
 }
 
+/** Horario de la reserva, con la hora de fin ampliada si hay horas adicionales */
+export function reservationScheduleLabel(timeSlot: string, extraHours = 0): string {
+  if (extraHours > 0 && timeSlot === 'afternoon') return `Tarde (16:00 - ${slotEndTime('afternoon', extraHours)}h)`;
+  return SLOT_LABELS[timeSlot] || timeSlot;
+}
+
+function extraHoursRows(extraHours = 0): [string, string][] {
+  if (extraHours <= 0) return [];
+  return [[
+    'Horas adicionales',
+    `${escapeHtml(extraHours)} × ${EXTRA_HOUR_PRICE} € = ${escapeHtml(extraHoursPrice(extraHours))} €`,
+  ]];
+}
+
 function formatAcceptedAt(value: string | Date): string {
   const d = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(d.getTime())) return String(value);
@@ -108,10 +125,11 @@ export function reservationCustomerEmail(r: ReservationEmailData): { subject: st
     ${rows([
       ['Nº de reserva', `<strong>${escapeHtml(r.code)}</strong>`],
       ['Fecha', escapeHtml(formatDateEs(r.date))],
-      ['Horario', escapeHtml(SLOT_LABELS[r.timeSlot] || r.timeSlot)],
+      ['Horario', escapeHtml(reservationScheduleLabel(r.timeSlot, r.extraHours))],
       ['Invitados', `${escapeHtml(r.guests)} personas`],
       ['Tipo de evento', escapeHtml(EVENT_TYPE_LABELS[r.eventType] || r.eventType)],
       ['Método de pago', escapeHtml(PAYMENT_METHOD_LABELS[r.paymentMethod] || r.paymentMethod)],
+      ...extraHoursRows(r.extraHours),
       ...(r.discountAmount
         ? ([['Descuento inauguración (-10%)', `<span style="color: #15803d;">-${escapeHtml(r.discountAmount)} €</span>`]] as [string, string][])
         : []),
@@ -149,9 +167,10 @@ export function reservationAdminEmail(r: ReservationEmailData): { subject: strin
   const body = `<h2 style="color: #FF6B35; margin-top: 0;">Detalles del evento</h2>
     ${rows([
       ['Fecha', escapeHtml(formatDateEs(r.date))],
-      ['Horario', escapeHtml(SLOT_LABELS[r.timeSlot] || r.timeSlot)],
+      ['Horario', escapeHtml(reservationScheduleLabel(r.timeSlot, r.extraHours))],
       ['Tipo', escapeHtml(EVENT_TYPE_LABELS[r.eventType] || r.eventType)],
       ['Invitados', `${escapeHtml(r.guests)} personas`],
+      ...extraHoursRows(r.extraHours),
       ...(r.discountAmount
         ? ([['Descuento inauguración', `-${escapeHtml(r.discountAmount)} €`]] as [string, string][])
         : []),

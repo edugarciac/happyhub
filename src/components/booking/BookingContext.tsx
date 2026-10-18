@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useReducer, ReactNode } from 'react';
-import { TimeSlot } from '@/utils/pricing';
+import { TimeSlot, extraHoursPrice } from '@/utils/pricing';
 import { event as gaEvent } from '@/lib/analytics';
 import { toDateStr } from '@/config/opening';
 import { openingDiscountAmount } from '@/config/promotions';
@@ -26,6 +26,8 @@ export interface BookingState {
   timeSlot: TimeSlot | null;
   // Step 2: Configuration
   guests: number;
+  /** Horas adicionales tras las 20:00 (solo tarde) */
+  extraHours: number;
   selectedExtras: string[];
   services: Extra[];
   // Step 3: Customer data
@@ -51,6 +53,7 @@ type BookingAction =
   | { type: 'SET_DATE'; date: Date | null }
   | { type: 'SET_TIME_SLOT'; timeSlot: TimeSlot | null }
   | { type: 'SET_GUESTS'; guests: number }
+  | { type: 'SET_EXTRA_HOURS'; extraHours: number }
   | { type: 'SET_SERVICES'; services: Extra[] }
   | { type: 'TOGGLE_EXTRA'; extraId: string }
   | { type: 'SET_CUSTOMER_DATA'; data: Partial<Pick<BookingState, 'name' | 'email' | 'phone' | 'eventType' | 'message' | 'acceptTerms' | 'paymentMethod' | 'needsKidsFurniture'>> }
@@ -65,6 +68,7 @@ const initialState: BookingState = {
   date: null,
   timeSlot: null,
   guests: 20,
+  extraHours: 0,
   selectedExtras: [],
   services: [],
   name: '',
@@ -88,9 +92,12 @@ function bookingReducer(state: BookingState, action: BookingAction): BookingStat
     case 'SET_DATE':
       return { ...state, date: action.date };
     case 'SET_TIME_SLOT':
-      return { ...state, timeSlot: action.timeSlot };
+      // Las horas adicionales solo existen en la tarde
+      return { ...state, timeSlot: action.timeSlot, extraHours: action.timeSlot === 'afternoon' ? state.extraHours : 0 };
     case 'SET_GUESTS':
       return { ...state, guests: action.guests };
+    case 'SET_EXTRA_HOURS':
+      return { ...state, extraHours: action.extraHours };
     case 'SET_SERVICES':
       return { ...state, services: action.services };
     case 'TOGGLE_EXTRA':
@@ -126,6 +133,7 @@ interface BookingContextType {
   prevStep: () => void;
   calculateTotalPrice: () => number | 'consult';
   calculateExtrasPrice: () => number;
+  calculateExtraHoursPrice: () => number;
   calculateDiscount: () => number;
   calculateDepositAmount: () => number;
 }
@@ -188,6 +196,8 @@ export function BookingProvider({ children, initialDate, initialTimeSlot }: Book
     }, 0);
   };
 
+  const calculateExtraHoursPrice = (): number => extraHoursPrice(state.extraHours);
+
   /** Descuento de inauguración sobre el alquiler (no sobre extras) */
   const calculateDiscount = (): number => {
     if (state.basePrice === 'consult' || !state.date) return 0;
@@ -196,7 +206,7 @@ export function BookingProvider({ children, initialDate, initialTimeSlot }: Book
 
   const calculateTotalPrice = (): number | 'consult' => {
     if (state.basePrice === 'consult') return 'consult';
-    return state.basePrice - calculateDiscount() + calculateExtrasPrice();
+    return state.basePrice - calculateDiscount() + calculateExtraHoursPrice() + calculateExtrasPrice();
   };
 
   const calculateDepositAmount = (): number => {
@@ -215,6 +225,7 @@ export function BookingProvider({ children, initialDate, initialTimeSlot }: Book
         prevStep,
         calculateTotalPrice,
         calculateExtrasPrice,
+        calculateExtraHoursPrice,
         calculateDiscount,
         calculateDepositAmount,
       }}
