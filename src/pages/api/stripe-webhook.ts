@@ -233,12 +233,18 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session, host?: s
     return; // sin avisos de WhatsApp: no es un pago
   }
 
-  // Stripe reintenta y el admin puede reenviar eventos: si esta sesión ya está registrada,
-  // no se repiten el registro, los correos ni los WhatsApp
+  // Stripe reintenta y el admin puede reenviar eventos: si esta sesión ya está registrada como pagada,
+  // no se repiten el registro, los correos ni los WhatsApp.
+  // /api/payments/remaining guarda el id de sesión al CREAR el enlace, así que coincidir el id no basta:
+  // además el pago tiene que constar como pagado.
   if (dbId && (paymentType === 'deposit' || paymentType === 'remaining')) {
     const column = paymentType === 'deposit' ? 'stripe_deposit_session_id' : 'stripe_remaining_session_id';
+    const paidStatuses = paymentType === 'deposit' ? ['deposit_paid', 'fully_paid'] : ['fully_paid'];
     await ensureReservationFlowColumns();
-    const already = await queryOne(`SELECT 1 FROM reservations WHERE id = $1 AND ${column} = $2`, [dbId, session.id]);
+    const already = await queryOne(
+      `SELECT 1 FROM reservations WHERE id = $1 AND ${column} = $2 AND payment_status = ANY($3::text[])`,
+      [dbId, session.id, paidStatuses]
+    );
     if (already) {
       console.log(`Sesión ${session.id} (${paymentType}) ya registrada en la reserva ${dbId}: evento repetido, se ignora`);
       return;
