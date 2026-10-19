@@ -66,7 +66,7 @@ export default function Header() {
             </span>
           </Link>
 
-          <div className="hidden lg:flex items-center">
+          <div className="hidden xl:flex items-center">
             <div className="flex items-center gap-0.5 bg-gray-100/80 rounded-full p-1">
               {navItems.map((item) => {
                 const isActive = router.pathname === item.href;
@@ -86,9 +86,12 @@ export default function Header() {
               })}
             </div>
             {session?.user ? (
-              <div className="flex items-center ml-2 space-x-2 bg-ocean-50 border border-ocean-200 rounded-xl px-3 py-1.5">
-                <span className="text-sm font-medium text-ocean-700 max-w-[160px] truncate" title={session.user.email || ''}>
-                  {session.user.email}
+              <div className="flex items-center ml-2 space-x-1">
+                <span
+                  className="w-9 h-9 rounded-full bg-ocean-50 border border-ocean-200 text-ocean-700 text-sm font-semibold flex items-center justify-center uppercase"
+                  title={session.user.email || ''}
+                >
+                  {(session.user.email || '?').charAt(0)}
                 </span>
                 <button
                   onClick={handleLogout}
@@ -117,7 +120,7 @@ export default function Header() {
           </div>
 
           <button
-            className="lg:hidden text-gray-700 p-2"
+            className="xl:hidden text-gray-700 p-2"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label="Toggle menu"
           >
@@ -126,7 +129,7 @@ export default function Header() {
         </div>
 
         {isMenuOpen && (
-          <div className="lg:hidden mt-6 pb-4 space-y-2 animate-fade-in">
+          <div className="xl:hidden mt-6 pb-4 space-y-2 animate-fade-in">
             {navItems.map((item) => (
               <Link
                 key={item.href}
