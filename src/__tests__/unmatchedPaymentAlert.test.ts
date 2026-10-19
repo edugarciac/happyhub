@@ -1,4 +1,4 @@
-import { unmatchedPaymentAlertEmail } from '@/lib/emailTemplates';
+import { incompleteDepositAlertEmail, unmatchedPaymentAlertEmail } from '@/lib/emailTemplates';
 
 describe('unmatchedPaymentAlertEmail', () => {
   it('includes amount, reason and session, escaping HTML', () => {
@@ -24,5 +24,14 @@ describe('unmatchedPaymentAlertEmail', () => {
     expect(subject).toContain('(cs_x)');
     expect(html).toContain('(ninguna)');
     expect(html).toContain('(desconocido)');
+  });
+});
+
+describe('incompleteDepositAlertEmail', () => {
+  it('shows paid, expected and missing amounts', () => {
+    const { subject, html } = incompleteDepositAlertEmail({ code: 'RES-20261016-007', name: 'Ana', paid: 1, expected: 60, sessionId: 'cs_1' });
+    expect(subject).toBe('⚠️ Señal incompleta: cobrados 1 € de 60 € (RES-20261016-007)');
+    expect(html).toContain('59 €');
+    expect(html).toContain('cs_1');
   });
 });

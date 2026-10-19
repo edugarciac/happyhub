@@ -473,3 +473,28 @@ export function unmatchedPaymentAlertEmail(params: {
     html: layout('HappyHub', 'Alerta de pago', body),
   };
 }
+
+/** Alerta al admin: la señal cobrada por Stripe es menor que la señal de la reserva */
+export function incompleteDepositAlertEmail(params: {
+  code: string;
+  name?: string;
+  paid: number;
+  expected: number;
+  sessionId: string;
+}): { subject: string; html: string } {
+  const missing = Math.round((params.expected - params.paid) * 100) / 100;
+  const body = `<h2 style="color: #D97706; margin-top: 0;">⚠️ Señal incompleta</h2>
+    <p>La reserva se ha marcado como <strong>Señal pagada</strong>, pero el importe cobrado es menor que la señal. Revisa si es un acuerdo especial o si hay que cobrar la diferencia.</p>
+    ${rows([
+      ['Nº de reserva', `<strong>${escapeHtml(params.code)}</strong>`],
+      ['Cliente', escapeHtml(params.name || '(desconocido)')],
+      ['Cobrado', `<strong>${escapeHtml(params.paid)} €</strong>`],
+      ['Señal de la reserva', `${escapeHtml(params.expected)} €`],
+      ['Falta', `<strong>${escapeHtml(missing)} €</strong>`],
+      ['Sesión de Stripe', `<code>${escapeHtml(params.sessionId)}</code>`],
+    ])}`;
+  return {
+    subject: `⚠️ Señal incompleta: cobrados ${params.paid} € de ${params.expected} € (${params.code})`,
+    html: layout('HappyHub', 'Alerta de pago', body),
+  };
+}
