@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import AdminLayout from '@/components/admin/AdminLayout';
+import RowActionsMenu from '@/components/admin/RowActionsMenu';
 import {
   Search, Filter, ChevronLeft, ChevronRight, RefreshCw, Calendar,
   Users, Mail, Phone, MessageCircle, Pencil, Trash2, Plus, X, CreditCard, CalendarX, BadgeCheck, Send, Receipt, Workflow,
@@ -508,37 +509,39 @@ export default function AdminReservations() {
                                   <Mail className="w-4 h-4" />
                                 </a>
                               )}
-                              {r.email && r.status === 'pending' && (
-                                <button onClick={() => handleResendConfirmation(r)} className="p-1.5 text-orange-600 hover:bg-orange-50 rounded transition-colors" title="Reenviar correo de la reserva">
-                                  <Send className="w-4 h-4" />
-                                </button>
-                              )}
-                              {['pending', 'approved', 'confirmed'].includes(r.status) && (
-                                <button onClick={() => setChargesFor(r)} className="p-1.5 text-purple-600 hover:bg-purple-50 rounded transition-colors" title="Cobros adicionales (enlace de pago)">
-                                  <Receipt className="w-4 h-4" />
-                                </button>
-                              )}
                               <button onClick={() => openEdit(r)} className="p-1.5 text-gray-600 hover:bg-gray-100 rounded transition-colors" title="Editar">
                                 <Pencil className="w-4 h-4" />
                               </button>
-                              {r.status === 'approved' && r.paymentStatus !== 'deposit_paid' && r.paymentStatus !== 'fully_paid' && (
-                                <button onClick={() => handleMarkDepositPaid(r)} className="p-1.5 text-green-600 hover:bg-green-50 rounded transition-colors" title="Señal recibida (Bizum)">
-                                  <BadgeCheck className="w-4 h-4" />
-                                </button>
-                              )}
-                              {(r.paymentStatus === 'deposit_paid' || r.paymentStatus === 'fully_paid') && r.status !== 'cancelled' && r.status !== 'rejected' && (
-                                <button onClick={() => setDayOfModal(r)} className="p-1.5 text-amber-600 hover:bg-amber-50 rounded transition-colors" title="Cobro del día y fianza">
-                                  <CreditCard className="w-4 h-4" />
-                                </button>
-                              )}
-                              {r.status !== 'cancelled' && (
-                                <button onClick={() => setCancelFullModal(r)} className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors" title="Cancelar y eliminar del calendario">
-                                  <CalendarX className="w-4 h-4" />
-                                </button>
-                              )}
-                              <button onClick={() => setDeleteReservation(r)} className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors" title="Eliminar">
-                                <Trash2 className="w-4 h-4" />
-                              </button>
+                              <RowActionsMenu sections={[
+                                {
+                                  title: 'Comunicación',
+                                  items: [
+                                    { label: 'Reenviar correo de la reserva', icon: Send, iconClassName: 'text-orange-600',
+                                      onClick: () => handleResendConfirmation(r), hidden: !(r.email && r.status === 'pending') },
+                                  ],
+                                },
+                                {
+                                  title: 'Pagos',
+                                  items: [
+                                    { label: 'Señal recibida (Bizum)', icon: BadgeCheck, iconClassName: 'text-green-600',
+                                      onClick: () => handleMarkDepositPaid(r),
+                                      hidden: !(r.status === 'approved' && r.paymentStatus !== 'deposit_paid' && r.paymentStatus !== 'fully_paid') },
+                                    { label: 'Cobros adicionales (enlace de pago)', icon: Receipt, iconClassName: 'text-purple-600',
+                                      onClick: () => setChargesFor(r), hidden: !['pending', 'approved', 'confirmed'].includes(r.status) },
+                                    { label: 'Cobro del día y fianza', icon: CreditCard, iconClassName: 'text-amber-600',
+                                      onClick: () => setDayOfModal(r),
+                                      hidden: !((r.paymentStatus === 'deposit_paid' || r.paymentStatus === 'fully_paid') && r.status !== 'cancelled' && r.status !== 'rejected') },
+                                  ],
+                                },
+                                {
+                                  items: [
+                                    { label: 'Cancelar y quitar del calendario', icon: CalendarX, danger: true,
+                                      onClick: () => setCancelFullModal(r), hidden: r.status === 'cancelled' },
+                                    { label: 'Eliminar reserva', icon: Trash2, danger: true,
+                                      onClick: () => setDeleteReservation(r) },
+                                  ],
+                                },
+                              ]} />
                             </div>
                           </td>
                         </tr>
