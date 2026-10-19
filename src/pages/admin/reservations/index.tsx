@@ -223,7 +223,10 @@ export default function AdminReservations() {
   };
 
   const handleMarkDepositPaid = async (r: Reservation) => {
-    if (!confirm(`¿Confirmas que has recibido la señal de ${r.depositAmount} € por Bizum de ${r.name || 'este cliente'}?`)) return;
+    const message = r.paymentMethod === 'bizum'
+      ? `¿Confirmas que has recibido la señal de ${r.depositAmount} € por Bizum de ${r.name || 'este cliente'}?`
+      : `Esta reserva se paga con tarjeta y se confirma sola al pagar. Úsalo solo si ${r.name || 'el cliente'} te ha pagado la señal de ${r.depositAmount} € por otra vía (Bizum, efectivo, transferencia...).\n\n¿Marcar la señal como pagada?`;
+    if (!confirm(message)) return;
     try {
       const res = await fetch(`/api/admin/reservations/${r.id}/mark-deposit-paid`, { method: 'POST' });
       const data = await res.json();
@@ -401,6 +404,7 @@ export default function AdminReservations() {
                       const transitions = getAvailableTransitions(r.status, r.paymentStatus);
                       const displayStatus = reservationDisplayStatus(r.status, r.paymentStatus);
                       const colors = DISPLAY_STATUS_COLORS[displayStatus] || DISPLAY_STATUS_COLORS.pending;
+                      const awaitingDeposit = r.status === 'approved' && r.paymentStatus !== 'deposit_paid' && r.paymentStatus !== 'fully_paid';
 
                       return (
                         <tr key={r.id} className="hover:bg-gray-50">
@@ -525,12 +529,15 @@ export default function AdminReservations() {
                                   items: [
                                     { label: 'Señal recibida (Bizum)', icon: BadgeCheck, iconClassName: 'text-green-600',
                                       onClick: () => handleMarkDepositPaid(r),
-                                      hidden: !(r.status === 'approved' && r.paymentStatus !== 'deposit_paid' && r.paymentStatus !== 'fully_paid') },
+                                      hidden: !(awaitingDeposit && r.paymentMethod === 'bizum') },
                                     { label: 'Cobros adicionales (enlace de pago)', icon: Receipt, iconClassName: 'text-purple-600',
                                       onClick: () => setChargesFor(r), hidden: !['pending', 'approved', 'confirmed'].includes(r.status) },
                                     { label: 'Cobro del día y fianza', icon: CreditCard, iconClassName: 'text-amber-600',
                                       onClick: () => setDayOfModal(r),
                                       hidden: !((r.paymentStatus === 'deposit_paid' || r.paymentStatus === 'fully_paid') && r.status !== 'cancelled' && r.status !== 'rejected') },
+                                    { label: 'Marcar señal pagada (manual)', icon: BadgeCheck,
+                                      onClick: () => handleMarkDepositPaid(r),
+                                      hidden: !(awaitingDeposit && r.paymentMethod !== 'bizum') },
                                   ],
                                 },
                                 {
