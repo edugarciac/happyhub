@@ -209,8 +209,19 @@ export function reservationCancelledEmail(params: {
   date: string;
   timeSlot: string;
   reason?: string | null;
+  /** Devolución al cancelar: importe devuelto a la tarjeta y lo que se devolverá por otras vías */
+  refund?: { card: number; manual: { amount: number; method: string }[] };
 }): { subject: string; html: string } {
   const isRejected = params.status === 'rejected';
+  const refundLines = [
+    ...(params.refund && params.refund.card > 0
+      ? [`Te hemos devuelto <strong>${escapeHtml(params.refund.card)} €</strong> a la tarjeta con la que pagaste. Según tu banco, puede tardar entre 5 y 10 días hábiles en aparecer.`]
+      : []),
+    ...(params.refund?.manual || []).map(
+      (m) => `Te devolveremos <strong>${escapeHtml(m.amount)} €</strong>${m.method && m.method !== 'a mano' ? ` por ${escapeHtml(m.method)}` : ''} en los próximos días.`
+    ),
+  ];
+  const refundHtml = refundLines.length ? refundLines.map((l) => `<p>${l}</p>`).join('') : '';
   const body = `<h2 style="color: #FF6B35; margin-top: 0;">Hola ${escapeHtml(params.name || '')}</h2>
     <p>${
       isRejected
@@ -222,6 +233,7 @@ export function reservationCancelledEmail(params: {
       ['Horario', escapeHtml(SLOT_LABELS[params.timeSlot] || params.timeSlot)],
       ...(params.reason ? ([['Motivo', escapeHtml(params.reason)]] as [string, string][]) : []),
     ])}
+    ${refundHtml}
     <p>Si quieres elegir otra fecha, puedes hacerlo en <a href="https://www.happyhub.es/disponibilidad" style="color: #FF6B35;">happyhub.es</a>.</p>
     ${CONTACT_HTML}`;
   return {
@@ -496,5 +508,36 @@ export function incompleteDepositAlertEmail(params: {
   return {
     subject: `⚠️ Señal incompleta: cobrados ${params.paid} € de ${params.expected} € (${params.code})`,
     html: layout('HappyHub', 'Alerta de pago', body),
+  };
+}
+
+/** Aviso al admin tras cancelar con devolución: lo que hay que devolver a mano y lo que ha fallado en Stripe */
+export function manualRefundAlertEmail(params: {
+  code: string;
+  customerName?: string | null;
+  customerPhone?: string | null;
+  customerEmail?: string | null;
+  manual: { label: string; amount: number; method: string }[];
+  failed: { label: string; amount: number; error: string }[];
+  terminalHold?: number | null;
+  holdError?: string | null;
+}): { subject: string; html: string } {
+  const pending = [
+    ...params.manual.map((m) => [`${m.label} (${m.method})`, `<strong>${escapeHtml(m.amount)} €</strong> · devolver a mano`] as [string, string]),
+    ...params.failed.map((f) => [`${f.label} (Stripe)`, `<strong>${escapeHtml(f.amount)} €</strong> · falló: ${escapeHtml(f.error)}`] as [string, string]),
+    ...(params.terminalHold ? ([['Fianza (datáfono)', `${escapeHtml(params.terminalHold)} € · libérala en el datáfono`]] as [string, string][]) : []),
+    ...(params.holdError ? ([['Fianza (Stripe)', `no se pudo liberar: ${escapeHtml(params.holdError)}`]] as [string, string][]) : []),
+  ];
+  const total = Math.round([...params.manual, ...params.failed].reduce((s, i) => s + i.amount, 0) * 100) / 100;
+  const body = `<h2 style="color: #D97706; margin-top: 0;">⚠️ Devolución pendiente</h2>
+    <p>Se ha cancelado la reserva <strong>${escapeHtml(params.code)}</strong> con devolución, pero hay importes que no se han podido devolver por Stripe.</p>
+    ${rows([
+      ['Cliente', escapeHtml([params.customerName, params.customerPhone, params.customerEmail].filter(Boolean).join(' · ') || '(desconocido)')],
+      ...pending.map(([k, v]) => [escapeHtml(k), v] as [string, string]),
+    ])}
+    ${params.failed.length ? '<p>Para reintentar los pagos con tarjeta: panel de reservas → menú <strong>Más</strong> → <strong>Devolver pagos</strong>.</p>' : ''}`;
+  return {
+    subject: `⚠️ Devolución pendiente: ${total} € (${params.code})`,
+    html: layout('HappyHub', 'Devolución pendiente', body),
   };
 }

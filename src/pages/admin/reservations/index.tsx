@@ -5,7 +5,7 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import RowActionsMenu from '@/components/admin/RowActionsMenu';
 import {
   Search, Filter, ChevronLeft, ChevronRight, RefreshCw, Calendar,
-  Users, Mail, Phone, MessageCircle, Pencil, Trash2, Plus, X, CreditCard, CalendarX, BadgeCheck, Send, Receipt, Workflow,
+  Users, Mail, Phone, MessageCircle, Pencil, Trash2, Plus, X, CreditCard, CalendarX, BadgeCheck, Send, Receipt, Workflow, RotateCcw,
 } from 'lucide-react';
 import { formatDueAt } from '@/config/payments';
 import {
@@ -23,6 +23,18 @@ import { slotEndTime, extraHoursPrice } from '@/utils/pricing';
 import ReservationExtrasFields, { type ExtraOption, type ExtrasValue } from '@/components/admin/ReservationExtrasFields';
 
 interface EventTypeOption { id: number; name: string; icon: string; }
+
+interface RefundPreview {
+  daysUntilEvent: number;
+  eligible: boolean;
+  stripe: { label: string; amount: number }[];
+  manual: { label: string; amount: number; method: string }[];
+  stripeHold: number | null;
+  terminalHold: number | null;
+  stripeTotal: number;
+  manualTotal: number;
+  alreadyRefunded: number;
+}
 
 interface Reservation {
   id: number;
@@ -54,6 +66,7 @@ interface Reservation {
   securityDepositAmountHeld: number | null;
   securityDepositExpiresAt: string | null;
   securityDepositCaptured: number | null;
+  refundedAmount: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -108,6 +121,10 @@ export default function AdminReservations() {
   // Status change modal
   const [statusModal, setStatusModal] = useState<{ reservation: Reservation; newStatus: ReservationStatus } | null>(null);
   const [cancellationReason, setCancellationReason] = useState('');
+  const [refundPreview, setRefundPreview] = useState<RefundPreview | null>(null);
+  const [refundPreviewLoading, setRefundPreviewLoading] = useState(false);
+  const [refundChecked, setRefundChecked] = useState(false);
+  const [refundPreviewError, setRefundPreviewError] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
 
   const [generatingLinkFor, setGeneratingLinkFor] = useState<number | null>(null);
@@ -151,16 +168,59 @@ export default function AdminReservations() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const handleStatusChange = async (reservation: Reservation, newStatus: ReservationStatus, reason?: string) => {
+  // Al abrir "Cancelar": consultar lo pagado para ofrecer la devolución (casilla marcada si faltan ≥15 días)
+  useEffect(() => {
+    setRefundPreview(null);
+    setRefundChecked(false);
+    setRefundPreviewError(false);
+    if (statusModal?.newStatus !== 'cancelled') return;
+    let active = true;
+    setRefundPreviewLoading(true);
+    fetch(`/api/admin/reservations/${statusModal.reservation.id}/refund`, { headers: jsonHeaders() })
+      .then((res) => res.json())
+      .then((data) => {
+        if (!active) return;
+        if (!data.success) { setRefundPreviewError(true); return; }
+        setRefundPreview(data.plan);
+        setRefundChecked(data.plan.eligible);
+      })
+      .catch(() => { if (active) setRefundPreviewError(true); })
+      .finally(() => { if (active) setRefundPreviewLoading(false); });
+    return () => { active = false; };
+  }, [statusModal]);
+
+  const handleRetryRefund = async (r: Reservation) => {
+    try {
+      const preview = await fetch(`/api/admin/reservations/${r.id}/refund`, { headers: jsonHeaders() }).then((res) => res.json());
+      if (!preview.success) { showToast(preview.error || 'Error al consultar los pagos', 'error'); return; }
+      const plan: RefundPreview = preview.plan;
+      if (plan.stripeTotal === 0 && !plan.stripeHold && plan.manual.length === 0) { showToast('No queda nada por devolver en esta reserva', 'error'); return; }
+      const lines = [
+        plan.stripeTotal > 0 ? `Se devolverán ${plan.stripeTotal} € por Stripe (${plan.stripe.map((i) => i.label).join(', ')}).` : '',
+        plan.stripeHold ? `Se liberará la fianza de ${plan.stripeHold} €.` : '',
+        plan.manual.length ? `Te llegará un aviso para devolver a mano ${plan.manualTotal} € (${plan.manual.map((m) => m.method).join(', ')}).` : '',
+      ].filter(Boolean);
+      if (!confirm(`${lines.join('\n')}\n\n¿Hacer la devolución de la reserva #${r.id}?`)) return;
+      const res = await fetch(`/api/admin/reservations/${r.id}/refund`, { method: 'POST', headers: jsonHeaders() });
+      const data = await res.json();
+      if (!res.ok) { showToast(data.error || 'Error al hacer la devolución', 'error'); return; }
+      showToast(data.warning || `Devueltos ${data.refunded} € por Stripe`, data.warning ? 'error' : 'success');
+      fetchReservations();
+    } catch { showToast('Error de conexión', 'error'); }
+  };
+
+  const handleStatusChange = async (reservation: Reservation, newStatus: ReservationStatus, reason?: string, refund?: boolean) => {
     try {
       const res = await fetch(`/api/admin/reservations/${reservation.id}/status`, {
         method: 'PATCH', headers: jsonHeaders(),
-        body: JSON.stringify({ status: newStatus, cancellationReason: reason }),
+        body: JSON.stringify({ status: newStatus, cancellationReason: reason, refund }),
       });
       const data = await res.json();
       if (!res.ok) { showToast(data.error || 'Error al cambiar estado', 'error'); return; }
       if (data.warning) {
         showToast(data.warning, 'error');
+      } else if (data.refunded > 0) {
+        showToast(`Reserva cancelada y ${data.refunded} € devueltos por Stripe`, 'success');
       } else {
         showToast(`Estado cambiado a ${STATUS_LABELS[newStatus]}`, 'success');
       }
@@ -440,6 +500,9 @@ export default function AdminReservations() {
                                 Fianza: {{ held: 'bloqueada', released: 'liberada', captured: `cobrada ${r.securityDepositCaptured ?? ''} €`, expired: 'caducada' }[r.securityDepositStatus] || r.securityDepositStatus}
                               </div>
                             )}
+                            {r.refundedAmount > 0 && (
+                              <div className="text-xs mt-0.5 text-purple-700 font-medium">Devuelto: {r.refundedAmount} €</div>
+                            )}
                             {r.status === 'approved' && r.paymentStatus !== 'deposit_paid' && r.paymentStatus !== 'fully_paid' && r.paymentDueAt && (
                               <div className="text-xs mt-1 text-red-600">
                                 Pendiente de señal ({r.paymentMethod === 'bizum' ? 'Bizum' : 'tarjeta'}) · vence {formatDueAt(r.paymentDueAt)}
@@ -527,6 +590,8 @@ export default function AdminReservations() {
                                 },
                                 {
                                   items: [
+                                    { label: 'Devolver pagos', icon: RotateCcw,
+                                      onClick: () => handleRetryRefund(r), hidden: r.status !== 'cancelled' },
                                     { label: 'Eliminar reserva', icon: Trash2, danger: true,
                                       onClick: () => setDeleteReservation(r) },
                                   ],
@@ -584,13 +649,45 @@ export default function AdminReservations() {
                   placeholder="Motivo de cancelación (obligatorio)" rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg mb-4 focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
               )}
+              {statusModal.newStatus === 'cancelled' && refundPreviewLoading && (
+                <p className="text-xs text-gray-500 mb-4">Consultando pagos…</p>
+              )}
+              {statusModal.newStatus === 'cancelled' && refundPreviewError && (
+                <p className="text-xs text-red-600 mb-4">
+                  No se han podido consultar los pagos. Si cancelas ahora no se devolverá nada; podrás hacerlo después desde Más → Devolver pagos.
+                </p>
+              )}
+              {statusModal.newStatus === 'cancelled' && refundPreview && (refundPreview.stripeTotal > 0 || refundPreview.manualTotal > 0 || refundPreview.stripeHold) && (
+                <div className={`mb-4 rounded-lg border p-3 text-sm ${refundChecked ? 'border-purple-200 bg-purple-50' : 'border-gray-200 bg-gray-50'}`}>
+                  <p className="text-xs text-gray-600 mb-2">
+                    Faltan <strong>{refundPreview.daysUntilEvent} días</strong> para el evento:{' '}
+                    {refundPreview.eligible ? 'según la política corresponde devolver el 100%.' : 'según la política no corresponde devolución (menos de 15 días).'}
+                  </p>
+                  <label className="flex items-start gap-2 cursor-pointer">
+                    <input type="checkbox" checked={refundChecked} onChange={(e) => setRefundChecked(e.target.checked)} className="mt-0.5" />
+                    <span className="font-medium text-gray-900">
+                      Devolver lo pagado al cliente ({Math.round((refundPreview.stripeTotal + refundPreview.manualTotal) * 100) / 100} €)
+                    </span>
+                  </label>
+                  {refundChecked && (
+                    <ul className="mt-2 ml-6 space-y-0.5 text-xs text-gray-700 list-disc">
+                      {refundPreview.stripe.map((i) => <li key={i.label}>{i.label}: {i.amount} € · por Stripe (automático)</li>)}
+                      {refundPreview.stripeHold ? <li>Fianza bloqueada: {refundPreview.stripeHold} € · se libera</li> : null}
+                      {refundPreview.manual.map((m) => <li key={m.label} className="text-amber-700">{m.label}: {m.amount} € · {m.method}: devolver a mano (te llegará un aviso)</li>)}
+                      {refundPreview.terminalHold ? <li className="text-amber-700">Fianza en datáfono: libérala a mano</li> : null}
+                    </ul>
+                  )}
+                </div>
+              )}
               <div className="flex gap-3">
                 <button onClick={() => { setStatusModal(null); setCancellationReason(''); }}
                   className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg transition-colors">Cancelar</button>
                 <button onClick={() => {
                   if (statusModal.newStatus === 'cancelled' && !cancellationReason.trim()) { showToast('El motivo es obligatorio', 'error'); return; }
-                  handleStatusChange(statusModal.reservation, statusModal.newStatus, cancellationReason || undefined);
-                }} className="flex-1 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors">Confirmar</button>
+                  handleStatusChange(statusModal.reservation, statusModal.newStatus, cancellationReason || undefined,
+                    statusModal.newStatus === 'cancelled' && refundChecked && !!refundPreview);
+                }} disabled={statusModal.newStatus === 'cancelled' && refundPreviewLoading}
+                  className="flex-1 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50">Confirmar</button>
               </div>
             </div>
           </div>

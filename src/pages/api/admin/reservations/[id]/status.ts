@@ -7,6 +7,7 @@ import { buildReservationCode, reservationApprovedEmail, reservationCancelledEma
 import { createDepositPaymentLink, ensureReservationFlowColumns } from '@/lib/reservationFlow';
 import { PAYMENT_WINDOW_HOURS } from '@/config/payments';
 import { deleteCalendarEvent } from '@/lib/googleCalendar';
+import { getRefundPlan, refundAndNotify, type RefundPlan, type RefundResult } from '@/lib/reservationRefunds';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'PATCH') {
@@ -23,7 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ success: false, error: 'ID de reserva invalido' });
   }
 
-  const { status, cancellationReason } = req.body as { status: ReservationStatus; cancellationReason?: string };
+  const { status, cancellationReason, refund } = req.body as { status: ReservationStatus; cancellationReason?: string; refund?: boolean };
   if (!status) {
     return res.status(400).json({ success: false, error: 'Se requiere el campo status' });
   }
@@ -91,6 +92,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     let notificationWarning: string | undefined;
 
+    // Cancelación con devolución de lo pagado (casilla de la ventana de cancelar)
+    let refundPlan: RefundPlan | null = null;
+    let refundResult: RefundResult | null = null;
+    let refundWarning: string | undefined;
+    if (status === 'cancelled' && refund === true && updated) {
+      try {
+        refundPlan = await getRefundPlan(parseInt(id));
+        if (refundPlan) {
+          const done = await refundAndNotify(refundPlan);
+          refundResult = done.result;
+          refundWarning = done.warning;
+        }
+      } catch (err) {
+        console.error(`CRITICAL: error preparando la devolución de la reserva ${id}:`, err);
+        refundWarning = 'Reserva cancelada, pero no se pudo hacer la devolución: reinténtalo con "Devolver pagos"';
+      }
+    }
+
     // Aprobación: enlace de pago de la señal (tarjeta) / instrucciones de Bizum por email
     if (status === 'approved' && updated) {
       try {
@@ -157,6 +176,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               date: info.event_date,
               timeSlot: info.time_slot,
               reason: cancellationReason,
+              refund: refundPlan && refundResult
+                ? { card: refundResult.refundedTotal, manual: refundPlan.manual.map((m) => ({ amount: m.amount, method: m.method })) }
+                : undefined,
             }),
           })
         : false;
@@ -184,7 +206,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
 
-    return res.status(200).json({ success: true, reservation: updated, warning: notificationWarning });
+    const warning = [refundWarning, notificationWarning].filter(Boolean).join('. ') || undefined;
+    return res.status(200).json({
+      success: true,
+      reservation: updated,
+      refunded: refundResult?.refundedTotal ?? 0,
+      warning,
+    });
   } catch (error) {
     console.error('Error updating reservation status:', error);
     return res.status(500).json({ success: false, error: 'Error al cambiar el estado' });

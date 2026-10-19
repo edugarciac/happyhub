@@ -94,6 +94,7 @@ async function handleList(req: NextApiRequest, res: NextApiResponse) {
               r.last_payment_error, r.last_payment_error_at,
               r.remaining_payment_method, r.security_deposit_status, r.security_deposit_method,
               r.security_deposit_amount_held, r.security_deposit_expires_at, r.security_deposit_captured,
+              r.refunded_amount,
               COALESCE(u.name, ca.customer_name) AS name,
               COALESCE(u.email, ca.customer_email) AS email,
               COALESCE(u.phone, ca.customer_phone) AS phone
@@ -139,6 +140,7 @@ async function handleList(req: NextApiRequest, res: NextApiResponse) {
       securityDepositAmountHeld: r.security_deposit_amount_held ? parseFloat(r.security_deposit_amount_held) : null,
       securityDepositExpiresAt: r.security_deposit_expires_at || null,
       securityDepositCaptured: r.security_deposit_captured ? parseFloat(r.security_deposit_captured) : null,
+      refundedAmount: r.refunded_amount ? parseFloat(r.refunded_amount) : 0,
       createdAt: r.created_at,
       updatedAt: r.updated_at,
     }));
