@@ -6,7 +6,7 @@ import { ensureReservationFlowColumns } from '@/lib/reservationFlow';
 import { stripeDeclineMessage } from '@/utils/stripeErrors';
 import { query, queryOne } from '@/lib/db';
 import { getAdminEmails, sendEmail } from '@/lib/mailer';
-import { buildReservationCode, depositReceivedEmail, escapeHtml, extraChargePaidEmail } from '@/lib/emailTemplates';
+import { buildReservationCode, depositReceivedEmail, escapeHtml, extraChargePaidEmail, unmatchedPaymentAlertEmail } from '@/lib/emailTemplates';
 import { ensureReservationChargesTable, getChargeReservation } from '@/lib/reservationCharges';
 import { chargeConceptLabel } from '@/utils/charges';
 import {
@@ -182,15 +182,28 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session, host?: s
     metadata: session.metadata,
   });
 
-  const metadata = session.metadata;
-  if (!metadata?.reservationId) {
-    console.log('No reservation metadata found in session');
-    return;
+  const metadata = session.metadata || {};
+  const amount = session.amount_total ? session.amount_total / 100 : 0;
+  const paymentType = metadata.type || 'deposit';
+  // La reserva se identifica siempre por los metadatos (nunca por el id de sesión).
+  // Se acepta también reservation_id por si el pago se creó a mano desde el panel de Stripe.
+  const reservationId = metadata.reservationId || metadata.reservation_id || '';
+
+  if (paymentType === 'extra_charge') {
+    try {
+      await handleExtraChargePaid(session, amount);
+    } catch (err) {
+      console.error(`CRITICAL: no se pudo registrar el cobro adicional ${metadata.chargeId} (sesión ${session.id}, ${amount} EUR)`, err);
+      await alertUnmatchedPayment(session, `Error al registrar el cobro adicional ${metadata.chargeId || '?'}`, reservationId);
+    }
+    return; // sin avisos de WhatsApp de nueva reserva
   }
 
-  const reservationId = metadata.reservationId;
-  const paymentType = metadata.type || 'deposit';
-  const amount = session.amount_total ? session.amount_total / 100 : 0;
+  if (!reservationId) {
+    console.error(`CRITICAL: Stripe session ${session.id} (${amount} EUR) sin reservationId en los metadatos`);
+    await alertUnmatchedPayment(session, 'El pago no indica a qué reserva pertenece (metadatos sin reservationId)');
+    return;
+  }
 
   // metadata.reservationId es el código RES-YYYYMMDD-NNN (o el id numérico en enlaces de pago del admin)
   const dbId = parseReservationCode(reservationId);
@@ -198,15 +211,15 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session, host?: s
     console.error(
       `CRITICAL: Unknown reservation code "${reservationId}" in Stripe session ${session.id} (${paymentType}, ${amount} EUR). Manual reconciliation required.`
     );
+    await alertUnmatchedPayment(session, `Código de reserva no reconocido: "${reservationId}"`, reservationId);
+    return;
   }
 
-  if (paymentType === 'extra_charge') {
-    try {
-      await handleExtraChargePaid(session, amount);
-    } catch (err) {
-      console.error(`CRITICAL: no se pudo registrar el cobro adicional ${metadata.chargeId} (sesión ${session.id}, ${amount} EUR)`, err);
-    }
-    return; // sin avisos de WhatsApp de nueva reserva
+  const exists = await queryOne(`SELECT 1 FROM reservations WHERE id = $1`, [dbId]);
+  if (!exists) {
+    console.error(`CRITICAL: reservation ${dbId} not found for Stripe session ${session.id} (${paymentType}, ${amount} EUR)`);
+    await alertUnmatchedPayment(session, `La reserva ${reservationId} no existe en la base de datos (¿eliminada?)`, reservationId);
+    return;
   }
 
   if (dbId && paymentType === 'security_deposit') {
@@ -215,6 +228,7 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session, host?: s
       await handleSecurityDepositHold(session, dbId);
     } catch (err) {
       console.error(`CRITICAL: no se pudo registrar la fianza de la reserva ${dbId} (sesión ${session.id})`, err);
+      await alertUnmatchedPayment(session, `Error al registrar la fianza en la reserva ${reservationId}`, reservationId);
     }
     return; // sin avisos de WhatsApp: no es un pago
   }
@@ -307,6 +321,7 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session, host?: s
         `Stripe session ${session.id}, amount ${amount}. Manual reconciliation required.`,
         dbError
       );
+      await alertUnmatchedPayment(session, `Error al registrar el pago en la reserva ${reservationId}: la reserva no se ha actualizado`, reservationId);
     }
   }
 
@@ -364,7 +379,19 @@ async function handleExtraChargePaid(session: Stripe.Checkout.Session, amount: n
     [chargeId, session.id]
   );
   if (!charge) {
-    console.log(`Cobro adicional ${chargeId} ya registrado o inexistente (sesión ${session.id})`);
+    const existing = Number.isSafeInteger(chargeId) && chargeId > 0
+      ? await queryOne('SELECT 1 FROM reservation_charges WHERE id = $1', [chargeId])
+      : null;
+    if (existing) {
+      console.log(`Cobro adicional ${chargeId} ya registrado (sesión ${session.id})`);
+    } else {
+      console.error(`CRITICAL: cobro adicional ${session.metadata?.chargeId} inexistente (sesión ${session.id}, ${amount} EUR)`);
+      await alertUnmatchedPayment(
+        session,
+        `El cobro adicional ${session.metadata?.chargeId || '(sin id)'} no existe`,
+        session.metadata?.reservationId
+      );
+    }
     return;
   }
 
@@ -385,4 +412,25 @@ async function handleExtraChargePaid(session: Stripe.Checkout.Session, amount: n
     subject: `💶 Cobro adicional pagado: ${concept} (${amount} €) - ${code}`,
     html: `<p>El cliente${reservation?.name ? ` <strong>${escapeHtml(reservation.name)}</strong>` : ''} ha pagado <strong>${amount} €</strong> por <strong>${escapeHtml(concept)}</strong> de la reserva <strong>${code}</strong> (sesión de Stripe ${escapeHtml(session.id)}).${warning}</p>`,
   });
+}
+
+/** Email al admin cuando Stripe cobra algo que no se puede asociar a una reserva. Nunca lanza. */
+async function alertUnmatchedPayment(session: Stripe.Checkout.Session, reason: string, reservationRef?: string) {
+  try {
+    const sent = await sendEmail({
+      to: getAdminEmails(),
+      ...unmatchedPaymentAlertEmail({
+        reason,
+        amount: session.amount_total ? session.amount_total / 100 : 0,
+        sessionId: session.id,
+        paymentType: session.metadata?.type || 'deposit',
+        reservationRef,
+        customerName: session.metadata?.name || session.customer_details?.name || undefined,
+        customerEmail: session.metadata?.email || session.customer_details?.email || undefined,
+      }),
+    });
+    if (!sent) console.error(`CRITICAL: no se pudo enviar la alerta de pago sin reserva (sesión ${session.id})`);
+  } catch (err) {
+    console.error(`CRITICAL: error enviando la alerta de pago sin reserva (sesión ${session.id})`, err);
+  }
 }
