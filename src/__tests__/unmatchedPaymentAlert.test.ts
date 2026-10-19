@@ -65,3 +65,13 @@ describe('refund emails', () => {
     expect(html).toContain('Devolver pagos');
   });
 });
+
+import { refundIssuedEmail } from '@/lib/emailTemplates';
+
+describe('refundIssuedEmail', () => {
+  it('tells the customer about a refund made after cancelling', () => {
+    const { subject, html } = refundIssuedEmail({ name: 'Ana', code: 'RES-20261116-007', date: '2026-11-16', refund: { card: 60, manual: [] } });
+    expect(subject).toBe('Devolución de tu reserva RES-20261116-007 - HappyHub');
+    expect(html).toContain('Te hemos devuelto <strong>60 €</strong> a la tarjeta');
+  });
+});

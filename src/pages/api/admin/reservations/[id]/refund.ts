@@ -3,6 +3,8 @@ import { queryOne } from '@/lib/db';
 import { verifyAdminSession } from '@/utils/adminAuth';
 import { parseIntParam } from '@/lib/apiMiddleware';
 import { getRefundPlan, refundAndNotify, refundPlanSummary } from '@/lib/reservationRefunds';
+import { sendEmail } from '@/lib/mailer';
+import { buildReservationCode, refundIssuedEmail } from '@/lib/emailTemplates';
 
 /**
  * GET: lo pagado que se devolvería al cancelar (para la ventana de cancelación).
@@ -42,7 +44,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     const { result, warning } = await refundAndNotify(plan);
     console.log(`Devolución manual de la reserva ${id} por ${admin.email}: ${result.refundedTotal} EUR`);
-    return res.status(200).json({ success: true, refunded: result.refundedTotal, warning });
+
+    // Avisar al cliente de lo devuelto y de lo que se le devolverá a mano
+    let customerWarning: string | undefined;
+    if ((result.refundedTotal > 0 || plan.manual.length > 0) && plan.customer.email) {
+      const sent = await sendEmail({
+        to: plan.customer.email,
+        ...refundIssuedEmail({
+          name: plan.customer.name || '',
+          code: buildReservationCode(plan.eventDate, id),
+          date: plan.eventDate,
+          refund: { card: result.refundedTotal, manual: plan.manual.map((m) => ({ amount: m.amount, method: m.method })) },
+        }),
+      });
+      if (!sent) customerWarning = 'No se pudo enviar el email de devolución al cliente';
+    } else if (result.refundedTotal > 0 || plan.manual.length > 0) {
+      customerWarning = 'La reserva no tiene email: avisa al cliente de la devolución a mano';
+    }
+    return res.status(200).json({ success: true, refunded: result.refundedTotal, warning: [warning, customerWarning].filter(Boolean).join('. ') || undefined });
   } catch (error) {
     console.error('Error en la devolución de la reserva:', error);
     return res.status(500).json({ success: false, error: 'Error al consultar o hacer la devolución' });

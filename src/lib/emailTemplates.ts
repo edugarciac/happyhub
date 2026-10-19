@@ -203,6 +203,19 @@ export function passwordResetEmail(name: string, resetUrl: string): { subject: s
   return { subject: 'Restablece tu contraseña - HappyHub', html: layout('HappyHub', 'Restablecer contraseña', body) };
 }
 
+/** Párrafos para el cliente con lo devuelto a la tarjeta y lo que se devolverá por otras vías */
+function refundInfoHtml(refund?: { card: number; manual: { amount: number; method: string }[] }): string {
+  const lines = [
+    ...(refund && refund.card > 0
+      ? [`Te hemos devuelto <strong>${escapeHtml(refund.card)} €</strong> a la tarjeta con la que pagaste. Según tu banco, puede tardar entre 5 y 10 días hábiles en aparecer.`]
+      : []),
+    ...(refund?.manual || []).map(
+      (m) => `Te devolveremos <strong>${escapeHtml(m.amount)} €</strong>${m.method && m.method !== 'a mano' ? ` por ${escapeHtml(m.method)}` : ''} en los próximos días.`
+    ),
+  ];
+  return lines.map((l) => `<p>${l}</p>`).join('');
+}
+
 export function reservationCancelledEmail(params: {
   name: string;
   status: 'cancelled' | 'rejected';
@@ -213,15 +226,7 @@ export function reservationCancelledEmail(params: {
   refund?: { card: number; manual: { amount: number; method: string }[] };
 }): { subject: string; html: string } {
   const isRejected = params.status === 'rejected';
-  const refundLines = [
-    ...(params.refund && params.refund.card > 0
-      ? [`Te hemos devuelto <strong>${escapeHtml(params.refund.card)} €</strong> a la tarjeta con la que pagaste. Según tu banco, puede tardar entre 5 y 10 días hábiles en aparecer.`]
-      : []),
-    ...(params.refund?.manual || []).map(
-      (m) => `Te devolveremos <strong>${escapeHtml(m.amount)} €</strong>${m.method && m.method !== 'a mano' ? ` por ${escapeHtml(m.method)}` : ''} en los próximos días.`
-    ),
-  ];
-  const refundHtml = refundLines.length ? refundLines.map((l) => `<p>${l}</p>`).join('') : '';
+  const refundHtml = refundInfoHtml(params.refund);
   const body = `<h2 style="color: #FF6B35; margin-top: 0;">Hola ${escapeHtml(params.name || '')}</h2>
     <p>${
       isRejected
@@ -539,5 +544,26 @@ export function manualRefundAlertEmail(params: {
   return {
     subject: `⚠️ Devolución pendiente: ${total} € (${params.code})`,
     html: layout('HappyHub', 'Devolución pendiente', body),
+  };
+}
+
+/** Devolución hecha después de cancelar (Más → Devolver pagos) */
+export function refundIssuedEmail(params: {
+  name: string;
+  code: string;
+  date: string;
+  refund: { card: number; manual: { amount: number; method: string }[] };
+}): { subject: string; html: string } {
+  const body = `<h2 style="color: #FF6B35; margin-top: 0;">Hola ${escapeHtml(params.name || '')}</h2>
+    <p>Te escribimos sobre la devolución de tu reserva cancelada:</p>
+    ${rows([
+      ['Nº de reserva', `<strong>${escapeHtml(params.code)}</strong>`],
+      ['Fecha del evento', escapeHtml(formatDateEs(params.date))],
+    ])}
+    ${refundInfoHtml(params.refund)}
+    ${CONTACT_HTML}`;
+  return {
+    subject: `Devolución de tu reserva ${params.code} - HappyHub`,
+    html: layout('HappyHub', 'Devolución', body),
   };
 }

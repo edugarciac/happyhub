@@ -11,7 +11,7 @@ La política de cancelación (Condiciones, apartado 5) dice que con 15 días o m
   - se libera la fianza si está bloqueada en Stripe
   - lo pagado por otras vías (Bizum, datáfono, efectivo, transferencia) no se puede devolver por Stripe: se envía un email a los admins con lo que hay que devolver a mano
   - se guarda `refunded_amount` y `refunded_at` en la reserva
-- El email de cancelación al cliente indica cuánto se le devuelve y por qué vía
+- El email de cancelación al cliente indica cuánto se le devuelve y por qué vía; si la devolución se hace después ("Devolver pagos"), el cliente recibe un email "Devolución de tu reserva"
 - Si alguna devolución de Stripe falla, la cancelación se mantiene, el panel muestra un aviso y llega un email a los admins; desde el menú "Más" de la reserva cancelada aparece **"Devolver pagos"** para reintentarlo
 - La lista de reservas muestra "Devuelto: X €"
 

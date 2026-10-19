@@ -8,7 +8,7 @@
 - [x] 2.1 `src/lib/reservationRefunds.ts`: `getRefundPlan` and `executeRefundPlan`
 - [x] 2.2 `GET/POST /api/admin/reservations/[id]/refund`
 - [x] 2.3 `status.ts`: accept `refund` on cancellation, run refunds, warnings and admin email
-- [x] 2.4 Emails: refund info in `reservationCancelledEmail`, `manualRefundAlertEmail` for admins
+- [x] 2.4 Emails: refund info in `reservationCancelledEmail`, `refundIssuedEmail` for later refunds, `manualRefundAlertEmail` for admins
 
 ## 3. Admin UI
 

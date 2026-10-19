@@ -35,3 +35,11 @@ When a refund is requested, the system SHALL refund through Stripe the remaining
 
 ### Requirement: Customer is told about the refund
 The cancellation email SHALL state the amount refunded to the card and any amount that will be returned by other methods.
+
+#### Scenario: Refund in the cancellation email
+- **WHEN** a reservation is cancelled with refund and 60 € are refunded to the card
+- **THEN** the cancellation email SHALL say that 60 € have been refunded to the card and may take 5–10 business days
+
+#### Scenario: Refund made later from "Devolver pagos"
+- **WHEN** the admin refunds a cancelled reservation from "Devolver pagos"
+- **THEN** the customer SHALL receive a "Devolución de tu reserva" email with the refunded and pending amounts
