@@ -447,3 +447,29 @@ export function extraChargePaidEmail(params: { name: string; code: string; date:
     html: layout('HappyHub', 'Pago recibido', body),
   };
 }
+
+/** Alerta al admin: Stripe ha cobrado un pago que no se ha podido asociar a ninguna reserva */
+export function unmatchedPaymentAlertEmail(params: {
+  reason: string;
+  amount: number;
+  sessionId: string;
+  paymentType: string;
+  reservationRef?: string;
+  customerName?: string;
+  customerEmail?: string;
+}): { subject: string; html: string } {
+  const body = `<h2 style="color: #DC2626; margin-top: 0;">⚠️ Pago sin reserva asociada</h2>
+    <p>Stripe ha registrado un pago, pero no se ha podido asociar a ninguna reserva. <strong>Revísalo a mano</strong>: busca la reserva y márcala como pagada, o devuelve el pago desde Stripe.</p>
+    ${rows([
+      ['Motivo', escapeHtml(params.reason)],
+      ['Importe', `<strong>${escapeHtml(params.amount)} €</strong>`],
+      ['Tipo de pago', escapeHtml(params.paymentType)],
+      ['Reserva indicada', escapeHtml(params.reservationRef || '(ninguna)')],
+      ['Cliente', escapeHtml([params.customerName, params.customerEmail].filter(Boolean).join(' · ') || '(desconocido)')],
+      ['Sesión de Stripe', `<code>${escapeHtml(params.sessionId)}</code>`],
+    ])}`;
+  return {
+    subject: `⚠️ Pago de ${params.amount} € sin reserva asociada (${params.reservationRef || params.sessionId})`,
+    html: layout('HappyHub', 'Alerta de pago', body),
+  };
+}
