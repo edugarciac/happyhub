@@ -6,7 +6,7 @@ import { ensureReservationFlowColumns } from '@/lib/reservationFlow';
 import { stripeDeclineMessage } from '@/utils/stripeErrors';
 import { query, queryOne } from '@/lib/db';
 import { getAdminEmails, sendEmail } from '@/lib/mailer';
-import { buildReservationCode, depositReceivedEmail, escapeHtml, extraChargePaidEmail, unmatchedPaymentAlertEmail } from '@/lib/emailTemplates';
+import { buildReservationCode, depositReceivedEmail, escapeHtml, extraChargePaidEmail, incompleteDepositAlertEmail, unmatchedPaymentAlertEmail } from '@/lib/emailTemplates';
 import { ensureReservationChargesTable, getChargeReservation } from '@/lib/reservationCharges';
 import { chargeConceptLabel } from '@/utils/charges';
 import {
@@ -276,6 +276,20 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session, host?: s
            FROM reservations r LEFT JOIN users u ON u.id = r.user_id WHERE r.id = $1`,
           [dbId]
         );
+        const expectedDeposit = Number(info?.deposit_amount) || 0;
+        if (info && expectedDeposit > 0 && amount + 0.005 < expectedDeposit) {
+          console.error(`Señal incompleta en la reserva ${dbId}: cobrados ${amount} EUR de ${expectedDeposit} EUR (sesión ${session.id})`);
+          await sendEmail({
+            to: getAdminEmails(),
+            ...incompleteDepositAlertEmail({
+              code: buildReservationCode(info.event_date, dbId),
+              name: info.name || undefined,
+              paid: amount,
+              expected: expectedDeposit,
+              sessionId: session.id,
+            }),
+          });
+        }
         if (info && info.status !== 'confirmed') {
           // Pagó cuando la reserva ya no estaba aprobada (p. ej. cancelada por plazo vencido): revisar a mano
           console.error(`CRITICAL: deposit paid for reservation ${dbId} in status "${info.status}" (Stripe session ${session.id}, ${amount} EUR)`);
