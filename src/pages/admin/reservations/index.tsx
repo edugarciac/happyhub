@@ -433,14 +433,11 @@ export default function AdminReservations() {
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cliente</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha/Hora</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Detalles</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Precio</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones estado</th>
-                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                      <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reserva</th>
+                      <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Evento</th>
+                      <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pago</th>
+                      <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+                      <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase">Acciones</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -453,43 +450,38 @@ export default function AdminReservations() {
 
                       return (
                         <tr key={r.id} className="hover:bg-gray-50">
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-900">#{r.id}</div>
-                            <div className="text-xs text-gray-500 whitespace-nowrap">{formatDateTime(r.createdAt)}</div>
+                          <td className="px-3 py-3 align-top max-w-[210px]">
+                            <div className="text-xs text-gray-500 whitespace-nowrap"><span className="font-semibold text-gray-900">#{r.id}</span> · {formatDateTime(r.createdAt)}</div>
+                            <div className="text-sm font-medium text-gray-900 mt-0.5">{r.name || '-'}</div>
+                            {r.email && <div className="text-xs text-gray-500 flex items-center gap-1 min-w-0" title={r.email}><Mail className="w-3 h-3 shrink-0" /><span className="truncate">{r.email}</span></div>}
+                            {r.phone && <div className="text-xs text-gray-500 flex items-center gap-1 whitespace-nowrap"><Phone className="w-3 h-3 shrink-0" />{r.phone}</div>}
                           </td>
-                          <td className="px-4 py-3">
-                            <div className="text-sm font-medium text-gray-900">{r.name || '-'}</div>
-                            {r.email && <div className="text-xs text-gray-500 flex items-center gap-1"><Mail className="w-3 h-3" />{r.email}</div>}
-                            {r.phone && <div className="text-xs text-gray-500 flex items-center gap-1"><Phone className="w-3 h-3" />{r.phone}</div>}
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-gray-900 flex items-center gap-1">
+                          <td className="px-3 py-3 align-top min-w-[150px] max-w-[200px]">
+                            <div className="text-sm text-gray-900 flex items-center gap-1 whitespace-nowrap">
                               <Calendar className="w-4 h-4 text-gray-400" />{formatDate(r.eventDate)}
                             </div>
                             <div className="text-xs text-gray-500">{TIME_SLOT_LABELS[r.timeSlot] || r.timeSlot}</div>
+                            <div className="text-xs text-gray-700 mt-1 flex items-center gap-1 whitespace-nowrap">
+                              <Users className="w-3.5 h-3.5 text-gray-400" />{r.guests} personas
+                            </div>
+                            <div className="text-xs text-gray-500">{r.eventType}</div>
                             {r.extraHours > 0 && (
-                              <div className="text-xs mt-1 inline-flex items-center gap-1 bg-primary-50 text-primary-700 px-2 py-0.5 rounded-full font-medium">
+                              <div className="text-xs mt-1 inline-flex items-center gap-1 bg-primary-50 text-primary-700 px-2 py-0.5 rounded-full font-medium whitespace-nowrap">
                                 +{r.extraHours}h extra (hasta {slotEndTime('afternoon', r.extraHours)})
                               </div>
                             )}
                             {r.extras?.length > 0 && (
-                              <div className="text-xs mt-1 text-gray-600 whitespace-normal">
+                              <div className="text-xs mt-1 text-gray-600">
                                 {r.extras.map((e) => e.title).join(', ')}
                               </div>
                             )}
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="text-sm text-gray-900 flex items-center gap-1">
-                              <Users className="w-4 h-4 text-gray-400" />{r.guests} personas
-                            </div>
-                            <div className="text-xs text-gray-500">{r.eventType}</div>
                             {r.needsKidsFurniture && (
                               <div className="text-xs mt-1 inline-flex items-center gap-1 bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full font-medium">
                                 🪑 Mesas/sillas niños
                               </div>
                             )}
                           </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
+                          <td className="px-3 py-3 align-top min-w-[140px] max-w-[190px]">
                             <div className="text-sm font-medium text-gray-900">{r.totalPrice} EUR</div>
                             <div className="text-xs text-green-600">Señal: {r.depositAmount} EUR</div>
                             <div className={`text-xs mt-1 font-medium ${r.paymentStatus === 'fully_paid' ? 'text-green-600' : r.paymentStatus === 'deposit_paid' ? 'text-amber-600' : 'text-gray-400'}`}>
@@ -518,16 +510,14 @@ export default function AdminReservations() {
                               <div className="text-xs mt-1 text-gray-500">Pagará con {r.paymentMethod === 'bizum' ? 'Bizum' : 'tarjeta'}</div>
                             )}
                           </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${colors.bg} ${colors.text}`}>
+                          <td className="px-3 py-3 align-top min-w-[130px] max-w-[180px]">
+                            <span className={`inline-block px-2 py-1 rounded-lg text-xs font-medium ${colors.bg} ${colors.text}`}>
                               {DISPLAY_STATUS_LABELS[displayStatus] || r.status}
                             </span>
                             {displayStatus === 'fully_paid' && r.remainingPaymentMethod && REMAINING_PAYMENT_METHOD_LABELS[r.remainingPaymentMethod] && (
                               <div className="text-xs text-gray-500 mt-1">Resto: {REMAINING_PAYMENT_METHOD_LABELS[r.remainingPaymentMethod]}</div>
                             )}
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="flex flex-wrap gap-1">
+                            <div className="flex flex-wrap gap-1 mt-2">
                               {canMarkFullyPaid(r.status, r.paymentStatus) && (
                                 <button onClick={() => { setFullPaymentFor(r); setFullPaymentMethod('terminal'); }}
                                   className="px-2 py-1 text-xs rounded border border-green-500 text-green-700 hover:bg-green-50 transition-colors">
@@ -548,8 +538,8 @@ export default function AdminReservations() {
                               ))}
                             </div>
                           </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="flex items-center justify-end gap-1">
+                          <td className="px-3 py-3 align-top whitespace-nowrap">
+                            <div className="flex items-center justify-end gap-0.5">
                               {waUrl && (
                                 <a href={waUrl} target="_blank" rel="noopener noreferrer"
                                   className="p-1.5 text-green-600 hover:bg-green-50 rounded transition-colors" title="WhatsApp">
