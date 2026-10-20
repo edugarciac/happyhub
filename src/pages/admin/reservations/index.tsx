@@ -8,6 +8,7 @@ import {
   Users, Mail, Phone, MessageCircle, Pencil, Trash2, Plus, X, CreditCard, CalendarX, BadgeCheck, Send, Receipt, Workflow, RotateCcw,
 } from 'lucide-react';
 import { formatDueAt } from '@/config/payments';
+import { cancellationTier } from '@/utils/cancellationPolicy';
 import {
   ReservationStatus, STATUS_LABELS,
   TRANSITION_LABELS, getAvailableTransitions,
@@ -647,31 +648,63 @@ export default function AdminReservations() {
                   No se han podido consultar los pagos. Si cancelas ahora no se devolverá nada; podrás hacerlo después desde Más → Devolver pagos.
                 </p>
               )}
-              {statusModal.newStatus === 'cancelled' && refundPreview && (refundPreview.stripeTotal > 0 || refundPreview.manualTotal > 0 || refundPreview.stripeHold) && (
-                <div className={`mb-4 rounded-lg border p-3 text-sm ${refundChecked ? 'border-purple-200 bg-purple-50' : 'border-gray-200 bg-gray-50'}`}>
-                  <p className="text-xs text-gray-600 mb-2">
-                    Faltan <strong>{refundPreview.daysUntilEvent} días</strong> para el evento:{' '}
-                    {refundPreview.eligible ? 'según la política corresponde devolver el 100%.' : 'según la política no corresponde devolución (menos de 15 días).'}
-                  </p>
-                  <label className="flex items-start gap-2 cursor-pointer">
-                    <input type="checkbox" checked={refundChecked} onChange={(e) => setRefundChecked(e.target.checked)} className="mt-0.5" />
-                    <span className="font-medium text-gray-900">
-                      Devolver lo pagado al cliente ({Math.round((refundPreview.stripeTotal + refundPreview.manualTotal) * 100) / 100} €)
-                    </span>
-                  </label>
-                  {refundChecked && (
-                    <ul className="mt-2 ml-6 space-y-0.5 text-xs text-gray-700 list-disc">
-                      {refundPreview.stripe.map((i) => <li key={i.label}>{i.label}: {i.amount} € · por Stripe (automático)</li>)}
-                      {refundPreview.stripeHold ? <li>Fianza bloqueada: {refundPreview.stripeHold} € · se libera</li> : null}
-                      {refundPreview.manual.map((m) => <li key={m.label} className="text-amber-700">{m.label}: {m.amount} € · {m.method}: devolver a mano (te llegará un aviso)</li>)}
-                      {refundPreview.terminalHold ? <li className="text-amber-700">Fianza en datáfono: libérala a mano</li> : null}
-                    </ul>
-                  )}
-                </div>
-              )}
+              {statusModal.newStatus === 'cancelled' && refundPreview && (() => {
+                const tier = cancellationTier(refundPreview.daysUntilEvent);
+                const paid = Math.round((refundPreview.stripeTotal + refundPreview.manualTotal) * 100) / 100;
+                const hasPayments = paid > 0 || !!refundPreview.stripeHold;
+                const days = refundPreview.daysUntilEvent;
+                const daysText = days === 1 ? '1 día' : `${days} días`;
+                const tone = tier === 'full_refund' ? 'border-green-200 bg-green-50' : tier === 'reschedule' ? 'border-amber-200 bg-amber-50' : 'border-red-200 bg-red-50';
+                return (
+                  <div className={`mb-4 rounded-lg border p-3 text-sm ${tone}`}>
+                    {tier === 'full_refund' && (
+                      <p className="text-green-800">
+                        ✅ Faltan <strong>{daysText}</strong> para el evento (15 o más): {hasPayments
+                          ? <>según la política <strong>se devuelve el importe pagado ({paid} €)</strong>.</>
+                          : 'según la política se devolvería lo pagado, pero no hay pagos que devolver.'}
+                      </p>
+                    )}
+                    {tier === 'reschedule' && (
+                      <>
+                        <p className="text-amber-800">
+                          ⚠️ Faltan <strong>{daysText}</strong> para el evento (menos de 15): <strong>no se devuelve la señal</strong>.
+                          El cliente puede <strong>cambiar la fecha</strong> (sujeto a disponibilidad); si cancelas, <strong>perderá la señal</strong>.
+                        </p>
+                        <button type="button"
+                          onClick={() => { const r = statusModal.reservation; setStatusModal(null); setCancellationReason(''); openEdit(r); }}
+                          className="mt-2 px-3 py-1.5 text-xs font-medium rounded-lg border border-amber-400 text-amber-800 bg-white hover:bg-amber-100 transition-colors">
+                          Cambiar la fecha en lugar de cancelar
+                        </button>
+                      </>
+                    )}
+                    {tier === 'none' && (
+                      <p className="text-red-800">
+                        ⛔ {days < 0 ? 'La fecha del evento ya ha pasado' : <>Faltan <strong>{daysText}</strong> para el evento (menos de 3)</>}:
+                        {' '}<strong>no se devuelve la señal ni se puede cambiar la fecha</strong>. Si cancelas, el cliente perderá la señal.
+                      </p>
+                    )}
+                    {hasPayments && (
+                      <label className="flex items-start gap-2 cursor-pointer mt-3 pt-3 border-t border-black/5">
+                        <input type="checkbox" checked={refundChecked} onChange={(e) => setRefundChecked(e.target.checked)} className="mt-0.5" />
+                        <span className="font-medium text-gray-900">
+                          {tier === 'full_refund' ? `Devolver lo pagado al cliente (${paid} €)` : `Devolver igualmente (${paid} €) · excepción o fuerza mayor`}
+                        </span>
+                      </label>
+                    )}
+                    {hasPayments && refundChecked && (
+                      <ul className="mt-2 ml-6 space-y-0.5 text-xs text-gray-700 list-disc">
+                        {refundPreview.stripe.map((i) => <li key={i.label}>{i.label}: {i.amount} € · por Stripe (automático)</li>)}
+                        {refundPreview.stripeHold ? <li>Fianza bloqueada: {refundPreview.stripeHold} € · se libera</li> : null}
+                        {refundPreview.manual.map((m) => <li key={m.label} className="text-amber-700">{m.label}: {m.amount} € · {m.method}: devolver a mano (te llegará un aviso)</li>)}
+                        {refundPreview.terminalHold ? <li className="text-amber-700">Fianza en datáfono: libérala a mano</li> : null}
+                      </ul>
+                    )}
+                  </div>
+                );
+              })()}
               <div className="flex gap-3">
                 <button onClick={() => { setStatusModal(null); setCancellationReason(''); }}
-                  className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg transition-colors">Cancelar</button>
+                  className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg transition-colors">Volver</button>
                 <button onClick={() => {
                   if (statusModal.newStatus === 'cancelled' && !cancellationReason.trim()) { showToast('El motivo es obligatorio', 'error'); return; }
                   handleStatusChange(statusModal.reservation, statusModal.newStatus, cancellationReason || undefined,
