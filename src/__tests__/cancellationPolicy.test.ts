@@ -16,3 +16,15 @@ describe('cancellationPolicy', () => {
     expect(isFullRefundEligible('2026-11-16', at('2026-11-02T12:00:00Z'))).toBe(false);
   });
 });
+
+import { cancellationTier } from '@/utils/cancellationPolicy';
+
+describe('cancellationTier', () => {
+  it('follows the three tiers of the cancellation policy', () => {
+    expect(cancellationTier(15)).toBe('full_refund');
+    expect(cancellationTier(14)).toBe('reschedule');
+    expect(cancellationTier(3)).toBe('reschedule');
+    expect(cancellationTier(2)).toBe('none');
+    expect(cancellationTier(-1)).toBe('none');
+  });
+});

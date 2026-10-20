@@ -8,6 +8,7 @@ import {
   Users, Mail, Phone, MessageCircle, Pencil, Trash2, Plus, X, CreditCard, CalendarX, BadgeCheck, Send, Receipt, Workflow, RotateCcw,
 } from 'lucide-react';
 import { formatDueAt } from '@/config/payments';
+import { cancellationTier } from '@/utils/cancellationPolicy';
 import {
   ReservationStatus, STATUS_LABELS,
   TRANSITION_LABELS, getAvailableTransitions,
@@ -433,14 +434,11 @@ export default function AdminReservations() {
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cliente</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha/Hora</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Detalles</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Precio</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones estado</th>
-                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                      <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reserva</th>
+                      <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Evento</th>
+                      <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pago</th>
+                      <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+                      <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase">Acciones</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -453,43 +451,38 @@ export default function AdminReservations() {
 
                       return (
                         <tr key={r.id} className="hover:bg-gray-50">
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-900">#{r.id}</div>
-                            <div className="text-xs text-gray-500 whitespace-nowrap">{formatDateTime(r.createdAt)}</div>
+                          <td className="px-3 py-3 align-top max-w-[210px]">
+                            <div className="text-xs text-gray-500 whitespace-nowrap"><span className="font-semibold text-gray-900">#{r.id}</span> · {formatDateTime(r.createdAt)}</div>
+                            <div className="text-sm font-medium text-gray-900 mt-0.5">{r.name || '-'}</div>
+                            {r.email && <div className="text-xs text-gray-500 flex items-center gap-1 min-w-0" title={r.email}><Mail className="w-3 h-3 shrink-0" /><span className="truncate">{r.email}</span></div>}
+                            {r.phone && <div className="text-xs text-gray-500 flex items-center gap-1 whitespace-nowrap"><Phone className="w-3 h-3 shrink-0" />{r.phone}</div>}
                           </td>
-                          <td className="px-4 py-3">
-                            <div className="text-sm font-medium text-gray-900">{r.name || '-'}</div>
-                            {r.email && <div className="text-xs text-gray-500 flex items-center gap-1"><Mail className="w-3 h-3" />{r.email}</div>}
-                            {r.phone && <div className="text-xs text-gray-500 flex items-center gap-1"><Phone className="w-3 h-3" />{r.phone}</div>}
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-gray-900 flex items-center gap-1">
+                          <td className="px-3 py-3 align-top min-w-[150px] max-w-[200px]">
+                            <div className="text-sm text-gray-900 flex items-center gap-1 whitespace-nowrap">
                               <Calendar className="w-4 h-4 text-gray-400" />{formatDate(r.eventDate)}
                             </div>
                             <div className="text-xs text-gray-500">{TIME_SLOT_LABELS[r.timeSlot] || r.timeSlot}</div>
+                            <div className="text-xs text-gray-700 mt-1 flex items-center gap-1 whitespace-nowrap">
+                              <Users className="w-3.5 h-3.5 text-gray-400" />{r.guests} personas
+                            </div>
+                            <div className="text-xs text-gray-500">{r.eventType}</div>
                             {r.extraHours > 0 && (
-                              <div className="text-xs mt-1 inline-flex items-center gap-1 bg-primary-50 text-primary-700 px-2 py-0.5 rounded-full font-medium">
+                              <div className="text-xs mt-1 inline-flex items-center gap-1 bg-primary-50 text-primary-700 px-2 py-0.5 rounded-full font-medium whitespace-nowrap">
                                 +{r.extraHours}h extra (hasta {slotEndTime('afternoon', r.extraHours)})
                               </div>
                             )}
                             {r.extras?.length > 0 && (
-                              <div className="text-xs mt-1 text-gray-600 whitespace-normal">
+                              <div className="text-xs mt-1 text-gray-600">
                                 {r.extras.map((e) => e.title).join(', ')}
                               </div>
                             )}
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="text-sm text-gray-900 flex items-center gap-1">
-                              <Users className="w-4 h-4 text-gray-400" />{r.guests} personas
-                            </div>
-                            <div className="text-xs text-gray-500">{r.eventType}</div>
                             {r.needsKidsFurniture && (
                               <div className="text-xs mt-1 inline-flex items-center gap-1 bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full font-medium">
                                 🪑 Mesas/sillas niños
                               </div>
                             )}
                           </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
+                          <td className="px-3 py-3 align-top min-w-[140px] max-w-[190px]">
                             <div className="text-sm font-medium text-gray-900">{r.totalPrice} EUR</div>
                             <div className="text-xs text-green-600">Señal: {r.depositAmount} EUR</div>
                             <div className={`text-xs mt-1 font-medium ${r.paymentStatus === 'fully_paid' ? 'text-green-600' : r.paymentStatus === 'deposit_paid' ? 'text-amber-600' : 'text-gray-400'}`}>
@@ -518,16 +511,14 @@ export default function AdminReservations() {
                               <div className="text-xs mt-1 text-gray-500">Pagará con {r.paymentMethod === 'bizum' ? 'Bizum' : 'tarjeta'}</div>
                             )}
                           </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${colors.bg} ${colors.text}`}>
+                          <td className="px-3 py-3 align-top min-w-[130px] max-w-[180px]">
+                            <span className={`inline-block px-2 py-1 rounded-lg text-xs font-medium ${colors.bg} ${colors.text}`}>
                               {DISPLAY_STATUS_LABELS[displayStatus] || r.status}
                             </span>
                             {displayStatus === 'fully_paid' && r.remainingPaymentMethod && REMAINING_PAYMENT_METHOD_LABELS[r.remainingPaymentMethod] && (
                               <div className="text-xs text-gray-500 mt-1">Resto: {REMAINING_PAYMENT_METHOD_LABELS[r.remainingPaymentMethod]}</div>
                             )}
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="flex flex-wrap gap-1">
+                            <div className="flex flex-wrap gap-1 mt-2">
                               {canMarkFullyPaid(r.status, r.paymentStatus) && (
                                 <button onClick={() => { setFullPaymentFor(r); setFullPaymentMethod('terminal'); }}
                                   className="px-2 py-1 text-xs rounded border border-green-500 text-green-700 hover:bg-green-50 transition-colors">
@@ -548,8 +539,8 @@ export default function AdminReservations() {
                               ))}
                             </div>
                           </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="flex items-center justify-end gap-1">
+                          <td className="px-3 py-3 align-top whitespace-nowrap">
+                            <div className="flex items-center justify-end gap-0.5">
                               {waUrl && (
                                 <a href={waUrl} target="_blank" rel="noopener noreferrer"
                                   className="p-1.5 text-green-600 hover:bg-green-50 rounded transition-colors" title="WhatsApp">
@@ -657,31 +648,63 @@ export default function AdminReservations() {
                   No se han podido consultar los pagos. Si cancelas ahora no se devolverá nada; podrás hacerlo después desde Más → Devolver pagos.
                 </p>
               )}
-              {statusModal.newStatus === 'cancelled' && refundPreview && (refundPreview.stripeTotal > 0 || refundPreview.manualTotal > 0 || refundPreview.stripeHold) && (
-                <div className={`mb-4 rounded-lg border p-3 text-sm ${refundChecked ? 'border-purple-200 bg-purple-50' : 'border-gray-200 bg-gray-50'}`}>
-                  <p className="text-xs text-gray-600 mb-2">
-                    Faltan <strong>{refundPreview.daysUntilEvent} días</strong> para el evento:{' '}
-                    {refundPreview.eligible ? 'según la política corresponde devolver el 100%.' : 'según la política no corresponde devolución (menos de 15 días).'}
-                  </p>
-                  <label className="flex items-start gap-2 cursor-pointer">
-                    <input type="checkbox" checked={refundChecked} onChange={(e) => setRefundChecked(e.target.checked)} className="mt-0.5" />
-                    <span className="font-medium text-gray-900">
-                      Devolver lo pagado al cliente ({Math.round((refundPreview.stripeTotal + refundPreview.manualTotal) * 100) / 100} €)
-                    </span>
-                  </label>
-                  {refundChecked && (
-                    <ul className="mt-2 ml-6 space-y-0.5 text-xs text-gray-700 list-disc">
-                      {refundPreview.stripe.map((i) => <li key={i.label}>{i.label}: {i.amount} € · por Stripe (automático)</li>)}
-                      {refundPreview.stripeHold ? <li>Fianza bloqueada: {refundPreview.stripeHold} € · se libera</li> : null}
-                      {refundPreview.manual.map((m) => <li key={m.label} className="text-amber-700">{m.label}: {m.amount} € · {m.method}: devolver a mano (te llegará un aviso)</li>)}
-                      {refundPreview.terminalHold ? <li className="text-amber-700">Fianza en datáfono: libérala a mano</li> : null}
-                    </ul>
-                  )}
-                </div>
-              )}
+              {statusModal.newStatus === 'cancelled' && refundPreview && (() => {
+                const tier = cancellationTier(refundPreview.daysUntilEvent);
+                const paid = Math.round((refundPreview.stripeTotal + refundPreview.manualTotal) * 100) / 100;
+                const hasPayments = paid > 0 || !!refundPreview.stripeHold;
+                const days = refundPreview.daysUntilEvent;
+                const daysText = days === 1 ? '1 día' : `${days} días`;
+                const tone = tier === 'full_refund' ? 'border-green-200 bg-green-50' : tier === 'reschedule' ? 'border-amber-200 bg-amber-50' : 'border-red-200 bg-red-50';
+                return (
+                  <div className={`mb-4 rounded-lg border p-3 text-sm ${tone}`}>
+                    {tier === 'full_refund' && (
+                      <p className="text-green-800">
+                        ✅ Faltan <strong>{daysText}</strong> para el evento (15 o más): {hasPayments
+                          ? <>según la política <strong>se devuelve el importe pagado ({paid} €)</strong>.</>
+                          : 'según la política se devolvería lo pagado, pero no hay pagos que devolver.'}
+                      </p>
+                    )}
+                    {tier === 'reschedule' && (
+                      <>
+                        <p className="text-amber-800">
+                          ⚠️ Faltan <strong>{daysText}</strong> para el evento (menos de 15): <strong>no se devuelve la señal</strong>.
+                          El cliente puede <strong>cambiar la fecha</strong> (sujeto a disponibilidad); si cancelas, <strong>perderá la señal</strong>.
+                        </p>
+                        <button type="button"
+                          onClick={() => { const r = statusModal.reservation; setStatusModal(null); setCancellationReason(''); openEdit(r); }}
+                          className="mt-2 px-3 py-1.5 text-xs font-medium rounded-lg border border-amber-400 text-amber-800 bg-white hover:bg-amber-100 transition-colors">
+                          Cambiar la fecha en lugar de cancelar
+                        </button>
+                      </>
+                    )}
+                    {tier === 'none' && (
+                      <p className="text-red-800">
+                        ⛔ {days < 0 ? 'La fecha del evento ya ha pasado' : <>Faltan <strong>{daysText}</strong> para el evento (menos de 3)</>}:
+                        {' '}<strong>no se devuelve la señal ni se puede cambiar la fecha</strong>. Si cancelas, el cliente perderá la señal.
+                      </p>
+                    )}
+                    {hasPayments && (
+                      <label className="flex items-start gap-2 cursor-pointer mt-3 pt-3 border-t border-black/5">
+                        <input type="checkbox" checked={refundChecked} onChange={(e) => setRefundChecked(e.target.checked)} className="mt-0.5" />
+                        <span className="font-medium text-gray-900">
+                          {tier === 'full_refund' ? `Devolver lo pagado al cliente (${paid} €)` : `Devolver igualmente (${paid} €) · excepción o fuerza mayor`}
+                        </span>
+                      </label>
+                    )}
+                    {hasPayments && refundChecked && (
+                      <ul className="mt-2 ml-6 space-y-0.5 text-xs text-gray-700 list-disc">
+                        {refundPreview.stripe.map((i) => <li key={i.label}>{i.label}: {i.amount} € · por Stripe (automático)</li>)}
+                        {refundPreview.stripeHold ? <li>Fianza bloqueada: {refundPreview.stripeHold} € · se libera</li> : null}
+                        {refundPreview.manual.map((m) => <li key={m.label} className="text-amber-700">{m.label}: {m.amount} € · {m.method}: devolver a mano (te llegará un aviso)</li>)}
+                        {refundPreview.terminalHold ? <li className="text-amber-700">Fianza en datáfono: libérala a mano</li> : null}
+                      </ul>
+                    )}
+                  </div>
+                );
+              })()}
               <div className="flex gap-3">
                 <button onClick={() => { setStatusModal(null); setCancellationReason(''); }}
-                  className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg transition-colors">Cancelar</button>
+                  className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-lg transition-colors">Volver</button>
                 <button onClick={() => {
                   if (statusModal.newStatus === 'cancelled' && !cancellationReason.trim()) { showToast('El motivo es obligatorio', 'error'); return; }
                   handleStatusChange(statusModal.reservation, statusModal.newStatus, cancellationReason || undefined,

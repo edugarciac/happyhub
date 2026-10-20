@@ -20,3 +20,19 @@ export function daysUntilEvent(eventDate: string, now: Date = new Date()): numbe
 export function isFullRefundEligible(eventDate: string, now: Date = new Date()): boolean {
   return daysUntilEvent(eventDate, now) >= FULL_REFUND_MIN_DAYS;
 }
+
+export const RESCHEDULE_MIN_DAYS = 3;
+
+/**
+ * Tramo de la política según los días que faltan:
+ *  - full_refund: 15 días o más → se devuelve el 100%
+ *  - reschedule:  entre 14 y 3 días → no se devuelve la señal, pero se puede cambiar la fecha
+ *  - none:        menos de 3 días → ni devolución ni cambio de fecha
+ */
+export type CancellationTier = 'full_refund' | 'reschedule' | 'none';
+
+export function cancellationTier(days: number): CancellationTier {
+  if (days >= FULL_REFUND_MIN_DAYS) return 'full_refund';
+  if (days >= RESCHEDULE_MIN_DAYS) return 'reschedule';
+  return 'none';
+}
