@@ -251,7 +251,7 @@ Document key architectural choices, their context, and trade-offs.
 - Variables de entorno configuradas en AWS Amplify Console
 - Build specification en `amplify.yml`
 
-### ADR-009: Backup Diario de Neon DB con n8n + pg_dump + S3 (2026-05-01)
+### ADR-009: Backup Diario de Neon DB con n8n + pg_dump + S3 (2026-05-01) — sustituido por ADR-011
 
 **Context:**
 - Neon Postgres es el único almacén persistente de la plataforma
@@ -306,6 +306,27 @@ Document key architectural choices, their context, and trade-offs.
 - ❌ Solo lectura: los cambios se hacen en el panel
 - ❌ Google Calendar refresca los calendarios suscritos cada varias horas (Apple, cada 15 min)
 - Spec: `openspec/changes/replace-google-calendar-with-ics-feed/`
+
+### ADR-011: Backup diario de Neon con GitHub Actions (2026-10-20)
+
+**Context:**
+- El backup de ADR-009 se ejecutaba en n8n (EC2), que ya no se usa: no había backups externos
+- Neon solo ofrece point-in-time restore con una ventana corta
+
+**Decision:**
+- Workflow de GitHub Actions `.github/workflows/db-backup.yml` diario: `pg_dump` 17 → verificación con `pg_restore --list` → S3 `backups/YYYY-MM/` (misma ruta que ADR-009)
+- Sustituye a ADR-009
+
+**Alternatives Considered:**
+- Cron de Vercel → Rechazado: sin `pg_dump` en las funciones y límite de duración
+- Solo el PITR de Neon → Rechazado: ventana corta y depende del mismo proveedor
+
+**Consequences:**
+- ✅ Sin servidores propios; gratis dentro del plan de GitHub Actions
+- ✅ Si falla, GitHub avisa por email al propietario del repositorio
+- ✅ El dump se verifica antes de subirlo
+- ❌ Requiere configurar secretos en GitHub y una regla de ciclo de vida en S3
+- Guía de restauración: `docs/project_notes/db-restore.md` · Spec: `openspec/changes/db-backup-github-actions/`
 
 ## Tips
 
