@@ -16,6 +16,10 @@ export function ensureReservationFlowColumns(): Promise<void> {
       await query('ALTER TABLE reservations ADD COLUMN IF NOT EXISTS last_payment_error_at TIMESTAMPTZ');
       // Horas adicionales de la tarde (20:00 → 23:00)
       await query('ALTER TABLE reservations ADD COLUMN IF NOT EXISTS extra_hours INTEGER NOT NULL DEFAULT 0');
+      // Devoluciones al cancelar (política de 15 días)
+      await query(`ALTER TABLE reservations
+        ADD COLUMN IF NOT EXISTS refunded_amount DECIMAL(10,2),
+        ADD COLUMN IF NOT EXISTS refunded_at TIMESTAMPTZ`);
       // Migración 034: recordatorio del pago del resto 3 días antes del evento
       await query('ALTER TABLE reservations ADD COLUMN IF NOT EXISTS remaining_reminder_sent_at TIMESTAMPTZ');
       // Migración 032: recordatorio de la señal antes de cancelar

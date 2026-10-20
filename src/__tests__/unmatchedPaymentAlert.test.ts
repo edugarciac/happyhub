@@ -35,3 +35,43 @@ describe('incompleteDepositAlertEmail', () => {
     expect(html).toContain('cs_1');
   });
 });
+
+import { manualRefundAlertEmail, reservationCancelledEmail } from '@/lib/emailTemplates';
+
+describe('refund emails', () => {
+  it('tells the customer what is refunded and how', () => {
+    const { html } = reservationCancelledEmail({
+      name: 'Ana', status: 'cancelled', date: '2026-11-16', timeSlot: 'afternoon', reason: 'motivo',
+      refund: { card: 60, manual: [{ amount: 30, method: 'Bizum' }] },
+    });
+    expect(html).toContain('Te hemos devuelto <strong>60 €</strong> a la tarjeta');
+    expect(html).toContain('Te devolveremos <strong>30 €</strong> por Bizum');
+  });
+
+  it('does not mention refunds when there is none', () => {
+    const { html } = reservationCancelledEmail({ name: 'Ana', status: 'cancelled', date: '2026-11-16', timeSlot: 'afternoon' });
+    expect(html).not.toContain('devolv');
+  });
+
+  it('lists manual and failed refunds for the admin', () => {
+    const { subject, html } = manualRefundAlertEmail({
+      code: 'RES-20261116-007', customerName: 'Ana', customerPhone: '600',
+      manual: [{ label: 'Señal', amount: 60, method: 'Bizum' }],
+      failed: [{ label: 'Resto del pago', amount: 140, error: 'boom' }],
+    });
+    expect(subject).toBe('⚠️ Devolución pendiente: 200 € (RES-20261116-007)');
+    expect(html).toContain('Señal (Bizum)');
+    expect(html).toContain('falló: boom');
+    expect(html).toContain('Devolver pagos');
+  });
+});
+
+import { refundIssuedEmail } from '@/lib/emailTemplates';
+
+describe('refundIssuedEmail', () => {
+  it('tells the customer about a refund made after cancelling', () => {
+    const { subject, html } = refundIssuedEmail({ name: 'Ana', code: 'RES-20261116-007', date: '2026-11-16', refund: { card: 60, manual: [] } });
+    expect(subject).toBe('Devolución de tu reserva RES-20261116-007 - HappyHub');
+    expect(html).toContain('Te hemos devuelto <strong>60 €</strong> a la tarjeta');
+  });
+});
