@@ -1,0 +1,57 @@
+name: Backup diario de la base de datos
+
+on:
+  schedule:
+    - cron: '15 0 * * *' # 00:15 UTC ≈ 02:15 en Madrid (01:15 en invierno)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: db-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL_BACKUP }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ${{ vars.AWS_REGION || 'eu-west-1' }}
+      BUCKET: ${{ vars.BACKUP_S3_BUCKET || 'happyhub-assets-prod' }}
+    steps:
+      - name: Comprobar configuración
+        run: |
+          for v in DATABASE_URL AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY; do
+            if [ -z "${!v}" ]; then echo "::error::Falta el secreto para $v"; exit 1; fi
+          done
+
+      - name: Instalar pg_dump 17
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y -qq postgresql-client-17
+          /usr/lib/postgresql/17/bin/pg_dump --version
+
+      - name: Volcar la base de datos
+        run: |
+          FILE="happyhub_$(date -u +%Y-%m-%d_%H%M).dump"
+          echo "FILE=$FILE" >> "$GITHUB_ENV"
+          /usr/lib/postgresql/17/bin/pg_dump "$DATABASE_URL" --format=custom --no-owner --no-acl --file="$FILE"
+
+      - name: Verificar el volcado
+        run: |
+          test -s "$FILE"
+          TABLES=$(/usr/lib/postgresql/17/bin/pg_restore --list "$FILE" | grep -c ' TABLE ' || true)
+          echo "Tamaño: $(du -h "$FILE" | cut -f1) · tablas: $TABLES"
+          if [ "$TABLES" -lt 5 ]; then echo "::error::El volcado tiene solo $TABLES tablas"; exit 1; fi
+
+      - name: Subir a S3
+        run: |
+          KEY="backups/$(date -u +%Y-%m)/$FILE"
+          aws s3 cp "$FILE" "s3://$BUCKET/$KEY" --only-show-errors
+          echo "✅ Backup subido a s3://$BUCKET/$KEY" >> "$GITHUB_STEP_SUMMARY"
