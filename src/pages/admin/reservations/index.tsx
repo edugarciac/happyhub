@@ -5,7 +5,7 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import RowActionsMenu from '@/components/admin/RowActionsMenu';
 import {
   Search, Filter, ChevronLeft, ChevronRight, RefreshCw, Calendar,
-  Users, Mail, Phone, MessageCircle, Pencil, Trash2, Plus, X, CreditCard, CalendarX, BadgeCheck, Send, Receipt, Workflow, RotateCcw,
+  Users, Mail, Phone, MessageCircle, Pencil, Trash2, Plus, X, CreditCard, CalendarX, BadgeCheck, Send, Receipt, Workflow, RotateCcw, CalendarPlus,
 } from 'lucide-react';
 import { formatDueAt } from '@/config/payments';
 import { cancellationTier } from '@/utils/cancellationPolicy';
@@ -18,6 +18,7 @@ import {
 import { buildWhatsAppUrl } from '@/utils/phone';
 import DateInput from '@/components/DateInput';
 import DayOfPaymentModal from '@/components/admin/DayOfPaymentModal';
+import CalendarFeedModal from '@/components/admin/CalendarFeedModal';
 import ReservationFlowGuide from '@/components/admin/ReservationFlowGuide';
 import ReservationChargesModal from '@/components/admin/ReservationChargesModal';
 import { slotEndTime, extraHoursPrice } from '@/utils/pricing';
@@ -104,6 +105,7 @@ export default function AdminReservations() {
   const limit = 20;
 
   const [showFlowGuide, setShowFlowGuide] = useState(false);
+  const [showCalendarFeed, setShowCalendarFeed] = useState(false);
 
   // Marcar pago total a mano (datáfono, efectivo o transferencia)
   const [fullPaymentFor, setFullPaymentFor] = useState<Reservation | null>(null);
@@ -369,6 +371,9 @@ export default function AdminReservations() {
             <div className="flex flex-wrap items-center gap-3">
               <button onClick={() => setShowFlowGuide(true)} className="flex items-center gap-2 px-4 py-3 bg-white text-gray-700 border border-gray-300 rounded-xl shadow hover:bg-gray-50 transition-colors font-medium text-sm">
                 <Workflow className="w-4 h-4" /> Cómo funciona
+              </button>
+              <button onClick={() => setShowCalendarFeed(true)} className="flex items-center gap-2 px-4 py-3 bg-white text-gray-700 border border-gray-300 rounded-xl shadow hover:bg-gray-50 transition-colors font-medium text-sm">
+                <CalendarPlus className="w-4 h-4" /> Calendario
               </button>
               <Link href="/admin/reservations/blocked-dates" className="flex items-center gap-2 px-4 py-3 bg-amber-500 text-white rounded-xl shadow hover:bg-amber-600 transition-colors font-medium text-sm">
                 <CalendarX className="w-4 h-4" /> Bloquear fechas
@@ -726,6 +731,7 @@ export default function AdminReservations() {
         )}
 
         {showFlowGuide && <ReservationFlowGuide onClose={() => setShowFlowGuide(false)} />}
+        {showCalendarFeed && <CalendarFeedModal onClose={() => setShowCalendarFeed(false)} />}
 
         {/* Marcar pago total */}
         {fullPaymentFor && (

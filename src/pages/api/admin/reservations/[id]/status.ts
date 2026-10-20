@@ -6,7 +6,6 @@ import { isEmailConfigured, sendEmail } from '@/lib/mailer';
 import { buildReservationCode, reservationApprovedEmail, reservationCancelledEmail } from '@/lib/emailTemplates';
 import { createDepositPaymentLink, ensureReservationFlowColumns } from '@/lib/reservationFlow';
 import { PAYMENT_WINDOW_HOURS } from '@/config/payments';
-import { deleteCalendarEvent } from '@/lib/googleCalendar';
 import { getRefundPlan, refundAndNotify, type RefundPlan, type RefundResult } from '@/lib/reservationRefunds';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -155,17 +154,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
 
-    // Rechazo/cancelación: email al cliente y borrar el evento de Google Calendar
+    // Rechazo/cancelación: email al cliente
     if ((status === 'rejected' || status === 'cancelled') && isEmailConfigured()) {
-      const info = await queryOne<{ name: string | null; email: string | null; event_date: string; time_slot: string; google_calendar_event_id: string | null }>(
-        `SELECT u.name, u.email, TO_CHAR(r.event_date, 'YYYY-MM-DD') AS event_date, r.time_slot, r.google_calendar_event_id
+      const info = await queryOne<{ name: string | null; email: string | null; event_date: string; time_slot: string }>(
+        `SELECT u.name, u.email, TO_CHAR(r.event_date, 'YYYY-MM-DD') AS event_date, r.time_slot
          FROM reservations r LEFT JOIN users u ON r.user_id = u.id WHERE r.id = $1`,
         [parseInt(id)]
       ).catch(() => null);
-
-      if (info?.google_calendar_event_id) {
-        await deleteCalendarEvent(info.google_calendar_event_id);
-      }
 
       const sent = info?.email
         ? await sendEmail({

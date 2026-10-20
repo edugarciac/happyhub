@@ -3,7 +3,6 @@ import { query } from '@/lib/db';
 import { sendEmail } from '@/lib/mailer';
 import { buildReservationCode, depositReminderEmail, remainingPaymentReminderEmail, reservationCancelledEmail } from '@/lib/emailTemplates';
 import { PAYMENT_GRACE_HOURS, PAYMENT_WINDOW_HOURS, REMAINING_REMINDER_DAYS_BEFORE } from '@/config/payments';
-import { deleteCalendarEvent } from '@/lib/googleCalendar';
 
 // Aplica la migración 023 de forma idempotente, una vez por instancia (igual que otras migraciones de lib/db.ts).
 let columnsReady: Promise<void> | null = null;
@@ -72,8 +71,8 @@ export async function createDepositPaymentLink(reservationId: number, dueAt: Dat
 
 /**
  * Cancela las reservas aprobadas cuya señal no se ha pagado dentro del plazo (alargado al enviar el
- * recordatorio) y que ya recibieron el recordatorio: nunca se cancela sin aviso previo. Libera la franja,
- * borra el evento de Calendar y avisa al cliente. Nunca lanza: devuelve cuántas ha cancelado.
+ * recordatorio) y que ya recibieron el recordatorio: nunca se cancela sin aviso previo. Libera la franja
+ * y avisa al cliente. Nunca lanza: devuelve cuántas ha cancelado.
  * El UPDATE ... RETURNING es atómico, así que cada reserva se notifica una sola vez aunque se ejecute en paralelo.
  */
 export async function expireUnpaidReservations(): Promise<number> {
@@ -83,7 +82,6 @@ export async function expireUnpaidReservations(): Promise<number> {
       id: number;
       event_date: string;
       time_slot: string;
-      google_calendar_event_id: string | null;
       name: string | null;
       email: string | null;
     }>(
@@ -95,15 +93,14 @@ export async function expireUnpaidReservations(): Promise<number> {
            AND payment_due_at < NOW()
            AND payment_reminder_sent_at IS NOT NULL
            AND COALESCE(payment_status, 'pending') NOT IN ('deposit_paid', 'fully_paid')
-         RETURNING id, event_date, time_slot, google_calendar_event_id, user_id
+         RETURNING id, event_date, time_slot, user_id
        )
-       SELECT e.id, TO_CHAR(e.event_date, 'YYYY-MM-DD') AS event_date, e.time_slot, e.google_calendar_event_id, u.name, u.email
+       SELECT e.id, TO_CHAR(e.event_date, 'YYYY-MM-DD') AS event_date, e.time_slot, u.name, u.email
        FROM expired e LEFT JOIN users u ON u.id = e.user_id`
     );
 
     for (const r of expired.rows) {
       console.log(`[reservationFlow] Reservation ${r.id} cancelled: payment deadline passed`);
-      if (r.google_calendar_event_id) await deleteCalendarEvent(r.google_calendar_event_id);
       if (r.email) {
         await sendEmail({
           to: r.email,

@@ -11,12 +11,13 @@ Active
 - `docs/project_notes/decisions.md` - Architectural Decision Records (ADRs)
 - `src/utils/pricing.ts` - Centralized pricing logic
 - `src/pages/api/` - API routes for authentication and webhooks
-- `n8n/n8n-nodes/` - n8n workflow JSONs (reservation, reminders)
+- `n8n/n8n-nodes/` - n8n workflow JSONs (legacy, n8n is no longer used)
 
 ## Tech Stack
 - Next.js 14 (Pages Router), React 18, TypeScript, Tailwind CSS
 - Neon Postgres (serverless) - NOT Supabase
-- Stripe (payments), n8n (workflow automation), Google Calendar
+- Stripe (payments), Resend (email)
+- Calendar: private iCalendar feed `/api/calendar/<token>.ics` generated from the DB (Google Calendar API sync and n8n are no longer used)
 - WhatsApp Cloud API (notifications)
 
 ## Deployment

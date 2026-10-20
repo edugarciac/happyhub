@@ -4,7 +4,6 @@ import { verifyAdminSession } from '../../../../../utils/adminAuth';
 import { getContractAcceptance } from '../../../../../lib/contractAcceptance';
 import { ensureReservationFlowColumns } from '../../../../../lib/reservationFlow';
 import { parseReservationExtras, resolveReservationExtras } from '../../../../../lib/reservationExtras';
-import { updateReservationEventTimes } from '../../../../../lib/googleCalendar';
 import { isValidExtraHours } from '../../../../../utils/pricing';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -58,9 +57,8 @@ async function handlePatch(id: number, req: NextApiRequest, res: NextApiResponse
       time_slot: string;
       extra_hours: number | null;
       extras: unknown;
-      google_calendar_event_id: string | null;
     }>(
-      `SELECT TO_CHAR(event_date, 'YYYY-MM-DD') AS event_date, time_slot, extra_hours, extras, google_calendar_event_id
+      `SELECT TO_CHAR(event_date, 'YYYY-MM-DD') AS event_date, time_slot, extra_hours, extras
        FROM reservations WHERE id = $1`,
       [id]
     );
@@ -124,18 +122,6 @@ async function handlePatch(id: number, req: NextApiRequest, res: NextApiResponse
       `UPDATE reservations SET ${sets.join(', ')} WHERE id = $${idx} RETURNING *`,
       params
     );
-
-    // El evento de Calendar sigue a la fecha, la franja y las horas adicionales
-    const nextDate = eventDate ? String(eventDate).split('T')[0] : existing.event_date;
-    const timesChanged =
-      nextDate !== existing.event_date || nextTimeSlot !== existing.time_slot || nextExtraHours !== (Number(existing.extra_hours) || 0);
-    if (timesChanged && existing.google_calendar_event_id) {
-      await updateReservationEventTimes(existing.google_calendar_event_id, {
-        date: nextDate,
-        timeSlot: nextTimeSlot,
-        extraHours: nextExtraHours,
-      });
-    }
 
     return res.status(200).json({ success: true, reservation: updated });
   } catch (error) {

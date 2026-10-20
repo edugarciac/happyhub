@@ -7,17 +7,15 @@ import {
   buildReservationCode,
   reservationAdminEmail,
   reservationCustomerEmail,
-  EVENT_TYPE_LABELS,
   type ReservationEmailData,
 } from '@/lib/emailTemplates';
-import { createReservationEvent } from '@/lib/googleCalendar';
 import { resolveReservationExtras } from '@/lib/reservationExtras';
 import { computeReservationPrice } from '@/lib/reservationPricing';
 import { ensureReservationFlowColumns, expireUnpaidReservations } from '@/lib/reservationFlow';
 import { isBookingPaymentMethod } from '@/config/payments';
 import { BOOKINGS_FROM_LABEL, isBeforeBookingStart } from '@/config/opening';
 import { isOpeningDiscountEligible, OPENING_DISCOUNT } from '@/config/promotions';
-import { isBookableTimeSlot, isValidExtraHours, extraHoursPrice, slotEndTime } from '@/utils/pricing';
+import { isBookableTimeSlot, isValidExtraHours, extraHoursPrice } from '@/utils/pricing';
 import {
   ensureContractAcceptancesTable,
   recordContractAcceptance,
@@ -333,24 +331,7 @@ async function handler(
     // pero ninguno anula la reserva si falla.
     const customerEmail = reservationCustomerEmail(emailData);
     const adminEmail = reservationAdminEmail(emailData);
-    const [calendarEventId, customerEmailSent] = await Promise.all([
-      createReservationEvent({
-        date: reservationData.date,
-        timeSlot: reservationData.timeSlot,
-        extraHours,
-        summary: `${isHolidayDate ? '[FESTIVO] ' : ''}[PENDIENTE] ${EVENT_TYPE_LABELS[reservationData.eventType] || reservationData.eventType} - ${reservationData.name}`,
-        description: [
-          `Reserva: ${reservationId}`,
-          `Nombre: ${reservationData.name}`,
-          `Teléfono: ${reservationData.phone}`,
-          `Email: ${reservationData.email}`,
-          `Invitados: ${guests}`,
-          extraHours > 0 ? `Horas adicionales: ${extraHours} (${extraHoursPrice(extraHours)} €), hasta las ${slotEndTime('afternoon', extraHours)}h` : '',
-          `Total: ${totalPrice} € (señal ${depositAmount} €)${discountAmount > 0 ? ` · ${OPENING_DISCOUNT.label} -${discountAmount} €` : ''}`,
-          `Pago: ${reservationData.paymentMethod}`,
-          reservationData.message ? `Mensaje: ${reservationData.message}` : '',
-        ].filter(Boolean).join('\n'),
-      }),
+    const [customerEmailSent] = await Promise.all([
       sendEmail({ to: reservationData.email, ...customerEmail }),
       sendEmail({ to: getAdminEmails(), replyTo: reservationData.email, ...adminEmail }),
       notifyAdminSafely({
@@ -369,12 +350,6 @@ async function handler(
     if (customerEmailSent) {
       await markConfirmationEmailSent(acceptance.id).catch((err) =>
         console.error('Error registrando el envío del email de confirmación:', err)
-      );
-    }
-
-    if (calendarEventId) {
-      await queryOne('UPDATE reservations SET google_calendar_event_id = $1 WHERE id = $2', [calendarEventId, inserted.id]).catch(
-        (err) => console.error('Error guardando google_calendar_event_id:', err)
       );
     }
 

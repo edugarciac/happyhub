@@ -197,11 +197,13 @@ async function handleCreate(req: NextApiRequest, res: NextApiResponse) {
 
     const reservationId: number = result.rows[0].id;
 
-    // Mismo aviso al cliente que la reserva web (correo de solicitud + evento en Calendar).
+    // Mismo aviso al cliente que la reserva web (correo de solicitud).
     // Se espera porque Vercel congela la función al responder; si falla, la reserva se mantiene.
-    // notifyClient === false: el admin ha elegido no enviar correo (solo se crea el evento de Calendar)
+    // notifyClient === false: el admin ha elegido no enviar correo
     const sendClientEmail = notifyClient !== false;
-    const notified = await sendReservationRequestNotifications(reservationId, { sendEmail: sendClientEmail });
+    const notified = sendClientEmail
+      ? await sendReservationRequestNotifications(reservationId)
+      : { emailSent: false, noEmail: false };
     const emailWarning = !sendClientEmail
       ? undefined
       : notified.noEmail

@@ -1,72 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { google } from 'googleapis';
 import { query, queryOne } from '@/lib/db';
 import { verifyAdminSession } from '@/utils/adminAuth';
 
 type TimeSlot = 'morning' | 'afternoon' | 'night';
-
-const TIME_SLOT_HOURS: Record<TimeSlot, { start: string; end: string }> = {
-  morning: { start: '10:00', end: '14:00' },
-  afternoon: { start: '16:00', end: '20:00' },
-  night: { start: '21:30', end: '02:00' },
-};
-
-function getCalendarClient() {
-  const { GOOGLE_CLIENT_EMAIL, GOOGLE_PRIVATE_KEY, GOOGLE_CALENDAR_ID } = process.env;
-  if (!GOOGLE_CLIENT_EMAIL || !GOOGLE_PRIVATE_KEY || !GOOGLE_CALENDAR_ID) return null;
-
-  const auth = new google.auth.GoogleAuth({
-    credentials: {
-      client_email: GOOGLE_CLIENT_EMAIL,
-      private_key: GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-    },
-    scopes: ['https://www.googleapis.com/auth/calendar'],
-  });
-
-  return { calendar: google.calendar({ version: 'v3', auth }), calendarId: GOOGLE_CALENDAR_ID };
-}
-
-async function createCalendarEvent(date: string, timeSlot: TimeSlot, reason: string | null): Promise<string | null> {
-  const gcal = getCalendarClient();
-  if (!gcal) return null;
-
-  try {
-    const { start, end } = TIME_SLOT_HOURS[timeSlot];
-    const startDateTime = `${date}T${start}:00`;
-    // Night slot ends next day
-    const endDate = timeSlot === 'night'
-      ? new Date(new Date(date).getTime() + 86400000).toISOString().split('T')[0]
-      : date;
-    const endDateTime = `${endDate}T${end}:00`;
-
-    const event = await gcal.calendar.events.insert({
-      calendarId: gcal.calendarId,
-      requestBody: {
-        summary: `🔒 [BLOQUEADO] ${reason || 'Mantenimiento'}`,
-        description: reason || 'Fecha bloqueada por el admin de HappyHub.',
-        start: { dateTime: startDateTime, timeZone: 'Europe/Madrid' },
-        end: { dateTime: endDateTime, timeZone: 'Europe/Madrid' },
-        colorId: '11', // Tomato (red-ish) to distinguish from reservations
-      },
-    });
-
-    return event.data.id || null;
-  } catch (err) {
-    console.error('[block-dates] Error creating Google Calendar event:', err);
-    return null;
-  }
-}
-
-async function deleteCalendarEvent(eventId: string): Promise<void> {
-  const gcal = getCalendarClient();
-  if (!gcal || !eventId) return;
-
-  try {
-    await gcal.calendar.events.delete({ calendarId: gcal.calendarId, eventId });
-  } catch (err) {
-    console.error('[block-dates] Error deleting Google Calendar event:', err);
-  }
-}
 
 function expandDateRange(startDate: string, endDate: string): string[] {
   const dates: string[] = [];
@@ -114,10 +50,9 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
     reason: string | null;
     created_by: string | null;
     created_at: string;
-    google_calendar_event_id: string | null;
   }>(
     `SELECT id, TO_CHAR(slot_date, 'YYYY-MM-DD') AS slot_date, time_slot, reason,
-            created_by, created_at, google_calendar_event_id
+            created_by, created_at
      FROM blocked_slots
      ${dateFilter}
      ORDER BY slot_date ASC, time_slot ASC`
@@ -131,7 +66,6 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse) {
       reason: row.reason,
       createdBy: row.created_by,
       createdAt: row.created_at,
-      googleCalendarEventId: row.google_calendar_event_id,
     })),
   });
 }
@@ -163,18 +97,14 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, adminEmail:
 
   for (const date of dates) {
     for (const timeSlot of timeSlots) {
-      // Create Google Calendar event (fire-and-forget)
-      const gcalEventId = await createCalendarEvent(date, timeSlot, reason || null);
-
       const row = await queryOne<{ id: number; slot_date: string; time_slot: string }>(
-        `INSERT INTO blocked_slots (slot_date, time_slot, reason, created_by, google_calendar_event_id)
-         VALUES ($1, $2, $3, $4, $5)
+        `INSERT INTO blocked_slots (slot_date, time_slot, reason, created_by)
+         VALUES ($1, $2, $3, $4)
          ON CONFLICT (slot_date, time_slot) DO UPDATE
            SET reason = EXCLUDED.reason,
-               updated_at = CURRENT_TIMESTAMP,
-               google_calendar_event_id = COALESCE(EXCLUDED.google_calendar_event_id, blocked_slots.google_calendar_event_id)
+               updated_at = CURRENT_TIMESTAMP
          RETURNING id, TO_CHAR(slot_date, 'YYYY-MM-DD') AS slot_date, time_slot`,
-        [date, timeSlot, reason || null, adminEmail, gcalEventId]
+        [date, timeSlot, reason || null, adminEmail]
       );
 
       if (row) {
@@ -192,19 +122,6 @@ async function handleDelete(req: NextApiRequest, res: NextApiResponse) {
 
   if (ids.length === 0) {
     return res.status(400).json({ error: 'Se requiere id o ids' });
-  }
-
-  // Fetch google_calendar_event_id before deleting
-  const existing = await query<{ id: number; google_calendar_event_id: string | null }>(
-    `SELECT id, google_calendar_event_id FROM blocked_slots WHERE id = ANY($1)`,
-    [ids]
-  );
-
-  // Delete Google Calendar events
-  for (const row of existing.rows) {
-    if (row.google_calendar_event_id) {
-      await deleteCalendarEvent(row.google_calendar_event_id);
-    }
   }
 
   const result = await query(
