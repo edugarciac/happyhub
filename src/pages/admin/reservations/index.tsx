@@ -130,6 +130,7 @@ export default function AdminReservations() {
 
   const [generatingLinkFor, setGeneratingLinkFor] = useState<number | null>(null);
   const [paymentLinkModal, setPaymentLinkModal] = useState<{ reservationId: number; url: string } | null>(null);
+  const [depositLinkModal, setDepositLinkModal] = useState<{ reservation: Reservation; url: string; email?: string } | null>(null);
   const [dayOfModal, setDayOfModal] = useState<Reservation | null>(null);
 
   // Cancel-full modal
@@ -279,6 +280,18 @@ export default function AdminReservations() {
       setPaymentLinkModal({ reservationId, url: data.url });
     } catch { alert('No se pudo generar el enlace de pago'); }
     finally { setGeneratingLinkFor(null); }
+  };
+
+  const handleResendDepositLink = async (r: Reservation) => {
+    if (!confirm(`Se anulará el enlace anterior y se enviará uno nuevo${r.email ? ` a ${r.email}` : ''} con 24 h para pagar la señal. ¿Continuar?`)) return;
+    try {
+      const res = await fetch(`/api/admin/reservations/${r.id}/resend-deposit-link`, { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) { showToast(data.error || 'Error al reenviar el enlace', 'error'); return; }
+      showToast(data.warning || `Enlace de pago enviado a ${data.email}`, data.warning ? 'error' : 'success');
+      setDepositLinkModal({ reservation: r, url: data.url, email: data.email });
+      fetchReservations();
+    } catch { showToast('Error de conexión', 'error'); }
   };
 
   const handleMarkDepositPaid = async (r: Reservation) => {
@@ -561,6 +574,8 @@ export default function AdminReservations() {
                                   items: [
                                     { label: 'Reenviar correo de la reserva', icon: Send, iconClassName: 'text-orange-600',
                                       onClick: () => handleResendConfirmation(r), hidden: !(r.email && r.status === 'pending') },
+                                    { label: 'Reenviar enlace de pago de la señal', icon: Send, iconClassName: 'text-green-600',
+                                      onClick: () => handleResendDepositLink(r), hidden: !awaitingDeposit },
                                   ],
                                 },
                                 {
@@ -879,6 +894,33 @@ export default function AdminReservations() {
                 <button onClick={() => navigator.clipboard.writeText(paymentLinkModal.url)} className="shrink-0 px-3 py-1 bg-primary-600 text-white text-xs rounded-lg hover:bg-primary-700 transition">Copiar</button>
               </div>
               <button onClick={() => setPaymentLinkModal(null)} className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 transition">Cerrar</button>
+            </div>
+          </div>
+        )}
+        {depositLinkModal && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setDepositLinkModal(null)}>
+            <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Enlace de pago de la señal</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                {depositLinkModal.email ? <>Enviado por email a <strong>{depositLinkModal.email}</strong>. </> : null}
+                También puedes copiarlo o enviarlo por WhatsApp. Válido 24 horas; el enlace anterior ya no funciona.
+              </p>
+              <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg p-3 mb-4">
+                <span className="text-xs text-gray-700 flex-1 break-all font-mono">{depositLinkModal.url}</span>
+                <button onClick={() => navigator.clipboard.writeText(depositLinkModal.url)} className="shrink-0 px-3 py-1 bg-primary-600 text-white text-xs rounded-lg hover:bg-primary-700 transition">Copiar</button>
+              </div>
+              {(() => {
+                const wa = buildWhatsAppUrl(depositLinkModal.reservation.phone);
+                if (!wa) return null;
+                const text = `Hola ${depositLinkModal.reservation.name || ''}, aquí tienes el enlace para pagar la señal de tu reserva en HappyHub: ${depositLinkModal.url}`;
+                return (
+                  <a href={`${wa}${wa.includes('?') ? '&' : '?'}text=${encodeURIComponent(text)}`} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 w-full mb-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition">
+                    <MessageCircle className="w-4 h-4" /> Enviar por WhatsApp
+                  </a>
+                );
+              })()}
+              <button onClick={() => setDepositLinkModal(null)} className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 transition">Cerrar</button>
             </div>
           </div>
         )}
