@@ -1,13 +1,13 @@
 # Restaurar la base de datos desde un backup
 
-Los backups diarios están en `s3://happyhub-assets-prod/backups/YYYY-MM/happyhub_YYYY-MM-DD_HHmm.dump`
+Los backups diarios están en `s3://happyhub-assets/backups/YYYY-MM/happyhub_YYYY-MM-DD_HHmm.dump`
 (workflow `.github/workflows/db-backup.yml`, formato `pg_dump --format=custom`).
 
 ## 1. Descargar el backup
 
 ```bash
-aws s3 ls s3://happyhub-assets-prod/backups/2026-10/
-aws s3 cp s3://happyhub-assets-prod/backups/2026-10/happyhub_2026-10-20_0015.dump .
+aws s3 ls s3://happyhub-assets/backups/2026-10/
+aws s3 cp s3://happyhub-assets/backups/2026-10/happyhub_2026-10-20_0015.dump .
 ```
 
 ## 2. Restaurar en una rama nueva de Neon (recomendado)
