@@ -92,7 +92,7 @@ export default function PoliticaPrivacidad() {
               <p>Tus datos podrán ser comunicados a los siguientes destinatarios:</p>
               <ul className="list-disc list-inside space-y-2 mt-3">
                 <li><strong>Stripe:</strong> procesamiento de pagos con tarjeta. Stripe actúa como encargado del tratamiento y cumple con el RGPD.</li>
-                <li><strong>Google (Google Calendar):</strong> gestión de disponibilidad del espacio.</li>
+                <li><strong>Google:</strong> inicio de sesión con cuenta de Google (si eliges esa opción) y calendario interno de reservas del equipo de HappyHub.</li>
                 <li><strong>Proveedores de servicios:</strong> cuando el cliente contrate servicios adicionales (catering, animación, etc.), se compartirán los datos estrictamente necesarios para la prestación del servicio.</li>
                 <li><strong>Administraciones públicas:</strong> cuando exista obligación legal (Agencia Tributaria, etc.).</li>
               </ul>

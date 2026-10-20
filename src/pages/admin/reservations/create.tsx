@@ -400,7 +400,7 @@ export default function CreateReservation() {
               />
               <span>
                 Enviar correo de la reserva al cliente
-                <span className="block text-xs text-gray-500">Desmárcalo para crear la reserva sin avisar al cliente (el evento de Calendar se crea igualmente).</span>
+                <span className="block text-xs text-gray-500">Desmárcalo para crear la reserva sin avisar al cliente.</span>
               </span>
             </label>
 

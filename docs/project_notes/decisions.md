@@ -285,6 +285,28 @@ Document key architectural choices, their context, and trade-offs.
 - Workflow: `n8n/n8n-nodes/n8n-db-backup-cron.json`
 - Spec completo: `openspec/changes/database-backup-strategy/`
 
+### ADR-010: Calendario .ics de suscripción en lugar de Google Calendar por API (2026-10-20)
+
+**Context:**
+- La sincronización con Google Calendar (cuenta de servicio que creaba, movía y borraba eventos) no estaba configurada y sus textos ("se eliminará el evento del Google Calendar") confundían
+- Aunque estuviera configurada, solo creaba el evento como "[PENDIENTE]" y no reflejaba aprobación, pago ni cambios de estado
+- n8n ya no se usa (ADR-003, ADR-005 obsoletos)
+
+**Decision:**
+- Eliminar la integración por API y servir un feed iCalendar privado `/api/calendar/<token>.ics` generado desde la BD en cada petición (reservas activas + fechas bloqueadas)
+- Token = HMAC-SHA256(`CALENDAR_FEED_SECRET` o `NEXTAUTH_SECRET`); enlace disponible en el panel de reservas → "Calendario"
+
+**Alternatives Considered:**
+- Configurar la cuenta de servicio y completar la sincronización → Rechazado: dos fuentes de verdad, más código que mantener en cada cambio de estado
+- Eliminar el calendario sin sustituto → Rechazado: el equipo quiere ver las reservas en el móvil
+
+**Consequences:**
+- ✅ Una sola fuente de verdad (BD); nada que se pueda desincronizar
+- ✅ Funciona con Google Calendar, Apple Calendar y Outlook sin credenciales de Google
+- ❌ Solo lectura: los cambios se hacen en el panel
+- ❌ Google Calendar refresca los calendarios suscritos cada varias horas (Apple, cada 15 min)
+- Spec: `openspec/changes/replace-google-calendar-with-ics-feed/`
+
 ## Tips
 
 - Number decisions sequentially

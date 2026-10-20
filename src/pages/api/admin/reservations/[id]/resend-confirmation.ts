@@ -44,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(502).json({ success: false, error: 'No se pudo enviar el correo. Inténtalo de nuevo.' });
     }
     console.log(`[resend-confirmation] Reservation ${reservationId} email resent by ${admin.email}`);
-    return res.status(200).json({ success: true, email: reservation.email, calendarEventCreated: result.calendarEventCreated });
+    return res.status(200).json({ success: true, email: reservation.email });
   } catch (error: any) {
     console.error('Error resending reservation email:', error);
     return res.status(500).json({ success: false, error: `Error al reenviar el correo: ${error?.message || error}` });
