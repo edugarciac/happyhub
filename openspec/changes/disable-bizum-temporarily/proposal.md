@@ -3,7 +3,7 @@ The owner wants to stop accepting Bizum for the deposit for a while. Customers m
 
 ## What Changes
 - New flag `BIZUM_ENABLED` in `src/config/payments.ts` (set to `false`).
-- Booking form: only "Tarjeta" is offered and it is preselected.
+- Booking form: "Tarjeta" is preselected; "Bizum" is shown greyed out with a "Pronto disponible" badge and cannot be selected.
 - Booking API rejects `bizum` while the flag is off.
 - Payment page `/pagar/[token]` and deposit emails show only card payment, including for reservations that chose Bizum earlier.
 - "Cómo funciona" text no longer mentions Bizum for the deposit while the flag is off.

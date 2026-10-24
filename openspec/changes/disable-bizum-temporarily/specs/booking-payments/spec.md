@@ -5,7 +5,8 @@ The system SHALL offer Bizum for the deposit only when `BIZUM_ENABLED` is true.
 
 #### Scenario: Customer books while Bizum is off
 - **WHEN** a customer reaches the customer-data step
-- **THEN** only "Tarjeta" SHALL be offered and preselected
+- **THEN** "Tarjeta" SHALL be preselected
+- **AND** "Bizum" SHALL be shown disabled with a "Pronto disponible" label
 
 #### Scenario: API receives Bizum while off
 - **WHEN** a booking request arrives with `paymentMethod: 'bizum'`

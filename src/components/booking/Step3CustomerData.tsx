@@ -321,24 +321,34 @@ export default function Step3CustomerData() {
                     {[
                       { value: 'card', label: 'Tarjeta', icon: '💳' },
                       { value: 'bizum', label: 'Bizum', icon: '📱' },
-                    ].filter((method) => (AVAILABLE_PAYMENT_METHODS as readonly string[]).includes(method.value)).map((method) => (
+                    ].map((method) => {
+                      // Método desactivado temporalmente (p. ej. Bizum): visible pero no seleccionable
+                      const available = (AVAILABLE_PAYMENT_METHODS as readonly string[]).includes(method.value);
+                      return (
                       <label
                         key={method.value}
-                        className={`relative flex flex-col items-center gap-1 p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                        className={`relative flex flex-col items-center gap-1 p-4 border-2 rounded-lg transition-all ${
                           errors.paymentMethod ? 'border-red-300' : 'border-gray-200'
-                        } hover:border-primary-300`}
+                        } ${available ? 'cursor-pointer hover:border-primary-300' : 'cursor-not-allowed opacity-60 bg-gray-50'}`}
                       >
                         <input
                           type="radio"
                           value={method.value}
+                          disabled={!available}
                           {...register('paymentMethod')}
                           className="sr-only peer"
                         />
                         <span className="text-2xl">{method.icon}</span>
                         <span className="text-sm font-medium text-gray-700 peer-checked:text-primary-600">{method.label}</span>
+                        {!available && (
+                          <span className="text-center text-xs font-medium bg-gray-200 text-gray-600 px-2 py-0.5 rounded-md">
+                            Pronto disponible
+                          </span>
+                        )}
                         <div className="absolute inset-0 rounded-lg border-2 border-transparent peer-checked:border-primary-500 pointer-events-none" />
                       </label>
-                    ))}
+                      );
+                    })}
                   </div>
                   {errors.paymentMethod && (
                     <p className="text-red-500 text-sm mt-1">{errors.paymentMethod.message}</p>
