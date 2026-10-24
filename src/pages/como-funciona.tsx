@@ -2,6 +2,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { BIZUM_ENABLED } from '@/config/payments';
 
 interface FaqItem {
   question: string;
@@ -47,7 +48,7 @@ const categories: FaqCategory[] = [
       {
         question: '¿Cómo funciona el pago?',
         answer:
-          'Cuando aprobamos tu solicitud, pagas una señal del 30% (con tarjeta o Bizum) en las 24 horas siguientes. El día del evento, antes de empezar, pagas el resto con tarjeta (con un enlace o QR en tu móvil, o en nuestro datáfono) y se bloquea una fianza de 150 € en tu tarjeta de crédito o débito. La fianza no es un cobro: la liberamos en cuanto revisamos el espacio, como máximo en 7 días. Bizum solo se admite para la señal. Detalle completo en los términos y condiciones.',
+          `Cuando aprobamos tu solicitud, pagas una señal del 30% (${BIZUM_ENABLED ? 'con tarjeta o Bizum' : 'con tarjeta'}) en las 24 horas siguientes. El día del evento, antes de empezar, pagas el resto con tarjeta (con un enlace o QR en tu móvil, o en nuestro datáfono) y se bloquea una fianza de 150 € en tu tarjeta de crédito o débito. La fianza no es un cobro: la liberamos en cuanto revisamos el espacio, como máximo en 7 días.${BIZUM_ENABLED ? ' Bizum solo se admite para la señal.' : ''} Detalle completo en los términos y condiciones.`,
       },
     ],
   },

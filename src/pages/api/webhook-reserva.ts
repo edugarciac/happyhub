@@ -12,7 +12,7 @@ import {
 import { resolveReservationExtras } from '@/lib/reservationExtras';
 import { computeReservationPrice } from '@/lib/reservationPricing';
 import { ensureReservationFlowColumns, expireUnpaidReservations } from '@/lib/reservationFlow';
-import { isBookingPaymentMethod } from '@/config/payments';
+import { AVAILABLE_PAYMENT_METHODS, isBookingPaymentMethod } from '@/config/payments';
 import { BOOKINGS_FROM_LABEL, isBeforeBookingStart } from '@/config/opening';
 import { isOpeningDiscountEligible, OPENING_DISCOUNT } from '@/config/promotions';
 import { isBookableTimeSlot, isValidExtraHours, extraHoursPrice } from '@/utils/pricing';
@@ -144,6 +144,13 @@ async function handler(
       return res.status(400).json({
         success: false,
         error: 'Método de pago no válido. Elige tarjeta o Bizum.',
+      });
+    }
+
+    if (!AVAILABLE_PAYMENT_METHODS.includes(reservationData.paymentMethod)) {
+      return res.status(400).json({
+        success: false,
+        error: 'El pago por Bizum no está disponible temporalmente. Elige tarjeta.',
       });
     }
 

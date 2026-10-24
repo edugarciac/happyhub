@@ -7,6 +7,8 @@ export const REMAINING_REMINDER_DAYS_BEFORE = 3;
 export const BIZUM_PHONE = '624 645 517';
 /** Métodos para la señal. El resto y la fianza se pagan solo con tarjeta (enlace/QR o datáfono). */
 export const PAYMENT_METHODS = ['card', 'bizum'] as const;
+/** Bizum desactivado temporalmente (decisión del propietario, 2026-10-24). Poner a true para reactivarlo. */
+export const BIZUM_ENABLED = false;
 
 /** Fianza: preautorización en la tarjeta el día del evento (decisión del propietario, 2026-10-17) */
 export const SECURITY_DEPOSIT_AMOUNT = 150;
@@ -17,6 +19,9 @@ export const SECURITY_DEPOSIT_TERMINAL_HOLD_DAYS = 2;
 export const SECURITY_DEPOSIT_STATUSES = ['none', 'held', 'released', 'captured', 'expired'] as const;
 export type SecurityDepositStatus = (typeof SECURITY_DEPOSIT_STATUSES)[number];
 export type BookingPaymentMethod = (typeof PAYMENT_METHODS)[number];
+
+/** Métodos que se pueden elegir en reservas nuevas */
+export const AVAILABLE_PAYMENT_METHODS: readonly BookingPaymentMethod[] = BIZUM_ENABLED ? PAYMENT_METHODS : ['card'];
 
 export function isBookingPaymentMethod(value: unknown): value is BookingPaymentMethod {
   return typeof value === 'string' && (PAYMENT_METHODS as readonly string[]).includes(value);

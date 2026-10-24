@@ -4,7 +4,7 @@ import Head from 'next/head';
 import { queryOne } from '@/lib/db';
 import { ensureReservationFlowColumns } from '@/lib/reservationFlow';
 import { buildReservationCode } from '@/utils/reservationCode';
-import { BIZUM_PHONE, formatDueAt, SECURITY_DEPOSIT_AMOUNT, SECURITY_DEPOSIT_ONLINE_HOLD_DAYS } from '@/config/payments';
+import { BIZUM_ENABLED, BIZUM_PHONE, formatDueAt, SECURITY_DEPOSIT_AMOUNT, SECURITY_DEPOSIT_ONLINE_HOLD_DAYS } from '@/config/payments';
 import { CreditCard, Calendar, Users, AlertCircle, CheckCircle, Smartphone, Clock, Lock } from 'lucide-react';
 
 interface PageProps {
@@ -185,7 +185,7 @@ export default function PagarPage({ valid, error, done, advancePaid, reservation
                 </div>
               )}
 
-              {isDeposit && reservation.paymentMethod === 'bizum' && (
+              {BIZUM_ENABLED && isDeposit && reservation.paymentMethod === 'bizum' && (
                 <BizumBox amount={reservation.amountDue} code={reservation.code} />
               )}
 
@@ -201,7 +201,7 @@ export default function PagarPage({ valid, error, done, advancePaid, reservation
                 Pago seguro procesado por Stripe
               </p>
 
-              {isDeposit && reservation.paymentMethod !== 'bizum' && (
+              {BIZUM_ENABLED && isDeposit && reservation.paymentMethod !== 'bizum' && (
                 <div className="mt-6">
                   <BizumBox amount={reservation.amountDue} code={reservation.code} title="¿Prefieres Bizum?" />
                 </div>

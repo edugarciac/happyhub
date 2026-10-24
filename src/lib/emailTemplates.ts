@@ -1,5 +1,5 @@
 // Plantillas HTML de los correos transaccionales (adaptadas de los workflows de n8n)
-import { BIZUM_PHONE, PAYMENT_GRACE_HOURS, PAYMENT_WINDOW_HOURS, SECURITY_DEPOSIT_AMOUNT, formatDueAt } from '@/config/payments';
+import { BIZUM_ENABLED, BIZUM_PHONE, PAYMENT_GRACE_HOURS, PAYMENT_WINDOW_HOURS, SECURITY_DEPOSIT_AMOUNT, formatDueAt } from '@/config/payments';
 import { EXTRA_HOUR_PRICE, extraHoursPrice, slotEndTime } from '@/utils/pricing';
 
 export function escapeHtml(value: unknown): string {
@@ -140,7 +140,7 @@ export function reservationCustomerEmail(r: ReservationEmailData): { subject: st
       `<strong>Tu solicitud está pendiente de aprobación.</strong> ${
         r.isHoliday ? 'Al ser festivo, la revisaremos caso a caso. ' : ''
       }Cuando la aprobemos te enviaremos un correo ${
-        r.paymentMethod === 'bizum'
+        BIZUM_ENABLED && r.paymentMethod === 'bizum'
           ? `con las instrucciones para pagar la señal de <strong>${escapeHtml(r.depositAmount)} €</strong> por Bizum`
           : `con el enlace para pagar la señal de <strong>${escapeHtml(r.depositAmount)} €</strong> con tarjeta`
       }. Tendrás ${PAYMENT_WINDOW_HOURS} horas para pagarla; si no, te enviaremos un recordatorio y la reserva se cancelará si no se paga en las ${PAYMENT_GRACE_HOURS} horas siguientes.`
@@ -266,7 +266,7 @@ function depositPaymentBlock(params: DepositEmailParams): string {
       <a href="${escapeHtml(params.payUrl)}" style="background: #FF6B35; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold;">${label}</a>
     </p>`;
   const payment =
-    params.paymentMethod === 'bizum'
+    BIZUM_ENABLED && params.paymentMethod === 'bizum'
       ? `<h3 style="color: #FF6B35; margin-bottom: 8px;">Paga la señal por Bizum</h3>
     ${rows([
       ['Importe', `<strong>${amount} €</strong>`],

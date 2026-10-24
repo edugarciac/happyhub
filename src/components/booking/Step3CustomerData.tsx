@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useBooking, EventType, PaymentMethod } from './BookingContext';
 import PriceSummary from './PriceSummary';
+import { AVAILABLE_PAYMENT_METHODS } from '@/config/payments';
 import TermsContent, { TERMS_LAST_UPDATED } from '@/components/TermsContent';
 import { ChevronLeft, ChevronRight, User, AlertCircle, FileText, Loader2, CreditCard } from 'lucide-react';
 
@@ -61,7 +62,13 @@ export default function Step3CustomerData() {
       email: state.email,
       phone: state.phone,
       eventType: state.eventType || undefined,
-      paymentMethod: state.paymentMethod || undefined,
+      // Con un solo método disponible (Bizum desactivado) se preselecciona tarjeta
+      paymentMethod:
+        state.paymentMethod && AVAILABLE_PAYMENT_METHODS.includes(state.paymentMethod)
+          ? state.paymentMethod
+          : AVAILABLE_PAYMENT_METHODS.length === 1
+            ? AVAILABLE_PAYMENT_METHODS[0]
+            : undefined,
       message: state.message,
       needsKidsFurniture: state.needsKidsFurniture,
       acceptTerms: state.acceptTerms,
@@ -314,7 +321,7 @@ export default function Step3CustomerData() {
                     {[
                       { value: 'card', label: 'Tarjeta', icon: '💳' },
                       { value: 'bizum', label: 'Bizum', icon: '📱' },
-                    ].map((method) => (
+                    ].filter((method) => (AVAILABLE_PAYMENT_METHODS as readonly string[]).includes(method.value)).map((method) => (
                       <label
                         key={method.value}
                         className={`relative flex flex-col items-center gap-1 p-4 border-2 rounded-lg cursor-pointer transition-all ${

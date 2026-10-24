@@ -69,7 +69,7 @@ describe('emailTemplates', () => {
 });
 
 import { reservationApprovedEmail, depositReceivedEmail, depositReminderEmail, remainingPaymentReminderEmail, dayOfPaymentEmail } from '@/lib/emailTemplates';
-import { isBookingPaymentMethod } from '@/config/payments';
+import { BIZUM_ENABLED, isBookingPaymentMethod } from '@/config/payments';
 
 describe('approval & payment flow emails', () => {
   const approved = {
@@ -89,7 +89,8 @@ describe('approval & payment flow emails', () => {
     expect(card).toContain('pagar la señal de <strong>60 €</strong> con tarjeta');
     expect(card).toContain('24 horas');
     const bizum = reservationCustomerEmail({ ...base, paymentMethod: 'bizum' }).html;
-    expect(bizum).toContain('por Bizum');
+    if (BIZUM_ENABLED) expect(bizum).toContain('por Bizum');
+    else expect(bizum).not.toContain('por Bizum');
   });
 
   it('approval email for card has the pay button and Madrid deadline', () => {
@@ -102,9 +103,15 @@ describe('approval & payment flow emails', () => {
 
   it('approval email for bizum has phone, amount, concept and card fallback', () => {
     const { html } = reservationApprovedEmail({ ...approved, paymentMethod: 'bizum' });
-    expect(html).toContain('624 645 517');
     expect(html).toContain('RES-20261020-007');
-    expect(html).toContain('Pagar con tarjeta');
+    if (BIZUM_ENABLED) {
+      expect(html).toContain('624 645 517');
+      expect(html).toContain('Pagar con tarjeta');
+    } else {
+      // Bizum desactivado: una reserva antigua con Bizum recibe las instrucciones de tarjeta
+      expect(html).not.toContain('Paga la señal por Bizum');
+      expect(html).toContain('Pagar la señal (60 €)');
+    }
   });
 
   it('approval email warns about the reminder before cancelling', () => {
@@ -125,8 +132,13 @@ describe('approval & payment flow emails', () => {
 
   it('reminder email for bizum keeps the Bizum instructions', () => {
     const { html } = depositReminderEmail({ ...approved, paymentMethod: 'bizum' });
-    expect(html).toContain('624 645 517');
-    expect(html).toContain('Pagar con tarjeta');
+    if (BIZUM_ENABLED) {
+      expect(html).toContain('624 645 517');
+      expect(html).toContain('Pagar con tarjeta');
+    } else {
+      expect(html).not.toContain('Paga la señal por Bizum');
+      expect(html).toContain('Pagar la señal (60 €)');
+    }
   });
 
   it('remaining payment reminder asks to pay the remaining before the event', () => {
