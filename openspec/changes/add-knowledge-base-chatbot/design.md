@@ -109,10 +109,10 @@ Se redacta en los `.md` al implementar (tarea 1.3). Fuente: lo dictado por el pr
 
 **Desactivar** (`script.cerrar_sala`, alias "Cerrar sala", modo `single`), en este orden:
 1. Pausa la música.
-2. Apaga el subwoofer y, a los 3 segundos, el amplificador, la luz Sala Principal y la luz Jardín.
+2. Apaga el subwoofer y, a los 3 segundos, el amplificador y las luces Sala Principal, Barra y Jardín.
 3. Apaga la luz Sala Kids y los dos aires acondicionados (si alguno falla, el resto sigue).
 
-**No** apaga la luz de la **Barra** (Activar tampoco la enciende). Para la ficha: es lo último que se hace antes de salir, porque deja la sala a oscuras; después, comprobar en el grupo Luces que la Barra está apagada.
+La Barra se añade a `cerrar_sala` (decisión del propietario; Activar no la enciende). Para la ficha: es lo último que se hace antes de salir, porque deja la sala a oscuras.
 
 Debajo, tres grupos por tipología:
 
@@ -137,7 +137,7 @@ Debajo, tres grupos por tipología:
 
 **Operaciones previstas** (plantilla común): `encender-sala`, `desactivar-sala`, `conectar-movil-bluetooth`, `poner-gramola`, `ajustar-aire`, `encender-luces`.
 
-**Pendiente de confirmar**: dónde está el Chiquipark (¿Sala Kids?); si la luz de la Barra debe entrar en Activar/Desactivar (si se añade a los scripts, se quita el paso manual de las fichas).
+**Pendiente de confirmar**: dónde está el Chiquipark (¿Sala Kids?); confirmar que `cerrar_sala` ya incluye la luz de la Barra antes de publicar la ficha.
 
 ### 4. Chatbot: contexto completo, no RAG
 
