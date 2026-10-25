@@ -21,6 +21,7 @@ const INCLUDED = [
   'Sistema de videojuegos arcade',
   'Futbolín',
   'Chiquipark (menores de 14 años)',
+  'Panel de control domótico (luces, aire y música)',
   'Microondas y nevera',
   'Cafetera Dolce Gusto (cápsulas no incluidas)',
   'Acceso 30 min antes (1 h extra de montaje: 30 €)',

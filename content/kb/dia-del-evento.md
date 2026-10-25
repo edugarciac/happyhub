@@ -13,7 +13,7 @@ Puedes acceder 30 minutos antes del inicio de tu franja horaria sin coste adicio
 
 ## ¿Qué incluye el alquiler del espacio?
 
-El precio incluye el uso del espacio, mesas, sillas, sistema de sonido de alta calidad, proyector con barra de sonido, Smart TV de último modelo, sistema de videojuegos arcade, futbolín, el Chiquipark (para menores de 14 años), WiFi, climatización y la limpieza general tras el evento, siempre que el espacio se deje recogido. Los servicios adicionales como catering, decoración o animación se contratan aparte.
+El precio incluye el uso del espacio, mesas, sillas, sistema de sonido de alta calidad, proyector con barra de sonido, Smart TV de último modelo, sistema de videojuegos arcade, futbolín, el Chiquipark (para menores de 14 años), panel de control domótico para luces, aire y música, WiFi, climatización y la limpieza general tras el evento, siempre que el espacio se deje recogido. Los servicios adicionales como catering, decoración o animación se contratan aparte.
 
 ## ¿Puedo traer comida y bebida de fuera?
 
