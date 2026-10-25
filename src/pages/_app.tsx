@@ -13,6 +13,8 @@ import FeedbackWidget from '@/components/FeedbackWidget';
 import { Toaster } from 'react-hot-toast';
 import { GA_MEASUREMENT_ID, pageview, useScrollDepthTracking } from '@/lib/analytics';
 
+const isKioskPage = (pathname: string) => pathname.startsWith('/guia-sala/panel');
+
 function AppContent({ Component, pageProps }: { Component: AppProps['Component']; pageProps: any }) {
   const router = useRouter();
   const { data: session } = useSession();
@@ -35,6 +37,11 @@ function AppContent({ Component, pageProps }: { Component: AppProps['Component']
     !isAdminPage;
 
   if (isAdminPage) {
+    return <Component {...pageProps} />;
+  }
+
+  // Tablet de la sala (iframe de Home Assistant): solo la guía, sin cabecera, pie ni avisos
+  if (isKioskPage(router.pathname)) {
     return <Component {...pageProps} />;
   }
 
@@ -81,12 +88,12 @@ function AnalyticsLoader() {
   );
 }
 
-export default function App({ Component, pageProps: { session, ...pageProps } }: AppProps) {
+export default function App({ Component, pageProps: { session, ...pageProps }, router }: AppProps) {
   return (
     <SessionProvider session={session}>
       <AnalyticsLoader />
       <AppContent Component={Component} pageProps={pageProps} />
-      <CookieConsent />
+      {!isKioskPage(router.pathname) && <CookieConsent />}
     </SessionProvider>
   );
 }

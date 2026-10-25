@@ -53,7 +53,7 @@ tags: [normas, aforo, niños]
 ```
 
 - Enlaces entre documentos con ruta relativa al `.md` (`[Chiquipark](zonas/sala-kids.md)`); en build se convierten en `/guia-sala/zonas/sala-kids`. **Un enlace roto hace fallar el build.**
-- `/guia-sala` lista los hubs con `guia-sala`; la sección **Operaciones** lista todas las `operacion` (título + "cuándo"), agrupadas por `tags`.
+- `/guia-sala` lista los hubs con `guia-sala`; la sección **Operaciones** lista todas las `operacion` (título + "cuándo"), ordenadas por `order`; las `detalle` salen en **Zonas**.
 - Cada documento tiene su página `/guia-sala/<slug>` (`getStaticPaths`), útil para enlazar desde el chatbot y compartir por WhatsApp.
 
 Plantilla de operación (secciones obligatorias; si falta alguna, el build falla):
@@ -90,7 +90,7 @@ tags: [panel, inicio]
 
 ### 3b. Contenido recogido hasta ahora
 
-Se redacta en los `.md` al implementar (tarea 1.3). Fuente: lo dictado por el propietario y el dashboard de Home Assistant `panel-clientes` (tablet de la sala en modo kiosco).
+Redactado en `content/kb/` (tarea 1.3). Fuente: lo dictado por el propietario y el dashboard de Home Assistant `panel-clientes` (tablet de la sala en modo kiosco).
 
 **Panel de control (punto de partida)**. Arriba: logo, nombre del evento (o "Celebra momentos inolvidables" si no hay) y tres botones:
 

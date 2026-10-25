@@ -1,11 +1,13 @@
+> Phase 1 (KB + guide pages): sections 1 and 4.2–4.3. Phase 2 (chatbot): sections 2, 3, 4.1, 4.4 and the widget in 4.2.
+
 ## 1. Knowledge base
 
-- [ ] 1.1 Add `gray-matter` and a Markdown renderer
-- [ ] 1.2 Move the `/como-funciona` FAQ into hubs (`reserva`, `dia-del-evento`, `decoracion-y-limpieza`, `normas`) with `pages`
-- [ ] 1.3 Write `panel-de-control.md`, `zonas/sala-kids.md` (with the Chiquipark rule) and the operations listed in design 3b; fix the FAQ answer about music (Bluetooth from the phone is allowed)
-- [ ] 1.4 `src/lib/kb.ts` (`getKbDocs`, `getKbDoc`): frontmatter, `## ` parsing, link rewriting, build errors for broken links and incomplete operations + unit tests
-- [ ] 1.5 `/como-funciona` reads the KB in `getStaticProps`; remove the hard-coded `categories`
-- [ ] 1.6 `/guia-sala` (panel first, hubs, Operaciones) and `/guia-sala/[...slug]`
+- [x] 1.1 Add `gray-matter` and a Markdown renderer
+- [x] 1.2 Move the `/como-funciona` FAQ into hubs (`reserva`, `dia-del-evento`, `decoracion-y-limpieza`, `normas`) with `pages`
+- [x] 1.3 Write `panel-de-control.md`, `zonas/sala-kids.md` (with the Chiquipark rule) and the operations listed in design 3b; fix the FAQ answer about music (Bluetooth from the phone is allowed)
+- [x] 1.4 `src/lib/kb.ts` (`getKbDocs`, `getKbDoc`): frontmatter, `## ` parsing, link rewriting, build errors for broken links and incomplete operations + unit tests
+- [x] 1.5 `/como-funciona` reads the KB in `getStaticProps`; remove the hard-coded `categories`
+- [x] 1.6 `/guia-sala` (panel first, hubs, Operaciones) and `/guia-sala/[...slug]`
 
 ## 2. Shared data access
 
@@ -23,11 +25,15 @@
 ## 4. Widget
 
 - [ ] 4.1 `src/components/ChatWidget.tsx` (dynamic import), mounted on public pages, hidden on `/admin` and `/mis-eventos/[id]`
-- [ ] 4.2 `/guia-sala/panel` kiosk layout (no header/footer, `noindex`) with the widget open
-- [ ] 4.3 `next.config.js`: for `/guia-sala/panel/:path*`, drop `X-Frame-Options` and add `frame-ancestors 'self' http://homeassistant.local https://homeassistant.local`; check the Home Assistant iframe loads
+- [x] 4.2 `/guia-sala/panel` kiosk layout (no header/footer/cookie banner, `noindex`)
+- [ ] 4.2b Open the chat widget on `/guia-sala/panel` (phase 2)
+- [x] 4.3 `next.config.js`: for `/guia-sala/panel/:path*`, drop `X-Frame-Options` and add `frame-ancestors 'self' http://homeassistant.local https://homeassistant.local`; check the Home Assistant iframe loads
 - [ ] 4.4 GA4 events `chat_open`, `chat_message`, `chat_handoff_whatsapp`
 
 ## 5. Verify
 
-- [ ] 5.1 `npx tsc --noEmit`, `npm test`, `npm run build`
+- [ ] 5.0 On the room tablet: tap Ayuda and check the guide loads inside Home Assistant
+
+- [x] 5.1 `npx tsc --noEmit`, `npm test`, `npm run build` (phase 1)
+- [ ] 5.1b Same checks after phase 2
 - [ ] 5.2 Ask price, availability, cancellation and an off-topic question; check the answers and the handoff

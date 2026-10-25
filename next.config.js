@@ -18,6 +18,16 @@ const securityHeaders = [
   },
 ]
 
+// /guia-sala/panel se muestra dentro de un iframe en el panel de Home Assistant de la sala.
+// Solo esa ruta puede embeberse, y solo desde la web y desde homeassistant.local.
+const kioskHeaders = securityHeaders
+  .filter((h) => h.key !== 'X-Frame-Options')
+  .map((h) =>
+    h.key === 'Content-Security-Policy'
+      ? { ...h, value: `${h.value}; frame-ancestors 'self' http://homeassistant.local https://homeassistant.local` }
+      : h
+  )
+
 const nextConfig = {
   reactStrictMode: false, // Disabled to prevent double rendering issues
   images: {
@@ -43,7 +53,11 @@ const nextConfig = {
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
   },
   async headers() {
-    return [{ source: '/(.*)', headers: securityHeaders }]
+    return [
+      { source: '/((?!guia-sala/panel(?:/|$)).*)', headers: securityHeaders },
+      { source: '/guia-sala/panel', headers: kioskHeaders },
+      { source: '/guia-sala/panel/:path*', headers: kioskHeaders },
+    ]
   },
 }
 
