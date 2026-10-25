@@ -11,29 +11,29 @@
 
 ## 2. Shared data access
 
-- [ ] 2.1 Extract `src/lib/pricingRules.ts` from `/api/pricing/current`
-- [ ] 2.2 Extract `src/lib/bookedSlots.ts` from `/api/booked-slots`
-- [ ] 2.3 Both APIs use the extracted functions (no behavior change)
+- [x] 2.1 Extract `src/lib/pricingRules.ts` from `/api/pricing/current`
+- [x] 2.2 Extract `src/lib/bookedSlots.ts` from `/api/booked-slots`
+- [x] 2.3 Both APIs use the extracted functions (no behavior change)
 
 ## 3. Chat API
 
-- [ ] 3.1 `src/lib/kbChat.ts`: system prompt (KB with `cache_control`), tools `get_pricing` and `check_availability`, tool-use loop
-- [ ] 3.2 `POST /api/chat` with input validation (zod), length limits and per-IP rate limit
-- [ ] 3.3 WhatsApp handoff (`handoff: true`)
-- [ ] 3.4 Unit tests for the tools and request validation
+- [x] 3.1 `src/lib/kbChat.ts`: system prompt (KB with `cache_control`), tools `get_pricing` and `check_availability`, tool-use loop
+- [x] 3.2 `POST /api/chat` with input validation (zod), length limits and per-IP rate limit
+- [x] 3.3 WhatsApp handoff (`handoff: true`)
+- [x] 3.4 Unit tests for the tools and request validation
 
 ## 4. Widget
 
-- [ ] 4.1 `src/components/ChatWidget.tsx` (dynamic import), mounted on public pages, hidden on `/admin` and `/mis-eventos/[id]`
+- [x] 4.1 `src/components/ChatWidget.tsx` (dynamic import), mounted on public pages, hidden on `/admin` and `/mis-eventos/[id]`
 - [x] 4.2 `/guia-sala/panel` kiosk layout (no header/footer/cookie banner, `noindex`)
-- [ ] 4.2b Open the chat widget on `/guia-sala/panel` (phase 2)
+- [x] 4.2b Open the chat widget on `/guia-sala/panel` (phase 2)
 - [x] 4.3 `next.config.js`: for `/guia-sala/panel/:path*`, drop `X-Frame-Options` and add `frame-ancestors 'self' http://homeassistant.local https://homeassistant.local`; check the Home Assistant iframe loads
-- [ ] 4.4 GA4 events `chat_open`, `chat_message`, `chat_handoff_whatsapp`
+- [x] 4.4 GA4 events `chat_open`, `chat_message`, `chat_handoff_whatsapp`
 
 ## 5. Verify
 
 - [ ] 5.0 On the room tablet: tap Ayuda and check the guide loads inside Home Assistant
 
 - [x] 5.1 `npx tsc --noEmit`, `npm test`, `npm run build` (phase 1)
-- [ ] 5.1b Same checks after phase 2
+- [x] 5.1b Same checks after phase 2
 - [ ] 5.2 Ask price, availability, cancellation and an off-topic question; check the answers and the handoff

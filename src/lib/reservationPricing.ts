@@ -1,4 +1,5 @@
 import { query } from '@/lib/db';
+import { getActivePricingRules } from '@/lib/pricingRules';
 import { openingDiscountAmount } from '@/config/promotions';
 import { DEFAULT_PRICING_RULES, bookingTotals, getPricingRuleKeyFor, type TimeSlot } from '@/utils/pricing';
 
@@ -24,23 +25,13 @@ export async function computeReservationPrice(params: {
   extraHours: number;
   extraIds: string[];
 }): Promise<ServerPrice> {
-  const [rulesResult, holidaysResult] = await Promise.all([
-    query(
-      `SELECT rule_name, price FROM pricing_rules
-       WHERE active = true
-         AND (effective_from IS NULL OR effective_from <= CURRENT_DATE)
-         AND (effective_to IS NULL OR effective_to >= CURRENT_DATE)`
-    ),
+  const [rules, holidaysResult] = await Promise.all([
+    getActivePricingRules(),
     query('SELECT 1 FROM holidays WHERE holiday_date IN ($1::date, $2::date)', [params.date, addDays(params.date, 1)]),
   ]);
-
-  const rules: Record<string, number> = {};
-  rulesResult.rows.forEach((row: any) => {
-    rules[row.rule_name] = parseFloat(row.price);
-  });
   const ruleKey = getPricingRuleKeyFor(new Date(`${params.date}T12:00:00`), params.timeSlot, holidaysResult.rows.length > 0);
   // Igual que el wizard: si la BD no tiene reglas, se usa la parrilla por defecto
-  const basePrice = (rulesResult.rows.length > 0 ? rules : DEFAULT_PRICING_RULES)[ruleKey];
+  const basePrice = (Object.keys(rules).length > 0 ? rules : DEFAULT_PRICING_RULES)[ruleKey];
   if (!basePrice) return { ok: false, reason: 'consult' };
 
   let extrasTotal = 0;

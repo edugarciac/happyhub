@@ -320,3 +320,25 @@ export function getManualIndexProps() {
 export function getManualDocProps(slug: string) {
   return docProps(loadKb(MANUAL_DIR), slug, MANUAL_BASE_PATH);
 }
+
+// ───────── Texto para el chatbot ─────────
+
+/** Documento en Markdown para el prompt: variables sustituidas y enlaces a otros .md convertidos en rutas de la web */
+export function kbDocAsMarkdown(doc: KbDoc, basePath: string): string {
+  const rewrite = (markdown: string) =>
+    replaceTokens(markdown, doc.file).replace(/\]\(([^)\s]+)\)/g, (match, href: string) => {
+      const link = resolveKbLink(doc.slug, href);
+      return link ? `](${basePath}/${link.slug}${link.hash})` : match;
+    });
+  const parts = [`# ${doc.title}`, `URL: ${basePath}/${doc.slug}`];
+  if (doc.intro) parts.push(rewrite(doc.intro));
+  for (const s of doc.sections) parts.push(`## ${s.heading}\n\n${rewrite(s.markdown)}`);
+  return parts.join('\n\n');
+}
+
+/** Toda la KB pública (nunca el manual interno) como un único texto estable, para el prompt de sistema */
+export function getKbPromptText(): string {
+  return loadKb()
+    .map((doc) => kbDocAsMarkdown(doc, '/guia-sala'))
+    .join('\n\n---\n\n');
+}

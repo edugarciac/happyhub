@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { query } from '@/lib/db';
-import { expireUnpaidReservations } from '@/lib/reservationFlow';
+import { getBookedSlots } from '@/lib/bookedSlots';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -8,29 +7,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    // Liberar primero las reservas aprobadas con la señal sin pagar fuera de plazo
-    await expireUnpaidReservations();
-
-    const [reservationsResult, blockedResult] = await Promise.all([
-      query<{ event_date: string; time_slot: string }>(
-        `SELECT TO_CHAR(event_date, 'YYYY-MM-DD') AS event_date, time_slot
-         FROM reservations
-         WHERE status IN ('pending', 'approved', 'confirmed')
-           AND event_date >= CURRENT_DATE`
-      ),
-      query<{ event_date: string; time_slot: string }>(
-        `SELECT TO_CHAR(slot_date, 'YYYY-MM-DD') AS event_date, time_slot
-         FROM blocked_slots
-         WHERE slot_date >= CURRENT_DATE`
-      ),
-    ]);
-
-    const allRows = [...reservationsResult.rows, ...blockedResult.rows];
-
-    const bookedSlots = allRows.map((row) => ({
+    const bookedSlots = (await getBookedSlots()).map((slot) => ({
       // Use noon UTC to avoid date shifting across timezones
-      date: `${row.event_date}T12:00:00.000Z`,
-      timeSlot: row.time_slot,
+      date: `${slot.date}T12:00:00.000Z`,
+      timeSlot: slot.timeSlot,
     }));
 
     return res.status(200).json({ bookedSlots });
