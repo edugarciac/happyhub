@@ -235,7 +235,7 @@ export default function ContractPage() {
         <p>3.4. Esta prohibido fumar cigarrillos y usar vapers o cigarrillos electronicos en el interior del espacio.</p>
         <p>3.5. El Cliente firmante es el responsable de la reserva: debe ser mayor de edad, estar presente durante todo el evento y responde del comportamiento de todos los asistentes.</p>
         <p>3.6. Esta prohibido servir o permitir el consumo de bebidas alcoholicas a menores de 18 anos. Las bebidas alcoholicas que aporte el Cliente son solo para consumo privado; esta prohibida su venta.</p>
-        <p>3.7. No se permite el uso de confeti, purpurina, bengalas, pirotecnia ni velas de chispa, ni fijar elementos en paredes o techos con clavos, tornillos, celo, cinta americana o pegamento. No se admiten mascotas, salvo animales de asistencia acreditados. No se permite conectar equipos de sonido propios.</p>
+        <p>3.7. No se permite el uso de confeti, purpurina, bengalas, pirotecnia ni velas de chispa, ni fijar elementos en paredes o techos con clavos, tornillos, celo, cinta americana o pegamento. No se admiten mascotas, salvo animales de asistencia acreditados. No se permite traer ni conectar equipos de sonido propios; si se puede poner musica desde el movil por Bluetooth con el sistema de sonido del espacio.</p>
         <p>3.8. Los proveedores externos que contrate el Cliente (catering, animacion, hinchables, etc.) son responsabilidad del Cliente y deberan cumplir la normativa aplicable y disponer de su propio seguro de responsabilidad civil.</p>
 
         <h2>4. Horarios</h2>
