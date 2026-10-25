@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { BIZUM_ENABLED } from '@/config/payments';
 
 export const TERMS_LAST_UPDATED = '25 de octubre de 2026';
 
@@ -31,7 +32,7 @@ export default function TermsContent() {
         <ol className="list-decimal list-inside space-y-2">
           <li>El cliente selecciona la fecha y franja horaria deseada y envía la solicitud de reserva a través de la web. En ese momento no se realiza ningún cargo.</li>
           <li>La solicitud queda <strong>pendiente de aprobación</strong>. HappyHub la revisa y la aprueba o rechaza.</li>
-          <li>Si se aprueba, el cliente recibe un correo con el enlace para pagar un depósito del <strong>30% del precio total</strong> con tarjeta, o con las instrucciones para pagarlo por Bizum.</li>
+          <li>Si se aprueba, el cliente recibe un correo con el enlace para pagar un depósito del <strong>30% del precio total</strong> con tarjeta{BIZUM_ENABLED && ', o con las instrucciones para pagarlo por Bizum'}.</li>
           <li>El cliente dispone de <strong>24 horas</strong> desde la aprobación para pagar el depósito. Si no se recibe en ese plazo, HappyHub le envía un recordatorio por correo y, si el depósito no se paga en las <strong>24 horas siguientes</strong> (48 horas desde la aprobación), la reserva se cancela y la fecha queda libre.</li>
           <li>Una vez recibido el depósito, la reserva queda confirmada y HappyHub envía la confirmación por correo.</li>
           <li>El día del evento, antes de empezar, se paga el resto (70%) y se bloquea una fianza de 150 € en la tarjeta del cliente (ver apartado 4).</li>
@@ -66,17 +67,17 @@ export default function TermsContent() {
               <tr>
                 <td className="p-2 border-b"><strong>Señal: 30% del precio</strong></td>
                 <td className="p-2 border-b">En las 24 horas siguientes a que aprobemos la reserva</td>
-                <td className="p-2 border-b">Tarjeta (enlace de pago) <strong>o Bizum</strong></td>
+                <td className="p-2 border-b">Tarjeta (enlace de pago){BIZUM_ENABLED && <> <strong>o Bizum</strong></>}</td>
               </tr>
               <tr>
                 <td className="p-2 border-b"><strong>Resto: 70% del precio</strong></td>
                 <td className="p-2 border-b">El día del evento, antes de empezar</td>
-                <td className="p-2 border-b">Solo tarjeta: enlace o código QR en tu móvil, o datáfono. <strong>No se admite Bizum.</strong></td>
+                <td className="p-2 border-b">Solo tarjeta: enlace o código QR en tu móvil, o datáfono.{BIZUM_ENABLED && <> <strong>No se admite Bizum.</strong></>}</td>
               </tr>
               <tr>
                 <td className="p-2"><strong>Fianza: 150 €</strong></td>
                 <td className="p-2">El día del evento, antes de empezar, junto con el resto</td>
-                <td className="p-2">Bloqueo temporal en tarjeta de crédito o débito. <strong>No se admite Bizum ni efectivo.</strong></td>
+                <td className="p-2">Bloqueo temporal en tarjeta de crédito o débito. <strong>No se admite {BIZUM_ENABLED ? 'Bizum ni efectivo' : 'efectivo'}.</strong></td>
               </tr>
             </tbody>
           </table>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
-import { SECURITY_DEPOSIT_AMOUNT } from '@/config/payments';
+import { BIZUM_ENABLED, SECURITY_DEPOSIT_AMOUNT } from '@/config/payments';
 
 interface ReservationData {
   id: number;
@@ -18,6 +18,7 @@ interface ReservationData {
   deposit_amount: string;
   security_deposit: string | null;
   customer_message: string | null;
+  payment_method: string | null;
 }
 
 interface AcceptanceData {
@@ -121,6 +122,9 @@ export default function ContractPage() {
   const totalPrice = parseFloat(r.total_price || '0');
   const extrasPrice = totalPrice - basePrice;
   const deposit = parseFloat(r.deposit_amount || '0');
+  // Forma de pago de la señal de esta reserva; sin dato, la que se ofrece ahora
+  const depositMethod =
+    r.payment_method === 'bizum' ? 'Bizum' : r.payment_method === 'card' ? 'tarjeta' : BIZUM_ENABLED ? 'tarjeta o Bizum' : 'tarjeta';
   const fianza = SECURITY_DEPOSIT_AMOUNT;
   const remaining = totalPrice - deposit;
 
@@ -194,7 +198,7 @@ export default function ContractPage() {
             <tr><th>Alquiler del espacio</th><td>{basePrice.toFixed(2)} EUR</td></tr>
             <tr><th>Servicios adicionales</th><td>{extrasPrice > 0 ? extrasPrice.toFixed(2) : '0.00'} EUR</td></tr>
             <tr><th><strong>Precio total</strong></th><td><strong>{totalPrice.toFixed(2)} EUR</strong></td></tr>
-            <tr><th>Senal (30% del total)</th><td>{deposit.toFixed(2)} EUR - al aprobar la reserva (tarjeta o Bizum)</td></tr>
+            <tr><th>Senal (30% del total)</th><td>{deposit.toFixed(2)} EUR - al aprobar la reserva ({depositMethod})</td></tr>
             <tr><th>Resto a abonar</th><td>{remaining.toFixed(2)} EUR - el dia del evento, antes de empezar (solo tarjeta)</td></tr>
             <tr><th>Fianza (bloqueo en tarjeta)</th><td>{fianza.toFixed(2)} EUR - el dia del evento, antes de empezar</td></tr>
           </tbody>
@@ -202,7 +206,7 @@ export default function ContractPage() {
 
         <div className="clause">
           <p><strong>2.1. Senal (paga y senal)</strong></p>
-          <p>El Cliente abona, en las 24 horas siguientes a la aprobacion de la reserva y con tarjeta o Bizum, la cantidad de <strong>{deposit.toFixed(2)} EUR</strong> en concepto de senal confirmatoria (arras confirmatorias, art. 1124 del Codigo Civil). Este importe se descontara del precio total.</p>
+          <p>El Cliente abona, en las 24 horas siguientes a la aprobacion de la reserva y con {depositMethod}, la cantidad de <strong>{deposit.toFixed(2)} EUR</strong> en concepto de senal confirmatoria (arras confirmatorias, art. 1124 del Codigo Civil). Este importe se descontara del precio total.</p>
         </div>
 
         <div className="clause">
@@ -225,7 +229,7 @@ export default function ContractPage() {
         </div>
 
         <div className="clause">
-          <p><strong>2.5. Metodos de pago:</strong> senal con tarjeta o Bizum; resto y fianza solo con tarjeta (credito o debito).</p>
+          <p><strong>2.5. Metodos de pago:</strong> senal con {depositMethod}; resto y fianza solo con tarjeta (credito o debito).</p>
         </div>
 
         <h2>3. Condiciones de uso del espacio</h2>
