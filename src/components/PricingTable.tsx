@@ -15,7 +15,12 @@ interface PriceRow {
 const INCLUDED = [
   'Uso exclusivo del espacio',
   'Mobiliario básico (mesas y sillas)',
-  'Sistema de sonido',
+  'Sistema de sonido de alta calidad',
+  'Proyector con barra de sonido',
+  'Smart TV de último modelo',
+  'Sistema de videojuegos arcade',
+  'Futbolín',
+  'Chiquipark (menores de 14 años)',
   'Microondas y nevera',
   'Cafetera Dolce Gusto (cápsulas no incluidas)',
   'Acceso 30 min antes (1 h extra de montaje: 30 €)',
