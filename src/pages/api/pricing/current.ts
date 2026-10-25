@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { query } from '../../../lib/db';
+import { getActivePricingRules } from '@/lib/pricingRules';
 
 interface PricingResponse {
   success: boolean;
@@ -16,21 +16,7 @@ export default async function handler(
   }
 
   try {
-    // Get active pricing rules
-    const result = await query(
-      `SELECT rule_name, price
-       FROM pricing_rules
-       WHERE active = true
-         AND (effective_from IS NULL OR effective_from <= CURRENT_DATE)
-         AND (effective_to IS NULL OR effective_to >= CURRENT_DATE)
-       ORDER BY id`
-    );
-
-    // Convert to key-value object for easy lookup
-    const pricing: Record<string, number> = {};
-    result.rows.forEach((row: any) => {
-      pricing[row.rule_name] = parseFloat(row.price);
-    });
+    const pricing = await getActivePricingRules();
 
     return res.status(200).json({
       success: true,

@@ -163,22 +163,26 @@ Los `.md` **no** son fuente de verdad para precio ni fechas libres (se quedaría
 ### 6. Endpoint `POST /api/chat`
 
 - Body: `{ messages: { role: 'user' | 'assistant', content: string }[] }`. Historial en el cliente (sin persistir en BD en esta fase).
-- Bucle de tool use en servidor (máx. 3 iteraciones) y devuelve `{ reply }`. Streaming queda fuera de esta fase.
-- Modelo: Haiku (rápido y barato, suficiente para FAQ); id centralizado en `src/lib/ai.ts`.
-- Límites: máx. 20 mensajes y 1 000 caracteres por mensaje; rate limit por IP (p. ej. 20 mensajes / 10 min); `max_tokens` ≈ 600.
+- Bucle de tool use en servidor (máx. 4 rondas) y devuelve `{ reply, handoff }`. Sin streaming en esta fase.
+- Modelo: **Claude Haiku 5.5** (`claude-haiku-5-5`, decisión del propietario por coste: ≈0,05 céntimos por mensaje), `effort: low`, `max_tokens` 4096 (incluye el razonamiento). Constante `CHAT_MODEL` en `src/lib/kbChat.ts`; el cliente de Anthropic se comparte desde `src/lib/ai.ts`.
+- Prompt: reglas + toda la KB pública en un bloque de sistema con `cache_control`; la fecha de hoy va en un segundo bloque después del corte para no invalidar la caché.
+- Límites: máx. 20 mensajes y 1 000 caracteres por mensaje del cliente; 20 mensajes cada 10 min por IP y tope diario global (`CHAT_DAILY_LIMIT`, 1 000 por defecto) para acotar el coste. Se cuentan en la tabla `chat_usage` (solo hash de la IP, se borra a los 2 días), porque en Vercel la memoria no se comparte entre instancias.
+- Si la API de Claude falla, el modelo rechaza la petición o el bucle no termina, se responde con la derivación a WhatsApp.
 - Idioma: responde en el idioma del cliente (por defecto castellano), tono de la web.
 
 ### 7. Derivación a WhatsApp
 
 - Si la respuesta no está en la KB ni en las herramientas, o el cliente pide hablar con una persona, el bot lo dice y ofrece `CONTACT_INFO.whatsapp` con un mensaje prerrellenado. Nunca inventa.
-- La respuesta incluye `handoff: true` para que el widget muestre un botón de WhatsApp.
+- El modelo llama a la herramienta `derivar_a_whatsapp`; la respuesta incluye entonces `handoff: true` y el widget muestra el botón de WhatsApp.
 - El bot no crea ni modifica reservas: para reservar, enlaza a `/disponibilidad`.
 
 ### 8. Widget
 
 - `ChatWidget` flotante (abajo a la derecha), cargado con `next/dynamic` para no penalizar la carga inicial. Montado en `_app.tsx` para páginas públicas (excluye `/admin`) y abierto por defecto en `/guia-sala/panel`.
 - En móvil no debe tapar la barra inferior de `/mis-eventos/[id]` (no se monta ahí).
-- Eventos GA4: `chat_open`, `chat_message`, `chat_handoff_whatsapp`.
+- Eventos GA4: `chat_open`, `chat_message`, `chat_handoff_whatsapp`. `event()` de `src/lib/analytics.ts` no hace nada si `gtag` no está cargado (cookies rechazadas, tablet): antes lanzaba un error.
+- La conversación se guarda en `sessionStorage` y se olvida tras 30 min sin uso, para que en la tablet no la vea el siguiente cliente.
+- Las respuestas admiten un Markdown mínimo (enlaces internos o https, negrita, listas); todo lo demás se escapa. En la tablet, los enlaces a `/guia-sala/...` se quedan dentro de `/guia-sala/panel/...`.
 
 ## Risks / Trade-offs
 

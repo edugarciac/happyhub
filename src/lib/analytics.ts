@@ -9,13 +9,18 @@ declare global {
   }
 }
 
+/** gtag solo existe si el visitante aceptó las cookies (y nunca en la tablet de la sala) */
+function gtagReady(): boolean {
+  return Boolean(GA_MEASUREMENT_ID) && typeof window !== 'undefined' && typeof window.gtag === 'function';
+}
+
 export function pageview(url: string) {
-  if (!GA_MEASUREMENT_ID) return;
+  if (!gtagReady()) return;
   window.gtag('config', GA_MEASUREMENT_ID, { page_path: url });
 }
 
 export function event(action: string, params?: Record<string, any>) {
-  if (!GA_MEASUREMENT_ID) return;
+  if (!gtagReady()) return;
   window.gtag('event', action, params);
 }
 

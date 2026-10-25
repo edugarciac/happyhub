@@ -11,9 +11,14 @@ import ComingSoonOverlay from '@/components/ComingSoonOverlay';
 import CookieConsent, { useCookieConsent } from '@/components/CookieConsent';
 import FeedbackWidget from '@/components/FeedbackWidget';
 import { Toaster } from 'react-hot-toast';
+import dynamic from 'next/dynamic';
 import { GA_MEASUREMENT_ID, pageview, useScrollDepthTracking } from '@/lib/analytics';
 
 const isKioskPage = (pathname: string) => pathname.startsWith('/guia-sala/panel');
+// El chat se carga aparte para no pesar en la carga inicial
+const ChatWidget = dynamic(() => import('@/components/ChatWidget'), { ssr: false });
+// Páginas donde el botón del chat taparía la barra inferior del evento
+const NO_CHAT_PAGES = ['/mis-eventos/[id]'];
 
 function AppContent({ Component, pageProps }: { Component: AppProps['Component']; pageProps: any }) {
   const router = useRouter();
@@ -56,6 +61,7 @@ function AppContent({ Component, pageProps }: { Component: AppProps['Component']
       </main>
       <Footer />
       <FeedbackWidget />
+      {!NO_CHAT_PAGES.includes(router.pathname) && <ChatWidget />}
     </>
   );
 }

@@ -1,7 +1,10 @@
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { ChevronRight, Zap } from 'lucide-react';
 import type { KbDocLink, KbRenderedDoc } from '@/lib/kbTypes';
 import GuideLayout from './GuideLayout';
+
+const ChatWidget = dynamic(() => import('@/components/ChatWidget'), { ssr: false });
 
 export interface GuideIndexProps {
   basePath: string;
@@ -102,6 +105,9 @@ export default function GuideIndex({ basePath, panel, operations, zones, hubs, k
           {hubs.map((doc) => <DocCard key={doc.slug} doc={doc} kiosk={kiosk} />)}
         </div>
       </section>
+
+      {/* En la tablet el chat va abierto al entrar desde el botón Ayuda; en la web lo monta _app */}
+      {kiosk && <ChatWidget defaultOpen guideBasePath={basePath} />}
     </GuideLayout>
   );
 }
