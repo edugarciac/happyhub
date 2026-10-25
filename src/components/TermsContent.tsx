@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-export const TERMS_LAST_UPDATED = '18 de octubre de 2026';
+export const TERMS_LAST_UPDATED = '25 de octubre de 2026';
 
 /** Texto completo de los términos y condiciones. Se usa en /terminos y en el paso 3 de la reserva. */
 export default function TermsContent() {
@@ -130,7 +130,7 @@ export default function TermsContent() {
           <li>Responsabilizarse de los proveedores externos que contrate (catering, animación, hinchables, etc.), que deberán cumplir la normativa aplicable, incluida la sanitaria, y disponer de su propio seguro de responsabilidad civil.</li>
           <li>Comunicar cualquier incidencia o desperfecto durante el evento.</li>
           <li>Dejar el espacio completamente recogido y en las mismas condiciones en que fue entregado al finalizar el evento. Esto incluye recoger todos los residuos, devolver el mobiliario a su posición original y retirar cualquier decoración o material traído por el cliente.</li>
-          <li>No traer ni utilizar equipos de audio o sistemas de sonido propios. El espacio dispone de su propio sistema de sonido. El uso de dispositivos de audio externos no está permitido bajo ninguna circunstancia.</li>
+          <li>No traer ni conectar equipos de audio o sistemas de sonido propios (altavoces, mesas de mezclas, etc.). El espacio dispone de su propio sistema de sonido. Sí se puede poner música desde el móvil por Bluetooth con el sistema de sonido de la sala.</li>
         </ul>
         <div className="mt-4 bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg">
           <p className="font-semibold text-amber-900">Incumplimiento de las obligaciones</p>
