@@ -24,7 +24,7 @@ content/kb/
   decoracion-y-limpieza.md   # hub
   normas.md                  # hub · normas del espacio
   zonas/
-    chiquipark.md            # detalle
+    sala-kids.md             # detalle · Chiquipark, luz y aire de la Sala Kids
   operaciones/
     encender-sala.md         # operación
     desactivar-sala.md       # operación
@@ -52,7 +52,7 @@ tags: [normas, aforo, niños]
 ---
 ```
 
-- Enlaces entre documentos con ruta relativa al `.md` (`[Chiquipark](zonas/chiquipark.md)`); en build se convierten en `/guia-sala/zonas/chiquipark`. **Un enlace roto hace fallar el build.**
+- Enlaces entre documentos con ruta relativa al `.md` (`[Chiquipark](zonas/sala-kids.md)`); en build se convierten en `/guia-sala/zonas/sala-kids`. **Un enlace roto hace fallar el build.**
 - `/guia-sala` lista los hubs con `guia-sala`; la sección **Operaciones** lista todas las `operacion` (título + "cuándo"), agrupadas por `tags`.
 - Cada documento tiene su página `/guia-sala/<slug>` (`getStaticPaths`), útil para enlazar desde el chatbot y compartir por WhatsApp.
 
@@ -131,19 +131,19 @@ Debajo, tres grupos por tipología:
 
 **Otras normas**
 
-- **Chiquipark**: solo pueden usarlo menores de 14 años.
+- **Sala Kids**: es donde está el **Chiquipark**, que solo pueden usar menores de 14 años. En el panel tiene su propia luz ("Sala Kids") y su propio aire acondicionado. `normas.md` enlaza a `zonas/sala-kids.md`.
 - Normas ya existentes en la FAQ (aforo 50, no fumar, mascotas, volumen, materiales prohibidos, limpieza) pasan a `normas.md` / `decoracion-y-limpieza.md` sin duplicarse.
 - **Corregir al fusionar**: la FAQ dice "No se puede conectar tu propio equipo de música". Hay que matizar que sí se puede poner música desde el móvil por Bluetooth (operación "Conectar mi móvil"); lo que no se permite es traer equipos de sonido.
 
 **Operaciones previstas** (plantilla común): `encender-sala`, `desactivar-sala`, `conectar-movil-bluetooth`, `poner-gramola`, `ajustar-aire`, `encender-luces`.
 
-**Pendiente de confirmar**: dónde está el Chiquipark (¿Sala Kids?); confirmar que `encender_sala` y `cerrar_sala` ya incluyen la luz de la Barra antes de publicar la ficha.
+**Pendiente de confirmar**: confirmar que `encender_sala` y `cerrar_sala` ya incluyen la luz de la Barra antes de publicar la ficha.
 
 ### 4. Chatbot: contexto completo, no RAG
 
 - El volumen es pequeño (≈30 preguntas, unos pocos miles de tokens). Meter todos los `.md` en el prompt de sistema es más simple y más preciso que embeddings + búsqueda.
 - El bloque del prompt de sistema con la KB se marca con `cache_control` (prompt caching): es idéntico en cada llamada y abarata el coste por mensaje.
-- Cada documento entra con su slug y URL, para que el bot enlace el detalle ("Más info: /guia-sala/zonas/chiquipark").
+- Cada documento entra con su slug y URL, para que el bot enlace el detalle ("Más info: /guia-sala/zonas/sala-kids").
 - Para operaciones, el bot responde con los **Pasos** de la plantilla y enlaza la operación.
 - Revisar RAG solo si la KB supera ~50k tokens.
 

@@ -2,7 +2,7 @@
 
 - [ ] 1.1 Add `gray-matter` and a Markdown renderer
 - [ ] 1.2 Move the `/como-funciona` FAQ into hubs (`reserva`, `dia-del-evento`, `decoracion-y-limpieza`, `normas`) with `pages`
-- [ ] 1.3 Write `panel-de-control.md`, `zonas/chiquipark.md` and the operations listed in design 3b; fix the FAQ answer about music (Bluetooth from the phone is allowed)
+- [ ] 1.3 Write `panel-de-control.md`, `zonas/sala-kids.md` (with the Chiquipark rule) and the operations listed in design 3b; fix the FAQ answer about music (Bluetooth from the phone is allowed)
 - [ ] 1.4 `src/lib/kb.ts` (`getKbDocs`, `getKbDoc`): frontmatter, `## ` parsing, link rewriting, build errors for broken links and incomplete operations + unit tests
 - [ ] 1.5 `/como-funciona` reads the KB in `getStaticProps`; remove the hard-coded `categories`
 - [ ] 1.6 `/guia-sala` (panel first, hubs, Operaciones) and `/guia-sala/[...slug]`

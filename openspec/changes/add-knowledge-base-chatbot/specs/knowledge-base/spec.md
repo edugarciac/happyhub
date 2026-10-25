@@ -15,8 +15,8 @@ FAQ and room guide content SHALL live in one Markdown collection in `content/kb/
 Documents SHALL have a `type` of `hub`, `detalle` or `operacion`. Hubs SHALL give short answers and link to detail documents; every document SHALL have its own page at `/guia-sala/<slug>`.
 
 #### Scenario: Following a link
-- **WHEN** a hub links to `zonas/chiquipark.md`
-- **THEN** the rendered link SHALL point to `/guia-sala/zonas/chiquipark`
+- **WHEN** a hub links to `zonas/sala-kids.md`
+- **THEN** the rendered link SHALL point to `/guia-sala/zonas/sala-kids`
 
 #### Scenario: Broken link
 - **WHEN** a KB link points to a document that does not exist
