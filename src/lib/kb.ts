@@ -7,7 +7,7 @@ import matter from 'gray-matter';
 import MarkdownIt from 'markdown-it';
 import { z } from 'zod';
 import { CONTACT_INFO } from '@/config/contact';
-import type { KbDocLink, KbPage, KbRenderedDoc, KbType } from './kbTypes';
+import { MANUAL_BASE_PATH, type KbDocLink, type KbPage, type KbRenderedDoc, type KbType } from './kbTypes';
 
 export const KB_DIR = path.join(process.cwd(), 'content', 'kb');
 
@@ -284,14 +284,35 @@ export function getGuidePaths(): string[][] {
   return loadKb().map((d) => d.slug.split('/'));
 }
 
-export function getGuideDocProps(slug: string, basePath: string) {
-  const doc = getKbDoc(slug);
+function docProps(docs: KbDoc[], slug: string, basePath: string) {
+  const doc = getKbDoc(slug, docs);
   if (!doc) return null;
-  const parent = doc.parent ? getKbDoc(doc.parent) : null;
+  const parent = doc.parent ? getKbDoc(doc.parent, docs) : null;
   return {
     basePath,
     doc: renderKbDoc(doc, basePath),
     parent: parent ? kbDocLink(parent, basePath) : null,
-    children: getKbDocs({ parent: doc.slug }).map((d) => kbDocLink(d, basePath)),
+    children: getKbDocs({ parent: doc.slug }, docs).map((d) => kbDocLink(d, basePath)),
   };
+}
+
+export function getGuideDocProps(slug: string, basePath: string) {
+  return docProps(loadKb(), slug, basePath);
+}
+
+// ───────── Manual interno (/admin/manual, solo admins) ─────────
+// Carpeta aparte: loadKb() sin argumentos nunca la lee, así no llega a la web pública ni al chatbot.
+
+export const MANUAL_DIR = path.join(process.cwd(), 'content', 'interno');
+
+export function getManualIndexProps() {
+  const docs = loadKb(MANUAL_DIR);
+  return {
+    operations: getKbDocs({ type: 'operacion' }, docs).map((d) => kbDocLink(d, MANUAL_BASE_PATH)),
+    docs: docs.filter((d) => d.type !== 'operacion').map((d) => kbDocLink(d, MANUAL_BASE_PATH)),
+  };
+}
+
+export function getManualDocProps(slug: string) {
+  return docProps(loadKb(MANUAL_DIR), slug, MANUAL_BASE_PATH);
 }

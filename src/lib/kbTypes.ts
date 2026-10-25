@@ -1,6 +1,9 @@
 // Tipos de la base de conocimiento (content/kb), sin dependencias de servidor
 // para poder importarlos desde componentes
 
+/** Ruta base del manual interno (solo admins) */
+export const MANUAL_BASE_PATH = '/admin/manual';
+
 export type KbType = 'hub' | 'detalle' | 'operacion';
 export type KbPage = 'como-funciona' | 'guia-sala';
 

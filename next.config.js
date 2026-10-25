@@ -52,6 +52,13 @@ const nextConfig = {
     N8N_WEBHOOK_URL: process.env.N8N_WEBHOOK_URL,
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
   },
+  experimental: {
+    // El manual interno se lee del disco en cada petición (solo admins): incluirlo en esas funciones
+    outputFileTracingIncludes: {
+      '/admin/manual': ['./content/interno/**/*'],
+      '/admin/manual/[...slug]': ['./content/interno/**/*'],
+    },
+  },
   async headers() {
     return [
       { source: '/((?!guia-sala/panel(?:/|$)).*)', headers: securityHeaders },

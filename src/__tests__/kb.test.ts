@@ -117,3 +117,19 @@ describe('content/kb', () => {
     expect(getKbDocs({ page: 'guia-sala' }, loadKb())[0].slug).toBe('panel-de-control');
   });
 });
+
+describe('content/interno (internal manual)', () => {
+  it('is valid and links to /admin/manual', () => {
+    const { getManualIndexProps } = require('@/lib/kb');
+    const props = getManualIndexProps();
+    expect(props.operations.length).toBeGreaterThan(0);
+    expect(props.operations.every((d: { href: string }) => d.href.startsWith('/admin/manual/'))).toBe(true);
+  });
+
+  it('never ends up in the public knowledge base', () => {
+    const publicSlugs = loadKb().map((d) => d.slug);
+    const { MANUAL_DIR } = require('@/lib/kb');
+    for (const doc of loadKb(MANUAL_DIR)) expect(publicSlugs).not.toContain(doc.slug);
+    expect(publicSlugs).not.toContain('home-assistant');
+  });
+});
