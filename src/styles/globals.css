@@ -40,6 +40,31 @@
     @apply border-2 border-primary-600 text-primary-700 px-8 py-4 rounded-2xl font-semibold hover:bg-primary-600 hover:text-white transition-all duration-300 inline-flex items-center justify-center;
   }
 
+  /* Contenido de la base de conocimiento (content/kb), renderizado desde Markdown */
+  .kb-content p + p,
+  .kb-content p + ul,
+  .kb-content p + ol,
+  .kb-content ul + p,
+  .kb-content ol + p {
+    @apply mt-3;
+  }
+
+  .kb-content ul {
+    @apply list-disc pl-6 space-y-1;
+  }
+
+  .kb-content ol {
+    @apply list-decimal pl-6 space-y-1;
+  }
+
+  .kb-content a {
+    @apply text-primary-600 font-semibold underline underline-offset-2 hover:text-primary-700;
+  }
+
+  .kb-content strong {
+    @apply font-semibold text-gray-900;
+  }
+
   .card {
     @apply bg-white rounded-3xl shadow-sm p-8 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border border-gray-100;
   }

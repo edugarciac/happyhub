@@ -12,6 +12,7 @@ import {
   Euro,
   PartyPopper,
   MessageSquare,
+  BookLock,
   CalendarDays,
 } from 'lucide-react';
 
@@ -35,10 +36,11 @@ export default function DashboardNav({ onNavigate }: DashboardNavProps) {
     { href: '/admin/pricing', icon: Euro, label: 'Precios' },
     { href: '/admin/holidays', icon: CalendarDays, label: 'Festivos' },
     { href: '/admin/feedback', icon: MessageSquare, label: 'Feedback' },
+    { href: '/admin/manual', icon: BookLock, label: 'Manual interno' },
   ];
 
   const isActive = (href: string) => {
-    return router.pathname === href;
+    return router.pathname === href || router.pathname.startsWith(`${href}/`);
   };
 
   return (

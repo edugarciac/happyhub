@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Users, Gift, Music, Gamepad2, Sparkles, type LucideIcon } from 'lucide-react';
+import { SPOTIFY_ENABLED } from '@/config/features';
 
 interface Section {
   id: string;
@@ -8,13 +9,15 @@ interface Section {
   color: string;
 }
 
-const SECTIONS: Section[] = [
+const ALL_SECTIONS: Section[] = [
   { id: 'invitados', label: 'Invitados', icon: Users, color: 'ocean' },
   { id: 'regalo', label: 'Regalo', icon: Gift, color: 'rose' },
   { id: 'musica', label: 'Música', icon: Music, color: 'violet' },
   { id: 'actividades', label: 'Actividades', icon: Gamepad2, color: 'amber' },
   { id: 'detalles', label: 'Detalles personalizados', icon: Sparkles, color: 'orange' },
 ];
+
+const SECTIONS = ALL_SECTIONS.filter((s) => SPOTIFY_ENABLED || s.id !== 'musica');
 
 const ACTIVE_CLASSES: Record<string, string> = {
   primary: 'bg-primary-600 text-white shadow-lg shadow-primary-600/30',
