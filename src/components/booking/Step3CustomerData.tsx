@@ -342,7 +342,7 @@ export default function Step3CustomerData() {
                         <span className="text-sm font-medium text-gray-700 peer-checked:text-primary-600">{method.label}</span>
                         {!available && (
                           <span className="text-center text-xs font-medium bg-gray-200 text-gray-600 px-2 py-0.5 rounded-md">
-                            Pronto disponible
+                            No disponible por ahora
                           </span>
                         )}
                         <div className="absolute inset-0 rounded-lg border-2 border-transparent peer-checked:border-primary-500 pointer-events-none" />
