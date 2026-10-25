@@ -24,7 +24,7 @@
 
 - [ ] 4.1 `src/components/ChatWidget.tsx` (dynamic import), mounted on public pages, hidden on `/admin` and `/mis-eventos/[id]`
 - [ ] 4.2 `/guia-sala/panel` kiosk layout (no header/footer, `noindex`) with the widget open
-- [ ] 4.3 `next.config.js`: for `/guia-sala/panel/:path*`, drop `X-Frame-Options` and add `frame-ancestors 'self' <HA origin>`; check the Home Assistant iframe loads
+- [ ] 4.3 `next.config.js`: for `/guia-sala/panel/:path*`, drop `X-Frame-Options` and add `frame-ancestors 'self' http://homeassistant.local:* https://homeassistant.local:*`; check the Home Assistant iframe loads
 - [ ] 4.4 GA4 events `chat_open`, `chat_message`, `chat_handoff_whatsapp`
 
 ## 5. Verify
