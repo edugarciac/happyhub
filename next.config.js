@@ -1,21 +1,27 @@
 /** @type {import('next').NextConfig} */
+const cspDirectives = [
+  "default-src 'self'",
+  `script-src 'self' 'unsafe-inline' ${process.env.NODE_ENV !== 'production' ? "'unsafe-eval' " : ''}https://www.googletagmanager.com https://www.google-analytics.com https://js.stripe.com`,
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' https://fonts.gstatic.com",
+  "img-src 'self' data: https:",
+  "frame-src https://js.stripe.com",
+  "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com",
+]
+
 const securityHeaders = [
   { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
   { key: 'X-Content-Type-Options', value: 'nosniff' },
   { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
   { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
-  {
-    key: 'Content-Security-Policy',
-    value: [
-      "default-src 'self'",
-      `script-src 'self' 'unsafe-inline' ${process.env.NODE_ENV !== 'production' ? "'unsafe-eval' " : ''}https://www.googletagmanager.com https://www.google-analytics.com https://js.stripe.com`,
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "font-src 'self' https://fonts.gstatic.com",
-      "img-src 'self' data: https:",
-      "frame-src https://js.stripe.com",
-      "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com",
-    ].join('; '),
-  },
+  { key: 'Content-Security-Policy', value: cspDirectives.join('; ') },
+]
+
+// /guia-sala/panel se incrusta en el panel de Home Assistant de la sala (red local, IP variable):
+// contenido público de solo lectura, sin acciones ni sesión, así que se permite cualquier origen.
+const embeddableHeaders = [
+  ...securityHeaders.filter((h) => h.key !== 'X-Frame-Options' && h.key !== 'Content-Security-Policy'),
+  { key: 'Content-Security-Policy', value: [...cspDirectives, 'frame-ancestors *'].join('; ') },
 ]
 
 const nextConfig = {
@@ -43,7 +49,10 @@ const nextConfig = {
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
   },
   async headers() {
-    return [{ source: '/(.*)', headers: securityHeaders }]
+    return [
+      { source: '/((?!guia-sala/panel$).*)', headers: securityHeaders },
+      { source: '/guia-sala/panel', headers: embeddableHeaders },
+    ]
   },
 }
 

@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
+import { isKioskPath } from '@/lib/kiosk';
 
 type Consent = 'pending' | 'accepted' | 'rejected';
 
@@ -18,6 +20,7 @@ export function useCookieConsent() {
 }
 
 export default function CookieConsent() {
+  const router = useRouter();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -35,7 +38,7 @@ export default function CookieConsent() {
     setVisible(false);
   };
 
-  if (!visible) return null;
+  if (!visible || isKioskPath(router.pathname)) return null;
 
   return (
     <div className="fixed bottom-0 inset-x-0 z-50 p-4">

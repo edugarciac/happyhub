@@ -12,6 +12,7 @@ import CookieConsent, { useCookieConsent } from '@/components/CookieConsent';
 import FeedbackWidget from '@/components/FeedbackWidget';
 import { Toaster } from 'react-hot-toast';
 import { GA_MEASUREMENT_ID, pageview, useScrollDepthTracking } from '@/lib/analytics';
+import { isKioskPath } from '@/lib/kiosk';
 
 function AppContent({ Component, pageProps }: { Component: AppProps['Component']; pageProps: any }) {
   const router = useRouter();
@@ -34,7 +35,7 @@ function AppContent({ Component, pageProps }: { Component: AppProps['Component']
     !isAuthPage &&
     !isAdminPage;
 
-  if (isAdminPage) {
+  if (isAdminPage || isKioskPath(router.pathname)) {
     return <Component {...pageProps} />;
   }
 
