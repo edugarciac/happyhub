@@ -16,7 +16,7 @@
 - `getServerSideProps` en `/admin/manual` y `/admin/manual/[...slug]`: `getServerSession(req, res, authOptions)`; si no hay sesión o `role !== 'admin'` → `redirect: /login`. Solo después se lee el contenido.
 - Las respuestas con sesión son privadas (Next.js envía `Cache-Control: private, no-cache, no-store` en `getServerSideProps`).
 - Se mantiene además `AdminLayout` para la navegación.
-- Los familiares necesitan cuenta con rol `admin`. Eso les da también acceso al resto del panel (reservas, reembolsos). Un rol de solo lectura queda fuera de este cambio.
+- Los familiares tienen cuenta con rol `admin` (decisión del propietario, 2026-10-25): acceso completo al panel, no solo al manual. No se crea un rol de solo lectura.
 
 ### 3. Lectura en tiempo de petición
 
