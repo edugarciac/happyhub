@@ -1,22 +1,48 @@
 ## ADDED Requirements
 
-### Requirement: Knowledge base stored as Markdown
-FAQ and room guide content SHALL live in `content/kb/` as Markdown files with frontmatter (`title`, `category`, `tags`) and one `## ` heading per question followed by its answer.
+### Requirement: Single knowledge base for FAQ and room guide
+FAQ and room guide content SHALL live in one Markdown collection in `content/kb/`. Each question SHALL exist in only one document, and each document SHALL declare in `pages` where it is shown (`como-funciona`, `guia-sala` or both).
 
-#### Scenario: Editing a FAQ answer
-- **WHEN** an answer is edited in a `content/kb/faq/*.md` file and deployed
-- **THEN** `/como-funciona` SHALL show the new answer
-- **AND** the chatbot SHALL use the new answer
+#### Scenario: Rule shown in both places
+- **WHEN** a document in `normas.md` has `pages: [como-funciona, guia-sala]`
+- **THEN** its questions SHALL appear in `/como-funciona` and in `/guia-sala` from the same source
 
-#### Scenario: Adding a question
-- **WHEN** a new `## ` heading with an answer is added to a KB file
-- **THEN** it SHALL appear as a new collapsible question in its category
+#### Scenario: Editing an answer
+- **WHEN** an answer is edited in a KB file and deployed
+- **THEN** every page showing it and the chatbot SHALL use the new answer
+
+### Requirement: Hub and detail pages
+Documents SHALL have a `type` of `hub`, `detalle` or `operacion`. Hubs SHALL give short answers and link to detail documents; every document SHALL have its own page at `/guia-sala/<slug>`.
+
+#### Scenario: Following a link
+- **WHEN** a hub links to `zonas/chiquipark.md`
+- **THEN** the rendered link SHALL point to `/guia-sala/zonas/chiquipark`
+
+#### Scenario: Broken link
+- **WHEN** a KB link points to a document that does not exist
+- **THEN** the build SHALL fail naming the file and the link
+
+### Requirement: Control panel as the starting point
+`/guia-sala` SHALL start with the control panel hub, which explains the functionalities grouped by type and the grouped-action buttons.
+
+#### Scenario: Opening the guide
+- **WHEN** a customer opens `/guia-sala`
+- **THEN** the first section SHALL be "Panel de control" with links to its operations
+
+### Requirement: Operations section with a common template
+`/guia-sala` SHALL list every `operacion` document in an "Operaciones" section. Each operation SHALL have `when` in its frontmatter and the sections "Para qué sirve", "Cuándo usarla", "Pasos", "Qué hace" and "Si algo falla".
+
+#### Scenario: Operation listed
+- **WHEN** `operaciones/encender-sala.md` exists
+- **THEN** "Encender sala" SHALL appear in Operaciones with its `when` text and link to its page
+
+#### Scenario: Operation missing a section
+- **WHEN** an operation lacks a required section
+- **THEN** the build SHALL fail naming the file and the missing section
 
 ### Requirement: Pages read the KB at build time
-`/como-funciona` and `/guia-sala` SHALL read `content/kb/` in `getStaticProps`; the FAQ SHALL no longer be hard-coded in the page component.
+`/como-funciona`, `/guia-sala` and `/guia-sala/<slug>` SHALL read `content/kb/` at build time; the FAQ SHALL no longer be hard-coded in the page component, and the Markdown parser SHALL not be included in the client bundle.
 
 #### Scenario: Static generation
 - **WHEN** the site is built
-- **THEN** `/como-funciona` SHALL render every `category: faq` document ordered by `order`
-- **AND** `/guia-sala` SHALL render every `category: guia-sala` document
-- **AND** the Markdown parser SHALL not be included in the client bundle
+- **THEN** `/como-funciona` SHALL render the documents with `como-funciona` in `pages`, ordered by `order`

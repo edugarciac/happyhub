@@ -7,6 +7,11 @@
 - **WHEN** a visitor asks "¿Cuál es la política de cancelación?"
 - **THEN** the reply SHALL match the cancellation answer in the KB
 
+#### Scenario: Operation question
+- **WHEN** a customer asks "¿Cómo enciendo la sala?"
+- **THEN** the reply SHALL give the steps of the "Encender sala" operation
+- **AND** SHALL link to its `/guia-sala/<slug>` page
+
 #### Scenario: Question not covered
 - **WHEN** the visitor asks something the KB and tools do not cover, or asks for a person
 - **THEN** the reply SHALL say so and offer WhatsApp

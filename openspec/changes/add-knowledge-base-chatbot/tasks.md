@@ -1,11 +1,11 @@
 ## 1. Knowledge base
 
 - [ ] 1.1 Add `gray-matter` and a Markdown renderer
-- [ ] 1.2 Move the `/como-funciona` FAQ to `content/kb/faq/*.md` (one file per category)
-- [ ] 1.3 Write the room guide in `content/kb/guia-sala/*.md` (content pending from the owner)
-- [ ] 1.4 `src/lib/kb.ts` (`getKbDocs`) + unit tests for frontmatter and `## ` parsing
+- [ ] 1.2 Move the `/como-funciona` FAQ into hubs (`reserva`, `dia-del-evento`, `decoracion-y-limpieza`, `normas`) with `pages`
+- [ ] 1.3 Write `panel-de-control.md`, `zonas/chiquipark.md`, `operaciones/encender-sala.md`, `operaciones/desactivar-sala.md` from design 3b (and what the owner keeps dictating)
+- [ ] 1.4 `src/lib/kb.ts` (`getKbDocs`, `getKbDoc`): frontmatter, `## ` parsing, link rewriting, build errors for broken links and incomplete operations + unit tests
 - [ ] 1.5 `/como-funciona` reads the KB in `getStaticProps`; remove the hard-coded `categories`
-- [ ] 1.6 New `/guia-sala` page from the KB
+- [ ] 1.6 `/guia-sala` (panel first, hubs, Operaciones) and `/guia-sala/[...slug]`
 
 ## 2. Shared data access
 
