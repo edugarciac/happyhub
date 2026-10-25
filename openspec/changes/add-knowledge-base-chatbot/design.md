@@ -101,18 +101,18 @@ Se redacta en los `.md` al implementar (tarea 1.3). Fuente: lo dictado por el pr
 | Ayuda | Cómo funciona la sala | Abre esta guía (`/guia-sala/panel`) | |
 
 **Activar** (`script.encender_sala`, modo `single`) enciende, en este orden:
-1. Luz Sala Principal, luz Jardín y amplificador de audio.
+1. Luces Sala Principal, Barra y Jardín, y amplificador de audio.
 2. Luz Sala Kids (si falla, el resto sigue).
 3. A los 3 segundos, el subwoofer.
 
-**No** enciende: la luz de la Barra, el aire acondicionado ni la música (deja el equipo listo; la música se elige en Gramola o con "Conectar mi móvil"). Amplificador y subwoofer no tienen botón en el panel: **sin pulsar Activar no suena nada**. Para la ficha "Si algo falla": no suena la música → pulsar Activar y esperar unos segundos; no se enciende la Sala Kids → encenderla desde Luces.
+**No** enciende: el aire acondicionado ni la música (deja el equipo listo; la música se elige en Gramola o con "Conectar mi móvil"). Amplificador y subwoofer no tienen botón en el panel: **sin pulsar Activar no suena nada**. Para la ficha "Si algo falla": no suena la música → pulsar Activar y esperar unos segundos; no se enciende la Sala Kids → encenderla desde Luces.
 
 **Desactivar** (`script.cerrar_sala`, alias "Cerrar sala", modo `single`), en este orden:
 1. Pausa la música.
 2. Apaga el subwoofer y, a los 3 segundos, el amplificador y las luces Sala Principal, Barra y Jardín.
 3. Apaga la luz Sala Kids y los dos aires acondicionados (si alguno falla, el resto sigue).
 
-La Barra se añade a `cerrar_sala` (decisión del propietario; Activar no la enciende). Para la ficha: es lo último que se hace antes de salir, porque deja la sala a oscuras.
+La Barra se añade a `encender_sala` y `cerrar_sala` (decisión del propietario). Para la ficha: es lo último que se hace antes de salir, porque deja la sala a oscuras.
 
 Debajo, tres grupos por tipología:
 
@@ -137,7 +137,7 @@ Debajo, tres grupos por tipología:
 
 **Operaciones previstas** (plantilla común): `encender-sala`, `desactivar-sala`, `conectar-movil-bluetooth`, `poner-gramola`, `ajustar-aire`, `encender-luces`.
 
-**Pendiente de confirmar**: dónde está el Chiquipark (¿Sala Kids?); confirmar que `cerrar_sala` ya incluye la luz de la Barra antes de publicar la ficha.
+**Pendiente de confirmar**: dónde está el Chiquipark (¿Sala Kids?); confirmar que `encender_sala` y `cerrar_sala` ya incluyen la luz de la Barra antes de publicar la ficha.
 
 ### 4. Chatbot: contexto completo, no RAG
 
