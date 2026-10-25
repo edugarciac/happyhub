@@ -1,0 +1,25 @@
+# Botón "Ayuda" del panel. Ya está incluido en panel-clientes.yaml; este fragmento es
+# solo para añadirlo a mano a otro panel, dentro de las tarjetas de la fila de botones.
+- type: custom:mushroom-template-card
+  primary: Ayuda
+  secondary: Cómo funciona la sala
+  icon: mdi:help-circle-outline
+  icon_color: white
+  layout: vertical
+  tap_action:
+    action: navigate
+    navigation_path: /panel-clientes/ayuda
+  card_mod:
+    style: |
+      ha-card {
+        background: rgba(255, 255, 255, 0.15);
+        --primary-text-color: white;
+        --secondary-text-color: rgba(255, 255, 255, 0.85);
+        --card-primary-font-size: 20px;
+        --card-primary-line-height: 26px;
+        --card-secondary-font-size: 13px;
+        --icon-size: 44px;
+        text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+        border: 2px solid rgba(255, 255, 255, 0.7);
+        border-radius: 16px;
+      }

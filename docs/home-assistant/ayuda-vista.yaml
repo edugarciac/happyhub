@@ -1,0 +1,21 @@
+# Vista "Ayuda": muestra la guía de la web dentro del panel. Ya está incluida en
+# panel-clientes.yaml; este fragmento es para añadirla a mano bajo "views:".
+# La web solo deja mostrar la guía si Home Assistant se abre como http(s)://homeassistant.local (sin puerto).
+- title: Ayuda
+  path: ayuda
+  subview: true
+  back_path: /panel-clientes/control
+  type: panel
+  cards:
+    - type: vertical-stack
+      cards:
+        - type: custom:mushroom-template-card
+          primary: Volver al panel
+          icon: mdi:arrow-left
+          icon_color: grey
+          tap_action:
+            action: navigate
+            navigation_path: /panel-clientes/control
+        - type: iframe
+          url: https://www.happyhub.es/guia-sala/panel
+          aspect_ratio: 140%
