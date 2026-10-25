@@ -48,7 +48,7 @@ Documents SHALL have a `type` of `hub`, `detalle` or `operacion`. Hubs SHALL giv
 - **THEN** `/como-funciona` SHALL render the documents with `como-funciona` in `pages`, ordered by `order`
 
 ### Requirement: Kiosk guide embeddable from Home Assistant
-`/guia-sala/panel` SHALL render the guide without the site header, footer or menu, and SHALL be embeddable in an iframe only from the site itself and the room's Home Assistant (`homeassistant.local`, any port, http or https). All other routes SHALL keep `X-Frame-Options: SAMEORIGIN`.
+`/guia-sala/panel` SHALL render the guide without the site header, footer or menu, and SHALL be embeddable in an iframe only from the site itself and the room's Home Assistant (`http://homeassistant.local` or `https://homeassistant.local`, default ports). All other routes SHALL keep `X-Frame-Options: SAMEORIGIN`.
 
 #### Scenario: Help button on the room tablet
 - **WHEN** a customer taps "Ayuda" on the Home Assistant panel

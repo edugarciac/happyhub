@@ -85,7 +85,7 @@ tags: [panel, inicio]
   - Sin cabecera, pie ni menú de la web; botones grandes para pantalla táctil; enlaces internos se quedan dentro de `/guia-sala/panel/...`.
   - Empieza por el Panel de control y Operaciones; el widget del chat va abierto.
   - Es pública (no hay sesión en la tablet) y solo muestra contenido de la KB.
-  - **Cabeceras**: `next.config.js` envía `X-Frame-Options: SAMEORIGIN` a todas las rutas, que bloquearía el iframe. Para `/guia-sala/panel/:path*` se quita `X-Frame-Options` y se añade `frame-ancestors 'self' http://homeassistant.local:* https://homeassistant.local:*` a la CSP (la tablet abre Home Assistant en la red local como `homeassistant.local`; el comodín de puerto cubre el 8123 por defecto o cualquier otro). El resto de rutas no cambian.
+  - **Cabeceras**: `next.config.js` envía `X-Frame-Options: SAMEORIGIN` a todas las rutas, que bloquearía el iframe. Para `/guia-sala/panel/:path*` se quita `X-Frame-Options` y se añade `frame-ancestors 'self' http://homeassistant.local https://homeassistant.local` a la CSP (la tablet abre Home Assistant en la red local como `homeassistant.local`, sin puerto: 80/443). El resto de rutas no cambian.
   - `noindex` para que no aparezca en buscadores.
 
 ### 3b. Contenido recogido hasta ahora
