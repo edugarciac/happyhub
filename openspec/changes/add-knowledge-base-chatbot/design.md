@@ -106,7 +106,12 @@ Debajo, tres grupos por tipología:
 - **Aire acondicionado**: Sala Principal y Sala Kids, cada uno con temperatura y modos frío, calor, ventilador y apagado.
 - **Música**:
   - **Gramola** → listas: Música Española, Cumpleaños, Verbena, Remember.
-  - **Conectar mi móvil** → pone el equipo en emparejamiento; buscar «HappyHub Música» en el Bluetooth del móvil. Si otro móvil estaba sonando, se desconecta (pide confirmación).
+  - **Conectar mi móvil** (`script.modo_bluetooth`, alias "Conectar móvil"): pide confirmación ("Si hay otro móvil sonando se desconectará"), cambia el amplificador a *Line In* para soltar el móvil anterior, espera **8 segundos** y vuelve a *Bluetooth* en modo emparejamiento. Para el cliente:
+    1. Pulsar "Conectar mi móvil" y confirmar.
+    2. Esperar unos 10 segundos, hasta que el estado diga "Listo para conectar".
+    3. En el Bluetooth del móvil, elegir «HappyHub Música».
+    4. Poner música: el estado cambia a "Móvil conectado".
+    - Si falla: volver a pulsar cuando hayan pasado los 8 s (si se pulsa mientras está en marcha, no hace nada: modo `single`); comprobar que el móvil no sigue conectado a otro altavoz.
   - Estado: "Listo para conectar" / "Móvil conectado" / fuente actual.
   - "Sonando ahora": anterior, play/pausa, siguiente, volumen y silencio.
 
@@ -118,7 +123,7 @@ Debajo, tres grupos por tipología:
 
 **Operaciones previstas** (plantilla común): `encender-sala`, `desactivar-sala`, `conectar-movil-bluetooth`, `poner-gramola`, `ajustar-aire`, `encender-luces`.
 
-**Pendiente de confirmar** (de los scripts, no del dashboard): qué apaga exactamente "Desactivar" (¿también el aire?), con qué volumen/lista arranca "Activar", y dónde está el Chiquipark (¿Sala Kids?).
+**Pendiente de confirmar** (de los scripts `encender_sala` y `cerrar_sala`): qué apaga exactamente "Desactivar" (¿también el aire?), con qué volumen/lista arranca "Activar", y dónde está el Chiquipark (¿Sala Kids?).
 
 ### 4. Chatbot: contexto completo, no RAG
 
