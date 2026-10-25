@@ -97,7 +97,7 @@ Se redacta en los `.md` al implementar (tarea 1.3). Fuente: lo dictado por el pr
 | Botón | Texto en el panel | Qué hace | Notas |
 |---|---|---|---|
 | Activar | Luces y música | `script.encender_sala` (ver abajo) | Usarlo nada más entrar |
-| Desactivar | Apaga todo | `script.cerrar_sala`: apaga lo que ya no hace falta | Pide confirmación: "¿Desactivar toda la sala?". Usarlo al salir |
+| Desactivar | Apaga todo | `script.cerrar_sala` (ver abajo) | Pide confirmación: "¿Desactivar toda la sala?". Usarlo al salir |
 | Ayuda | Cómo funciona la sala | Abre esta guía (`/guia-sala/panel`) | |
 
 **Activar** (`script.encender_sala`, modo `single`) enciende, en este orden:
@@ -106,6 +106,13 @@ Se redacta en los `.md` al implementar (tarea 1.3). Fuente: lo dictado por el pr
 3. A los 3 segundos, el subwoofer.
 
 **No** enciende: la luz de la Barra, el aire acondicionado ni la música (deja el equipo listo; la música se elige en Gramola o con "Conectar mi móvil"). Amplificador y subwoofer no tienen botón en el panel: **sin pulsar Activar no suena nada**. Para la ficha "Si algo falla": no suena la música → pulsar Activar y esperar unos segundos; no se enciende la Sala Kids → encenderla desde Luces.
+
+**Desactivar** (`script.cerrar_sala`, alias "Cerrar sala", modo `single`), en este orden:
+1. Pausa la música.
+2. Apaga el subwoofer y, a los 3 segundos, el amplificador, la luz Sala Principal y la luz Jardín.
+3. Apaga la luz Sala Kids y los dos aires acondicionados (si alguno falla, el resto sigue).
+
+**No** apaga la luz de la **Barra** (Activar tampoco la enciende). Para la ficha: es lo último que se hace antes de salir, porque deja la sala a oscuras; después, comprobar en el grupo Luces que la Barra está apagada.
 
 Debajo, tres grupos por tipología:
 
@@ -130,7 +137,7 @@ Debajo, tres grupos por tipología:
 
 **Operaciones previstas** (plantilla común): `encender-sala`, `desactivar-sala`, `conectar-movil-bluetooth`, `poner-gramola`, `ajustar-aire`, `encender-luces`.
 
-**Pendiente de confirmar** (del script `cerrar_sala`): qué apaga exactamente "Desactivar" (¿también el aire y la Barra?), y dónde está el Chiquipark (¿Sala Kids?).
+**Pendiente de confirmar**: dónde está el Chiquipark (¿Sala Kids?); si la luz de la Barra debe entrar en Activar/Desactivar (si se añade a los scripts, se quita el paso manual de las fichas).
 
 ### 4. Chatbot: contexto completo, no RAG
 
