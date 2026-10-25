@@ -81,17 +81,44 @@ tags: [panel, inicio]
 - `/como-funciona`: hubs y detalles con `pages` ∋ `como-funciona`, como acordeón por hub (igual que hoy).
 - `/guia-sala`: empieza por el **Panel de control**, luego el resto de hubs y la sección Operaciones.
 - Cambiar un `.md` requiere commit + deploy (Vercel lo hace al hacer push a `main`). Sin ISR: el contenido cambia poco.
-- `/guia-sala/panel`: vista para la pantalla de la sala con el widget del chat abierto. **Pregunta abierta**: ¿pública o con token/sesión de la reserva del día?
+- `/guia-sala/panel`: la abre el botón **Ayuda** del panel de Home Assistant dentro de un `iframe` (vista `ayuda` del dashboard `panel-clientes`, tablet en modo kiosco). Por eso:
+  - Sin cabecera, pie ni menú de la web; botones grandes para pantalla táctil; enlaces internos se quedan dentro de `/guia-sala/panel/...`.
+  - Empieza por el Panel de control y Operaciones; el widget del chat va abierto.
+  - Es pública (no hay sesión en la tablet) y solo muestra contenido de la KB.
+  - **Cabeceras**: `next.config.js` envía `X-Frame-Options: SAMEORIGIN` a todas las rutas, que bloquearía el iframe. Para `/guia-sala/panel/:path*` se quita `X-Frame-Options` y se añade `frame-ancestors 'self' <origen de Home Assistant>` a la CSP. El resto de rutas no cambian.
+  - `noindex` para que no aparezca en buscadores.
 
 ### 3b. Contenido recogido hasta ahora
 
-Se redacta en los `.md` al implementar (tarea 1.x); aquí queda lo que ha dictado el propietario:
+Se redacta en los `.md` al implementar (tarea 1.3). Fuente: lo dictado por el propietario y el dashboard de Home Assistant `panel-clientes` (tablet de la sala en modo kiosco).
 
-- **Panel de control** (punto de partida): todo empieza en el panel. Agrupa las funcionalidades principales por tipología y tiene botones que agrupan varias acciones.
-- **Encender sala**: usarlo al principio, nada más entrar; inicializa el audio y las luces.
-- **Desactivar sala**: a la inversa; al terminar, apaga todo lo que ya no va a hacer falta.
+**Panel de control (punto de partida)**. Arriba: logo, nombre del evento (o "Celebra momentos inolvidables" si no hay) y tres botones:
+
+| Botón | Texto en el panel | Qué hace | Notas |
+|---|---|---|---|
+| Activar | Luces y música | `script.encender_sala`: inicializa audio y luces | Usarlo nada más entrar |
+| Desactivar | Apaga todo | `script.cerrar_sala`: apaga lo que ya no hace falta | Pide confirmación: "¿Desactivar toda la sala?". Usarlo al salir |
+| Ayuda | Cómo funciona la sala | Abre esta guía (`/guia-sala/panel`) | |
+
+Debajo, tres grupos por tipología:
+
+- **Luces** (interruptores, tocar para encender/apagar): Sala Principal, Sala Kids, Barra, Jardín.
+- **Aire acondicionado**: Sala Principal y Sala Kids, cada uno con temperatura y modos frío, calor, ventilador y apagado.
+- **Música**:
+  - **Gramola** → listas: Música Española, Cumpleaños, Verbena, Remember.
+  - **Conectar mi móvil** → pone el equipo en emparejamiento; buscar «HappyHub Música» en el Bluetooth del móvil. Si otro móvil estaba sonando, se desconecta (pide confirmación).
+  - Estado: "Listo para conectar" / "Móvil conectado" / fuente actual.
+  - "Sonando ahora": anterior, play/pausa, siguiente, volumen y silencio.
+
+**Otras normas**
+
 - **Chiquipark**: solo pueden usarlo menores de 14 años.
-- Normas ya existentes en la FAQ (aforo 50, no fumar, mascotas, volumen, sin equipo de sonido propio, materiales prohibidos, limpieza) pasan a `normas.md` / `decoracion-y-limpieza.md` sin duplicarse.
+- Normas ya existentes en la FAQ (aforo 50, no fumar, mascotas, volumen, materiales prohibidos, limpieza) pasan a `normas.md` / `decoracion-y-limpieza.md` sin duplicarse.
+- **Corregir al fusionar**: la FAQ dice "No se puede conectar tu propio equipo de música". Hay que matizar que sí se puede poner música desde el móvil por Bluetooth (operación "Conectar mi móvil"); lo que no se permite es traer equipos de sonido.
+
+**Operaciones previstas** (plantilla común): `encender-sala`, `desactivar-sala`, `conectar-movil-bluetooth`, `poner-gramola`, `ajustar-aire`, `encender-luces`.
+
+**Pendiente de confirmar** (de los scripts, no del dashboard): qué apaga exactamente "Desactivar" (¿también el aire?), con qué volumen/lista arranca "Activar", y dónde está el Chiquipark (¿Sala Kids?).
 
 ### 4. Chatbot: contexto completo, no RAG
 
@@ -143,8 +170,8 @@ Los `.md` **no** son fuente de verdad para precio ni fechas libres (se quedaría
 
 ## Open Questions
 
-- Resto del contenido de la guía: el propietario lo irá dictando (ver 3b). Pendiente: qué grupos de funcionalidades muestra el panel, pasos exactos de cada botón, wifi, electrodomésticos, salida, emergencias.
-- Acceso a `/guia-sala/panel`: pública o protegida.
+- Resto del contenido de la guía: el propietario lo irá dictando (ver 3b). Pendiente: lo marcado en 3b, wifi, electrodomésticos, salida, emergencias.
+- Origen (URL) con el que la tablet abre Home Assistant, para `frame-ancestors` (p. ej. `http://homeassistant.local:8123` o la URL de Nabu Casa).
 - ¿Guardar conversaciones (anonimizadas) para mejorar la KB? Implica actualizar la política de privacidad.
 
 ## Later phase: WhatsApp

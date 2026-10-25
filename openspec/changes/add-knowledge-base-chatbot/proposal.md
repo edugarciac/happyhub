@@ -12,7 +12,7 @@ Las dudas de los clientes (horarios, qué incluye, cancelación, cómo llegar, u
   - Los `.md` completos van en el prompt de sistema (son pocos; no hace falta RAG).
   - Precio y disponibilidad salen de herramientas que consultan la BD (misma lógica que `/api/pricing/current` y `/api/booked-slots`), nunca de los `.md`.
   - Si no sabe la respuesta, deriva a WhatsApp (`CONTACT_INFO.whatsapp`).
-- **Widget de chat** en la web pública y en `/guia-sala/panel`.
+- **Widget de chat** en la web pública y en `/guia-sala/panel`, la vista que el botón Ayuda del panel de Home Assistant de la sala muestra en un iframe (requiere permitir ese iframe en las cabeceras de seguridad).
 - **WhatsApp** como canal del chatbot queda para una fase posterior.
 
 ## Capabilities
@@ -28,5 +28,6 @@ Las dudas de los clientes (horarios, qué incluye, cancelación, cómo llegar, u
 - **Backend**: nuevo `src/lib/kb.ts` (lector de `.md`), `src/pages/api/chat.ts`; extraer la consulta de precios y de huecos ocupados a funciones de `src/lib/` reutilizables por la API actual y el chatbot
 - **Frontend**: `src/pages/como-funciona.tsx`, nuevas `src/pages/guia-sala/index.tsx`, `src/pages/guia-sala/[...slug].tsx` y `src/pages/guia-sala/panel.tsx`, nuevo `src/components/ChatWidget.tsx`
 - **Dependencias**: `gray-matter` (frontmatter); render de Markdown (`marked` o `react-markdown`)
+- **Cabeceras**: `next.config.js` permite embeber solo `/guia-sala/panel` desde el origen de Home Assistant
 - **Entorno**: usa `ANTHROPIC_API_KEY` ya existente
 - **Coste**: llamadas a la API de Claude por cada mensaje; se limita con rate limit y tope de longitud

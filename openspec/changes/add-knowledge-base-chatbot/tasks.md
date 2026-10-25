@@ -2,7 +2,7 @@
 
 - [ ] 1.1 Add `gray-matter` and a Markdown renderer
 - [ ] 1.2 Move the `/como-funciona` FAQ into hubs (`reserva`, `dia-del-evento`, `decoracion-y-limpieza`, `normas`) with `pages`
-- [ ] 1.3 Write `panel-de-control.md`, `zonas/chiquipark.md`, `operaciones/encender-sala.md`, `operaciones/desactivar-sala.md` from design 3b (and what the owner keeps dictating)
+- [ ] 1.3 Write `panel-de-control.md`, `zonas/chiquipark.md` and the operations listed in design 3b; fix the FAQ answer about music (Bluetooth from the phone is allowed)
 - [ ] 1.4 `src/lib/kb.ts` (`getKbDocs`, `getKbDoc`): frontmatter, `## ` parsing, link rewriting, build errors for broken links and incomplete operations + unit tests
 - [ ] 1.5 `/como-funciona` reads the KB in `getStaticProps`; remove the hard-coded `categories`
 - [ ] 1.6 `/guia-sala` (panel first, hubs, Operaciones) and `/guia-sala/[...slug]`
@@ -23,8 +23,9 @@
 ## 4. Widget
 
 - [ ] 4.1 `src/components/ChatWidget.tsx` (dynamic import), mounted on public pages, hidden on `/admin` and `/mis-eventos/[id]`
-- [ ] 4.2 `/guia-sala/panel` with the widget open
-- [ ] 4.3 GA4 events `chat_open`, `chat_message`, `chat_handoff_whatsapp`
+- [ ] 4.2 `/guia-sala/panel` kiosk layout (no header/footer, `noindex`) with the widget open
+- [ ] 4.3 `next.config.js`: for `/guia-sala/panel/:path*`, drop `X-Frame-Options` and add `frame-ancestors 'self' <HA origin>`; check the Home Assistant iframe loads
+- [ ] 4.4 GA4 events `chat_open`, `chat_message`, `chat_handoff_whatsapp`
 
 ## 5. Verify
 

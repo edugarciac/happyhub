@@ -46,3 +46,14 @@ Documents SHALL have a `type` of `hub`, `detalle` or `operacion`. Hubs SHALL giv
 #### Scenario: Static generation
 - **WHEN** the site is built
 - **THEN** `/como-funciona` SHALL render the documents with `como-funciona` in `pages`, ordered by `order`
+
+### Requirement: Kiosk guide embeddable from Home Assistant
+`/guia-sala/panel` SHALL render the guide without the site header, footer or menu, and SHALL be embeddable in an iframe only from the site itself and the configured Home Assistant origin. All other routes SHALL keep `X-Frame-Options: SAMEORIGIN`.
+
+#### Scenario: Help button on the room tablet
+- **WHEN** a customer taps "Ayuda" on the Home Assistant panel
+- **THEN** the iframe SHALL load `/guia-sala/panel` starting with "Panel de control" and the chat open
+
+#### Scenario: Embedding from another site
+- **WHEN** a page from any other origin embeds `/guia-sala/panel`
+- **THEN** the browser SHALL block it through `frame-ancestors`
