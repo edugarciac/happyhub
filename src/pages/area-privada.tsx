@@ -10,6 +10,7 @@ import { User, Lock, Calendar, ChevronDown, ChevronUp, RefreshCw, Star, Users, P
 import type { CollaborativeEvent } from '@/utils/db/collaborative-events';
 import { formatCurrency } from '@/utils/formatters';
 import SpotifyConnectionCard from '@/components/account/SpotifyConnectionCard';
+import { SPOTIFY_ENABLED } from '@/config/features';
 
 // -- Types --
 
@@ -652,7 +653,7 @@ export default function AreaPrivadaPage() {
             )}
           </section>
 
-          <SpotifyConnectionCard />
+          {SPOTIFY_ENABLED && <SpotifyConnectionCard />}
 
           {/* Mis reservas */}
           <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">

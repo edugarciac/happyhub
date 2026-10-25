@@ -17,6 +17,7 @@ import EventTimeline from '@/components/events/EventTimeline';
 import GuestList from '@/components/events/GuestList';
 import GiftSection from '@/components/events/GiftSection';
 import SpotifyPlaylistTab from '@/components/events/SpotifyPlaylistTab';
+import { SPOTIFY_ENABLED } from '@/config/features';
 import ActivitiesTab from '@/components/events/ActivitiesTab';
 import CustomDetailsTab from '@/components/events/CustomDetailsTab';
 
@@ -56,7 +57,8 @@ export const getServerSideProps: GetServerSideProps<Props> = async (context) => 
     getTimeline(eventId),
   ]);
 
-  const section = (context.query.section as string) || 'invitados';
+  const requested = (context.query.section as string) || 'invitados';
+  const section = !SPOTIFY_ENABLED && requested === 'musica' ? 'invitados' : requested;
 
   return {
     props: {
