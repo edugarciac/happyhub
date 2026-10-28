@@ -20,6 +20,17 @@ The system SHALL let an admin upload a JPG, PNG, WebP, GIF or AVIF image up to 5
 - **WHEN** the token request or the upload fails
 - **THEN** the form shows the error message and the button leaves the "Subiendo..." state
 
+### Requirement: Admin uploads a partner image to Vercel Blob
+The system SHALL upload partner images from `/admin/partners` to Vercel Blob under `partners/`, with the same types and size limit as service images.
+
+#### Scenario: Partner image upload
+- **WHEN** an admin selects a PNG in the partner form
+- **THEN** the image is stored in Blob, the preview shows it and `/partners` displays it after saving
+
+#### Scenario: Delete partner with image
+- **WHEN** an admin deletes a partner whose `logo_url` is a Blob URL
+- **THEN** the blob is deleted and the partner row is removed
+
 ### Requirement: Only admins can obtain upload tokens
 The system SHALL issue Blob upload tokens from `/api/upload` only to authenticated admins and only for allowed folders.
 
