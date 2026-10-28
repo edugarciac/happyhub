@@ -13,7 +13,7 @@ const securityHeaders = [
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: https:",
       "frame-src https://js.stripe.com",
-      "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com",
+      "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://vercel.com",
     ].join('; '),
   },
 ]
@@ -32,6 +32,8 @@ const nextConfig = {
   reactStrictMode: false, // Disabled to prevent double rendering issues
   images: {
     domains: ['localhost', 'scontent.cdninstagram.com', 'scontent-mad1-1.cdninstagram.com'],
+    // Imágenes subidas desde el admin (Vercel Blob)
+    remotePatterns: [{ protocol: 'https', hostname: '**.public.blob.vercel-storage.com' }],
     unoptimized: false, // Vercel has native image optimization
   },
   serverRuntimeConfig: {
