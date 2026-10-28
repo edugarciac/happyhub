@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import Image from 'next/image';
 import { Upload, X, Loader2 } from 'lucide-react';
-import { upload } from '@vercel/blob/client';
+import { uploadPresigned } from '@vercel/blob/client';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'];
 
@@ -28,7 +28,7 @@ export default function ImageUpload({ value, onChange, folder }: ImageUploadProp
 
     try {
       const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-      const blob = await upload(`${folder}/${safeName}`, file, {
+      const blob = await uploadPresigned(`${folder}/${safeName}`, file, {
         access: 'public',
         handleUploadUrl: '/api/upload',
         contentType: file.type,

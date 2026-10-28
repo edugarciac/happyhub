@@ -4,7 +4,7 @@ import Image from 'next/image';
 import AdminLayout from '../../components/admin/AdminLayout';
 import toast, { Toaster } from 'react-hot-toast';
 import { Search, Plus, Pencil, Trash2, X, Upload, Building2, Power } from 'lucide-react';
-import { upload } from '@vercel/blob/client';
+import { uploadPresigned } from '@vercel/blob/client';
 
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'];
 
@@ -100,7 +100,7 @@ export default function AdminPartners() {
     try {
       const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
       const baseName = (form.name || 'partner').replace(/[^a-zA-Z0-9_-]/g, '_');
-      const blob = await upload(`partners/${baseName}.${ext}`, file, {
+      const blob = await uploadPresigned(`partners/${baseName}.${ext}`, file, {
         access: 'public',
         handleUploadUrl: '/api/upload',
         contentType: file.type,
