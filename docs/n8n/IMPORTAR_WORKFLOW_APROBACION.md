@@ -16,7 +16,7 @@ Password: ChangeThisPassword123!
 
 ```
 WHATSAPP_PHONE_NUMBER_ID=tu_phone_number_id
-WHATSAPP_API_TOKEN=EAAXSgOo4ZA0oBQ5fZCCHCFXFpFZA3reZC8btEFw7G4fsauu2yhkZBSy2WhMHJTI0dc6Ps6HsjLZBTLXZADyZByoBI4DQ0aVtNi2h7P99V5owzqZBYCleWb9rlZCZBQnb1KlqXcZAwoXPxg9HVggWIFvlBXkIOSeWwvTMhQwPOLBDnxA40MFdgSKbZBdOsFOEA2cNLd6bsvCPnzbzOuNJucb5C3Gplk6a6oVhvD9Or70ZCEZAk8ADVRD6FTcZC3ws9g01Wq1ekARe6R0EY8PolQd11KSSFkwz
+WHATSAPP_API_TOKEN=<WHATSAPP_API_TOKEN>
 ```
 
 **Nota:** Si no tienes `WHATSAPP_PHONE_NUMBER_ID`, consíguelo en:
@@ -29,7 +29,7 @@ https://developers.facebook.com/apps → Tu App → WhatsApp → API Setup
 ```
 Name: WhatsApp Bearer Token
 Header Name: Authorization
-Header Value: Bearer EAAXSgOo4ZA0oBQ5fZCCHCFXFpFZA3reZC8btEFw7G4fsauu2yhkZBSy2WhMHJTI0dc6Ps6HsjLZBTLXZADyZByoBI4DQ0aVtNi2h7P99V5owzqZBYCleWb9rlZCZBQnb1KlqXcZAwoXPxg9HVggWIFvlBXkIOSeWwvTMhQwPOLBDnxA40MFdgSKbZBdOsFOEA2cNLd6bsvCPnzbzOuNJucb5C3Gplk6a6oVhvD9Or70ZCEZAk8ADVRD6FTcZC3ws9g01Wq1ekARe6R0EY8PolQd11KSSFkwz
+Header Value: Bearer <WHATSAPP_API_TOKEN>
 ```
 
 Save as: "whatsapp-auth"

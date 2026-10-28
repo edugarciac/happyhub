@@ -123,7 +123,7 @@ Crear endpoints para:
 ### 5. Deployment a Producción
 **Variables de entorno en Amplify/Vercel:**
 ```env
-DATABASE_URL=postgresql://neondb_owner:npg_zr5iRHB3pgLw@ep-morning-sky-abwuz6yr.eu-west-2.aws.neon.tech/neondb?sslmode=require
+DATABASE_URL=postgresql://neondb_owner:<NEON_PASSWORD>@ep-morning-sky-abwuz6yr.eu-west-2.aws.neon.tech/neondb?sslmode=require
 JWT_SECRET=<generar nuevo secret para producción>
 NEXTAUTH_URL=<url de producción>
 NEXTAUTH_SECRET=<generar nuevo secret>
@@ -145,7 +145,7 @@ NEXTAUTH_SECRET=<generar nuevo secret>
 
 ### Connection String
 ```
-postgresql://neondb_owner:npg_zr5iRHB3pgLw@ep-morning-sky-abwuz6yr.eu-west-2.aws.neon.tech/neondb?sslmode=require
+postgresql://neondb_owner:<NEON_PASSWORD>@ep-morning-sky-abwuz6yr.eu-west-2.aws.neon.tech/neondb?sslmode=require
 ```
 
 ## Notas Técnicas
@@ -190,7 +190,7 @@ curl http://localhost:3000/api/init-db
 tail -f /tmp/next-dev.log | grep -i database
 
 # Test de conectividad con Neon
-psql "postgresql://neondb_owner:npg_zr5iRHB3pgLw@ep-morning-sky-abwuz6yr.eu-west-2.aws.neon.tech/neondb?sslmode=require"
+psql "postgresql://neondb_owner:<NEON_PASSWORD>@ep-morning-sky-abwuz6yr.eu-west-2.aws.neon.tech/neondb?sslmode=require"
 ```
 
 ---

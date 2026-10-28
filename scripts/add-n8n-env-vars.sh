@@ -39,7 +39,7 @@ echo "✏️  Añadiendo variables de entorno..."
 if ! grep -q "WHATSAPP_ACCESS_TOKEN" docker-compose.yml 2>/dev/null; then
     sudo sed -i '/n8n:/a\    environment:' docker-compose.yml
     sudo sed -i '/environment:/a\      - WHATSAPP_PHONE_NUMBER_ID=$phone_id' docker-compose.yml
-    sudo sed -i '/WHATSAPP_PHONE_NUMBER_ID/a\      - WHATSAPP_ACCESS_TOKEN=EAAXSgOo4ZA0oBQ5fZCCHCFXFpFZA3reZC8btEFw7G4fsauu2yhkZBSy2WhMHJTI0dc6Ps6HsjLZBTLXZADyZByoBI4DQ0aVtNi2h7P99V5owzqZBYCleWb9rlZCZBQnb1KlqXcZAwoXPxg9HVggWIFvlBXkIOSeWwvTMhQwPOLBDnxA40MFdgSKbZBdOsFOEA2cNLd6bsvCPnzbzOuNJucb5C3Gplk6a6oVhvD9Or70ZCEZAk8ADVRD6FTcZC3ws9g01Wq1ekARe6R0EY8PolQd11KSSFkwz' docker-compose.yml
+    sudo sed -i '/WHATSAPP_PHONE_NUMBER_ID/a\      - WHATSAPP_ACCESS_TOKEN=<WHATSAPP_API_TOKEN>' docker-compose.yml
     sudo sed -i '/WHATSAPP_ACCESS_TOKEN/a\      - ADMIN_WHATSAPP_NUMBER=34624645517' docker-compose.yml
 fi
 

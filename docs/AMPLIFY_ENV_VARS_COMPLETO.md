@@ -6,7 +6,7 @@ Copia estas variables EXACTAMENTE en AWS Amplify Console → Environment Variabl
 
 ```bash
 # Database - Neon PostgreSQL (CRÍTICO - causa timeout sin esto)
-DATABASE_URL=postgresql://neondb_owner:npg_zr5iRHB3pgLw@ep-morning-sky-abwuz6yr.eu-west-2.aws.neon.tech/neondb?sslmode=require
+DATABASE_URL=postgresql://neondb_owner:<NEON_PASSWORD>@ep-morning-sky-abwuz6yr.eu-west-2.aws.neon.tech/neondb?sslmode=require
 
 # Auth - JWT (CRÍTICO para login)
 JWT_SECRET=your-jwt-secret-change-in-production
@@ -18,7 +18,7 @@ NEXTAUTH_SECRET=your-nextauth-secret-change-in-production
 
 ```bash
 GOOGLE_CLIENT_ID=<ver .env.local - 1090903509602-bgus...apps.googleusercontent.com>
-GOOGLE_CLIENT_SECRET=<ver .env.local - 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>
+GOOGLE_CLIENT_SECRET=<ver .env.local - <GOOGLE_CLIENT_SECRET>>
 NEXT_PUBLIC_GOOGLE_OAUTH_ENABLED=true
 ```
 
@@ -29,7 +29,7 @@ NEXT_PUBLIC_GOOGLE_OAUTH_ENABLED=true
 ## 📱 WhatsApp Business API
 
 ```bash
-WHATSAPP_API_TOKEN=EAAXSgOo4ZA0oBQ5fZCCHCFXFpFZA3reZC8btEFw7G4fsauu2yhkZBSy2WhMHJTI0dc6Ps6HsjLZBTLXZADyZByoBI4DQ0aVtNi2h7P99V5owzqZBYCleWb9rlZCZBQnb1KlqXcZAwoXPxg9HVggWIFvlBXkIOSeWwvTMhQwPOLBDnxA40MFdgSKbZBdOsFOEA2cNLd6bsvCPnzbzOuNJucb5C3Gplk6a6oVhvD9Or70ZCEZAk8ADVRD6FTcZC3ws9g01Wq1ekARe6R0EY8PolQd11KSSFkwz
+WHATSAPP_API_TOKEN=<WHATSAPP_API_TOKEN>
 WHATSAPP_PHONE_NUMBER_ID=tu-phone-number-id-aqui
 ```
 

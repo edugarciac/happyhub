@@ -69,7 +69,7 @@ Edita `.env` y agrega:
 ```bash
 # Google OAuth
 GOOGLE_CLIENT_ID=tu-client-id-aqui.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=GOCSPX-tu-client-secret-aqui
+GOOGLE_CLIENT_SECRET=<GOOGLE_CLIENT_SECRET>
 
 # NextAuth (si no existe)
 NEXTAUTH_URL=http://localhost:3000

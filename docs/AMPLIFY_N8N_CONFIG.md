@@ -86,7 +86,7 @@ curl -X POST https://n8n.happyhub.es/webhook/reservation-new \
 
 ```bash
 # Database
-DATABASE_URL=postgresql://neondb_owner:npg_zr5iRHB3pgLw@ep-morning-sky-abwuz6yr.eu-west-2.aws.neon.tech/neondb?sslmode=require
+DATABASE_URL=postgresql://neondb_owner:<NEON_PASSWORD>@ep-morning-sky-abwuz6yr.eu-west-2.aws.neon.tech/neondb?sslmode=require
 
 # Auth
 JWT_SECRET=happyhub-jwt-secret-2026

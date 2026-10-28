@@ -63,7 +63,7 @@ NEXTAUTH_SECRET=your-existing-nextauth-secret  # Or generate new if missing
 
 # New Google OAuth variables
 GOOGLE_CLIENT_ID=123456789-abcdefghijklmnop.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=GOCSPX-abcd1234efgh5678ijkl
+GOOGLE_CLIENT_SECRET=<GOOGLE_CLIENT_SECRET>
 
 # NextAuth configuration
 NEXTAUTH_URL=http://localhost:3000  # Change to https://www.happyhub.es in production
