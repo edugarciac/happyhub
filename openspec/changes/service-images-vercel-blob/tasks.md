@@ -18,8 +18,12 @@
 - [x] 4.2 `/admin/partners` uploads with `upload()` from `@vercel/blob/client`; remove `/api/admin/upload-partner-image`
 - [x] 4.3 Partner delete removes its Blob image
 
-## 5. Verification
+## 5. OIDC
 
-- [x] 5.1 `tsc --noEmit` and `next build` pass (ESLint is not configured in the repo)
-- [ ] 5.2 Vercel: create a Blob store and connect it to `happyhub` (manual)
-- [ ] 5.3 Production: upload a JPG and a PNG for a service and a partner; check `/admin/services`, `/servicios`, `/admin/partners` and `/partners`
+- [x] 5.1 Switch to `handleUploadPresigned` / `uploadPresigned` + `issueSignedToken` so uploads work with the OIDC store connection (`BLOB_STORE_ID`)
+
+## 6. Verification
+
+- [x] 6.1 `tsc --noEmit` and `next build` pass (ESLint is not configured in the repo)
+- [x] 6.2 Vercel: create a Blob store and connect it to `happyhub` (manual)
+- [ ] 6.3 Production: upload a JPG and a PNG for a service and a partner; check `/admin/services`, `/servicios`, `/admin/partners` and `/partners`

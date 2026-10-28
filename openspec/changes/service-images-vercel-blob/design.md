@@ -11,7 +11,10 @@ Blob is native to Vercel: connecting a store injects `BLOB_READ_WRITE_TOKEN`, UR
 The file goes straight from the browser to Blob. Our function only signs a token, so Vercel's 4.5 MB request body limit does not apply and photos from a phone (3–5 MB) work.
 - Rejected: server `put()` with base64 body — would need a ~3 MB limit, too low for phone photos.
 
-### Validation in `onBeforeGenerateToken`
+### Presigned upload with OIDC (`handleUploadPresigned` + `uploadPresigned`)
+Vercel now connects Blob stores to projects through OIDC (`BLOB_STORE_ID`, no `BLOB_READ_WRITE_TOKEN`). `handleUpload` needs a read-write token, so the route uses `handleUploadPresigned`: it calls `issueSignedToken` (OIDC, or the read-write token if present) and returns a presigned `PUT` URL; the browser uses `uploadPresigned`. No long-lived secret is stored in the project.
+
+### Validation in `getSignedToken`
 - Admin session required (`requireAdminSession`).
 - Pathname must start with an allowed folder (`services/`, `partners/`, `event-types/`, `reviews/`, `uploads/`, `custom-details/`).
 - `allowedContentTypes`: `image/jpeg`, `image/png`, `image/webp`, `image/gif`, `image/avif`. SVG excluded (can carry scripts).
