@@ -36,7 +36,7 @@ Host: ep-morning-sky-abwuz6yr.eu-west-2.aws.neon.tech
 Port: 5432
 Database: neondb
 User: neondb_owner
-Password: npg_zr5iRHB3pgLw
+Password: <NEON_PASSWORD>
 SSL Mode: require
 ```
 

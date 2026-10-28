@@ -222,7 +222,7 @@ RETURNING id;
 
 ### Credenciales de Neon (desde .env)
 ```env
-DATABASE_URL=postgresql://neondb_owner:npg_zr5iRHB3pgLw@ep-morning-sky-abwuz6yr.eu-west-2.aws.neon.tech/neondb?sslmode=require
+DATABASE_URL=postgresql://neondb_owner:<NEON_PASSWORD>@ep-morning-sky-abwuz6yr.eu-west-2.aws.neon.tech/neondb?sslmode=require
 ```
 
 ## Crear Evento en Google Calendar
@@ -312,7 +312,7 @@ WHATSAPP_ACCESS_TOKEN=EAAxxxxxxxxxxxxxxxxx
 ADMIN_WHATSAPP_NUMBER=+34624645517
 
 # Neon PostgreSQL
-DATABASE_URL=postgresql://neondb_owner:npg_zr5iRHB3pgLw@ep-morning-sky-abwuz6yr.eu-west-2.aws.neon.tech/neondb?sslmode=require
+DATABASE_URL=postgresql://neondb_owner:<NEON_PASSWORD>@ep-morning-sky-abwuz6yr.eu-west-2.aws.neon.tech/neondb?sslmode=require
 
 # Google Calendar
 GOOGLE_SERVICE_ACCOUNT_EMAIL=your-service-account@project.iam.gserviceaccount.com
