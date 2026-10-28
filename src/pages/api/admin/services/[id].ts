@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { query } from '@/lib/db';
 import { withAdminHandler, parseIntParam, buildDynamicUpdate, methodNotAllowed } from '@/lib/apiMiddleware';
-import { deleteFromS3 } from '@/lib/s3';
+import { deleteBlobImage } from '@/lib/blob';
 
 export default withAdminHandler(async (req, res) => {
   const id = parseIntParam(req.query.id);
@@ -46,12 +46,12 @@ async function handleUpdate(id: number, req: NextApiRequest, res: NextApiRespons
 }
 
 async function handleDelete(id: number, res: NextApiResponse) {
-  // Get image URL to delete from S3
+  // Get image URL to delete from Blob
   const existing = await query('SELECT image_url FROM service_catalog WHERE id = $1', [id]);
   if (existing.rows.length === 0) return res.status(404).json({ success: false, error: 'No encontrado' });
 
   if (existing.rows[0].image_url) {
-    try { await deleteFromS3(existing.rows[0].image_url); } catch (err) { console.warn('Non-fatal: S3 image delete failed:', err); }
+    try { await deleteBlobImage(existing.rows[0].image_url); } catch (err) { console.warn('Non-fatal: Blob image delete failed:', err); }
   }
 
   await query('DELETE FROM service_catalog WHERE id = $1', [id]);

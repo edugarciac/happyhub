@@ -1,49 +1,46 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '../../lib/auth';
-import { uploadToS3 } from '../../lib/s3';
+import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
+import { requireAdminSession } from '@/utils/adminAuth';
 
-export const config = {
-  api: { bodyParser: { sizeLimit: '10mb' } },
-};
+const ALLOWED_FOLDERS = ['services', 'event-types', 'reviews', 'uploads', 'custom-details'];
+const ALLOWED_CONTENT_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'];
+const MAX_SIZE_BYTES = 5 * 1024 * 1024;
 
+/**
+ * Issues Vercel Blob client-upload tokens. The browser uploads the file
+ * directly to Blob, so no file bytes pass through this function.
+ */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ success: false, error: 'Method not allowed' });
-  }
-
-  const session = await getServerSession(req, res, authOptions);
-  if (!session?.user) {
-    return res.status(401).json({ success: false, error: 'No autorizado' });
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const { file, folder = 'uploads' } = req.body as {
-      file: { name: string; data: string; type: string };
-      folder?: string;
-    };
+    await requireAdminSession(req, res);
+  } catch {
+    return res.status(401).json({ error: 'No autorizado' });
+  }
 
-    if (!file || !file.data || !file.name) {
-      return res.status(400).json({ success: false, error: 'No se proporcionó archivo' });
-    }
-
-    if (!file.type?.startsWith('image/')) {
-      return res.status(400).json({ success: false, error: 'Solo se permiten imágenes' });
-    }
-
-    const buffer = Buffer.from(file.data, 'base64');
-    if (buffer.length > 5 * 1024 * 1024) {
-      return res.status(400).json({ success: false, error: 'La imagen debe ser menor a 5MB' });
-    }
-
-    const allowedFolders = ['services', 'event-types', 'reviews', 'uploads', 'custom-details'];
-    const safeFolder = allowedFolders.includes(folder) ? folder : 'uploads';
-
-    const url = await uploadToS3(file.data, safeFolder, file.name);
-
-    return res.status(200).json({ success: true, url });
+  try {
+    const result = await handleUpload({
+      body: req.body as HandleUploadBody,
+      request: req,
+      onBeforeGenerateToken: async (pathname) => {
+        const folder = pathname.split('/')[0];
+        if (!ALLOWED_FOLDERS.includes(folder) || pathname.includes('..')) {
+          throw new Error('Carpeta no permitida');
+        }
+        return {
+          allowedContentTypes: ALLOWED_CONTENT_TYPES,
+          maximumSizeInBytes: MAX_SIZE_BYTES,
+          addRandomSuffix: true,
+        };
+      },
+    });
+    return res.status(200).json(result);
   } catch (error) {
-    console.error('Error uploading file:', error);
-    return res.status(500).json({ success: false, error: 'Error al subir archivo' });
+    console.error('Error generating upload token:', error);
+    const message = error instanceof Error ? error.message : 'Error al subir archivo';
+    return res.status(400).json({ error: message });
   }
 }
