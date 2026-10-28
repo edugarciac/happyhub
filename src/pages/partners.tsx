@@ -56,28 +56,28 @@ export default function PartnersPage({ partners }: Props) {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {partners.map((partner) => (
-                <div key={partner.id} className="card">
-                  <div className="flex items-center space-x-4 mb-4">
-                    {partner.logo_url && (
-                      <Image
-                        src={partner.logo_url}
-                        alt={partner.name}
-                        width={56}
-                        height={56}
-                        className="rounded-xl object-cover w-14 h-14"
-                      />
-                    )}
-                    <div>
-                      <h3 className="text-xl font-bold text-gray-900">{partner.name}</h3>
-                      <span className="text-sm text-primary-600 font-medium">{partner.service_type}</span>
+                <div key={partner.id} className="card flex flex-col items-center text-center">
+                  {partner.logo_url ? (
+                    <Image
+                      src={partner.logo_url}
+                      alt={partner.name}
+                      width={160}
+                      height={160}
+                      className="rounded-2xl object-contain w-40 h-40 mb-6"
+                    />
+                  ) : (
+                    <div className="w-40 h-40 mb-6 rounded-2xl bg-gray-100 flex items-center justify-center">
+                      <Building2 className="w-16 h-16 text-gray-300" />
                     </div>
-                  </div>
+                  )}
+                  <h3 className="text-xl font-bold text-gray-900">{partner.name}</h3>
+                  <span className="text-sm text-primary-600 font-medium mb-4">{partner.service_type}</span>
 
                   {partner.description && (
                     <p className="text-gray-600 mb-4">{partner.description}</p>
                   )}
 
-                  <div className="flex items-center gap-4 mt-auto">
+                  <div className="flex flex-wrap items-center justify-center gap-4 mt-auto">
                     {partner.website && (
                       <a
                         href={partner.website}
