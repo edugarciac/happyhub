@@ -4,6 +4,9 @@ import Image from 'next/image';
 import AdminLayout from '../../components/admin/AdminLayout';
 import toast, { Toaster } from 'react-hot-toast';
 import { Search, Plus, Pencil, Trash2, X, Upload, Building2, Power } from 'lucide-react';
+import { upload } from '@vercel/blob/client';
+
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'];
 
 interface Partner {
   id: number;
@@ -89,29 +92,24 @@ export default function AdminPartners() {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) { toast.error('Formato no permitido (JPG, PNG, WebP, GIF o AVIF)'); return; }
     if (file.size > 5 * 1024 * 1024) { toast.error('Imagen max 5MB'); return; }
 
     setUploading(true);
     try {
-      const reader = new FileReader();
-      reader.onload = async () => {
-        const res = await fetch('/api/admin/upload-partner-image', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ image: reader.result, filename: form.name || 'partner' }),
-        });
-        if (res.ok) {
-          const { url } = await res.json();
-          setForm(prev => ({ ...prev, logo_url: url }));
-          toast.success('Imagen subida');
-        } else {
-          toast.error('Error al subir imagen');
-        }
-        setUploading(false);
-      };
-      reader.readAsDataURL(file);
-    } catch {
-      toast.error('Error al subir imagen');
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const baseName = (form.name || 'partner').replace(/[^a-zA-Z0-9_-]/g, '_');
+      const blob = await upload(`partners/${baseName}.${ext}`, file, {
+        access: 'public',
+        handleUploadUrl: '/api/upload',
+        contentType: file.type,
+      });
+      setForm(prev => ({ ...prev, logo_url: blob.url }));
+      toast.success('Imagen subida');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Error al subir imagen');
+    } finally {
       setUploading(false);
     }
   };
@@ -367,7 +365,7 @@ export default function AdminPartners() {
                     </div>
                   )}
                   <div>
-                    <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                    <input ref={fileInputRef} type="file" accept={ALLOWED_IMAGE_TYPES.join(',')} onChange={handleImageUpload} className="hidden" />
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}

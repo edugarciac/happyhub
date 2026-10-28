@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
 import { requireAdminSession } from '@/utils/adminAuth';
 
-const ALLOWED_FOLDERS = ['services', 'event-types', 'reviews', 'uploads', 'custom-details'];
+const ALLOWED_FOLDERS = ['services', 'partners', 'event-types', 'reviews', 'uploads', 'custom-details'];
 const ALLOWED_CONTENT_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'];
 const MAX_SIZE_BYTES = 5 * 1024 * 1024;
 

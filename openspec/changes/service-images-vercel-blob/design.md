@@ -13,7 +13,7 @@ The file goes straight from the browser to Blob. Our function only signs a token
 
 ### Validation in `onBeforeGenerateToken`
 - Admin session required (`requireAdminSession`).
-- Pathname must start with an allowed folder (`services/`, `event-types/`, `reviews/`, `uploads/`, `custom-details/`).
+- Pathname must start with an allowed folder (`services/`, `partners/`, `event-types/`, `reviews/`, `uploads/`, `custom-details/`).
 - `allowedContentTypes`: `image/jpeg`, `image/png`, `image/webp`, `image/gif`, `image/avif`. SVG excluded (can carry scripts).
 - `maximumSizeInBytes`: 5 MB. `addRandomSuffix: true` so names never collide.
 - No `onUploadCompleted`: the form saves the URL itself; this keeps the route admin-only (the completion webhook would come from Vercel without a session).
@@ -23,6 +23,9 @@ The file goes straight from the browser to Blob. Our function only signs a token
 
 ### Delete
 On service delete, call `del(url)` only when the URL is a Blob URL; failure is non-fatal (logged), as today.
+
+### Partners
+`/admin/partners` keeps its own UI (small square preview, toast messages) and calls the same `upload()` with `partners/<name>`. `/api/admin/upload-partner-image` is removed. Partner delete calls `deleteBlobImage(logo_url)` (non-fatal); `/uploads/partners/...` URLs are ignored by it.
 
 ## Risks
 

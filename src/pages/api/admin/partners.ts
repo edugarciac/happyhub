@@ -1,5 +1,6 @@
 import { query } from '@/lib/db';
 import { withAdminHandler } from '@/lib/apiMiddleware';
+import { deleteBlobImage } from '@/lib/blob';
 
 export default withAdminHandler(async (req, res) => {
   if (req.method === 'GET') {
@@ -32,6 +33,11 @@ export default withAdminHandler(async (req, res) => {
   if (req.method === 'DELETE') {
     const { id } = req.query;
     if (!id) return res.status(400).json({ error: 'ID requerido' });
+    const existing = await query('SELECT logo_url FROM partners WHERE id=$1', [id]);
+    const logoUrl = existing.rows[0]?.logo_url;
+    if (logoUrl) {
+      try { await deleteBlobImage(logoUrl); } catch (err) { console.warn('Non-fatal: Blob image delete failed:', err); }
+    }
     await query('DELETE FROM partners WHERE id=$1', [id]);
     return res.json({ ok: true });
   }

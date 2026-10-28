@@ -12,8 +12,14 @@
 - [x] 3.1 `next.config.js`: `remotePatterns` for `**.public.blob.vercel-storage.com`; CSP `connect-src` adds `https://vercel.com`
 - [x] 3.2 Service delete uses `del()` for Blob URLs; remove `src/lib/s3.ts`
 
-## 4. Verification
+## 4. Partners
 
-- [x] 4.1 `tsc --noEmit`, lint and `next build` pass
-- [ ] 4.2 Vercel: create a Blob store and connect it to `happyhub` (manual)
-- [ ] 4.3 Production: upload a JPG and a PNG for a service; check `/admin/services` and `/servicios`
+- [x] 4.1 Add `partners` to the `/api/upload` folder allowlist
+- [x] 4.2 `/admin/partners` uploads with `upload()` from `@vercel/blob/client`; remove `/api/admin/upload-partner-image`
+- [x] 4.3 Partner delete removes its Blob image
+
+## 5. Verification
+
+- [x] 5.1 `tsc --noEmit` and `next build` pass (ESLint is not configured in the repo)
+- [ ] 5.2 Vercel: create a Blob store and connect it to `happyhub` (manual)
+- [ ] 5.3 Production: upload a JPG and a PNG for a service and a partner; check `/admin/services`, `/servicios`, `/admin/partners` and `/partners`
