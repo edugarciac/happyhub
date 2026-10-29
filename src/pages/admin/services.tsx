@@ -23,7 +23,7 @@ interface FormData {
   description: string;
   features: string[];
   image_url: string | null;
-  sort_order: number;
+  sort_order: number | '';
 }
 
 const emptyForm: FormData = { title: '', price: '', description: '', features: [], image_url: null, sort_order: 0 };
@@ -84,7 +84,7 @@ export default function AdminServices() {
     try {
       const res = await fetch('/api/admin/services', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, price: form.price || null }),
+        body: JSON.stringify({ ...form, price: form.price || null, sort_order: form.sort_order || 0 }),
       });
       const data = await res.json();
       if (!res.ok) { setFormError(data.error || 'Error'); setSaving(false); return; }
@@ -99,7 +99,7 @@ export default function AdminServices() {
     try {
       const res = await fetch(`/api/admin/services/${editingService.id}`, {
         method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, price: form.price || null }),
+        body: JSON.stringify({ ...form, price: form.price || null, sort_order: form.sort_order || 0 }),
       });
       const data = await res.json();
       if (!res.ok) { setFormError(data.error || 'Error'); setSaving(false); return; }
@@ -176,7 +176,7 @@ export default function AdminServices() {
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Orden</label>
-        <input type="number" min="0" value={form.sort_order} onChange={(e) => setForm({ ...form, sort_order: parseInt(e.target.value) || 0 })}
+        <input type="number" min="0" value={form.sort_order} onChange={(e) => setForm({ ...form, sort_order: e.target.value === '' ? '' : parseInt(e.target.value) })}
           className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
       </div>
     </div>

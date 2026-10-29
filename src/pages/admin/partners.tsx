@@ -5,6 +5,7 @@ import AdminLayout from '../../components/admin/AdminLayout';
 import toast, { Toaster } from 'react-hot-toast';
 import { Search, Plus, Pencil, Trash2, X, Upload, Building2, Power } from 'lucide-react';
 import { uploadPresigned } from '@vercel/blob/client';
+import { useBackdropClose } from '../../hooks/useBackdropClose';
 
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'];
 
@@ -39,6 +40,7 @@ const emptyForm: PartnerForm = {
 };
 
 export default function AdminPartners() {
+  const backdropClose = useBackdropClose();
   const [partners, setPartners] = useState<Partner[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -302,7 +304,7 @@ export default function AdminPartners() {
 
       {/* Create/Edit Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowModal(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" {...backdropClose(() => setShowModal(false))}>
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto m-4 p-6" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold">{editingPartner ? 'Editar Partner' : 'Nuevo Partner'}</h2>
@@ -413,7 +415,7 @@ export default function AdminPartners() {
 
       {/* Delete confirmation */}
       {deletingPartner && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setDeletingPartner(null)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" {...backdropClose(() => setDeletingPartner(null))}>
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm m-4 p-6" onClick={e => e.stopPropagation()}>
             <h2 className="text-lg font-bold text-gray-900 mb-2">Eliminar partner</h2>
             <p className="text-gray-600 mb-6">¿Seguro que quieres eliminar <strong>{deletingPartner.name}</strong>? Esta acción no se puede deshacer. Si solo quieres ocultarlo, desactívalo.</p>

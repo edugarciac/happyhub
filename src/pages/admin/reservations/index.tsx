@@ -23,6 +23,7 @@ import ReservationFlowGuide from '@/components/admin/ReservationFlowGuide';
 import ReservationChargesModal from '@/components/admin/ReservationChargesModal';
 import { slotEndTime, extraHoursPrice } from '@/utils/pricing';
 import ReservationExtrasFields, { type ExtraOption, type ExtrasValue } from '@/components/admin/ReservationExtrasFields';
+import { useBackdropClose } from '../../../hooks/useBackdropClose';
 
 interface EventTypeOption { id: number; name: string; icon: string; }
 
@@ -83,7 +84,11 @@ function jsonHeaders(): HeadersInit {
   return { 'Content-Type': 'application/json' };
 }
 
+// Deja el campo vacío mientras se reescribe un importe en vez de forzar un 0
+const numOrEmpty = (v: string): number | '' => (v === '' ? '' : Number(v));
+
 export default function AdminReservations() {
+  const backdropClose = useBackdropClose();
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
   const [eventTypes, setEventTypes] = useState<EventTypeOption[]>([]);
@@ -117,7 +122,7 @@ export default function AdminReservations() {
 
   // Edit modal
   const [editReservation, setEditReservation] = useState<Reservation | null>(null);
-  const [editForm, setEditForm] = useState({ eventDate: '', timeSlot: '', eventType: '', guests: 0, totalPrice: 0, depositAmount: 0, notes: '', needsKidsFurniture: false, extraHours: 0, extraIds: [] as string[] });
+  const [editForm, setEditForm] = useState({ eventDate: '', timeSlot: '', eventType: '', guests: 0 as number | '', totalPrice: 0 as number | '', depositAmount: 0 as number | '', notes: '', needsKidsFurniture: false, extraHours: 0, extraIds: [] as string[] });
   const [editError, setEditError] = useState('');
   const [editSaving, setEditSaving] = useState(false);
 
@@ -248,18 +253,19 @@ export default function AdminReservations() {
 
   // Al editar, las horas y servicios ajustan el total; la señal no se toca (puede estar ya pagada)
   const handleEditExtrasChange = (next: ExtrasValue, delta: number) =>
-    setEditForm((prev) => ({ ...prev, ...next, totalPrice: Math.max(0, prev.totalPrice + delta) }));
+    setEditForm((prev) => ({ ...prev, ...next, totalPrice: Math.max(0, Number(prev.totalPrice) + delta) }));
 
   const handleEditTimeSlotChange = (timeSlot: string) =>
     setEditForm((prev) => {
       const removed = timeSlot !== 'afternoon' ? prev.extraHours : 0;
-      return { ...prev, timeSlot, extraHours: prev.extraHours - removed, totalPrice: Math.max(0, prev.totalPrice - extraHoursPrice(removed)) };
+      return { ...prev, timeSlot, extraHours: prev.extraHours - removed, totalPrice: Math.max(0, Number(prev.totalPrice) - extraHoursPrice(removed)) };
     });
 
   const handleEditSave = async () => {
     if (!editReservation) return;
     setEditSaving(true); setEditError('');
-    if (editForm.guests < 1 || editForm.guests > 150) { setEditError('Invitados debe ser entre 1 y 150'); setEditSaving(false); return; }
+    if (editForm.guests === '' || editForm.guests < 1 || editForm.guests > 150) { setEditError('Invitados debe ser entre 1 y 150'); setEditSaving(false); return; }
+    if (editForm.totalPrice === '' || editForm.depositAmount === '') { setEditError('Indica el precio total y la señal'); setEditSaving(false); return; }
     try {
       const res = await fetch(`/api/admin/reservations/${editReservation.id}`, {
         method: 'PATCH', headers: jsonHeaders(), body: JSON.stringify(editForm),
@@ -750,7 +756,7 @@ export default function AdminReservations() {
 
         {/* Marcar pago total */}
         {fullPaymentFor && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setFullPaymentFor(null)}>
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" {...backdropClose(() => setFullPaymentFor(null))}>
             <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
               <h3 className="text-lg font-bold text-gray-900 mb-2">Marcar pago total · #{fullPaymentFor.id}</h3>
               <p className="text-sm text-gray-600 mb-4">
@@ -779,7 +785,7 @@ export default function AdminReservations() {
 
         {/* Edit Modal */}
         {editReservation && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setEditReservation(null)}>
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" {...backdropClose(() => setEditReservation(null))}>
             <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-gray-900">Editar reserva #{editReservation.id}</h3>
@@ -815,7 +821,7 @@ export default function AdminReservations() {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Invitados</label>
                     <input type="number" min="1" max="50" value={editForm.guests}
-                      onChange={(e) => setEditForm({ ...editForm, guests: parseInt(e.target.value) || 0 })}
+                      onChange={(e) => setEditForm({ ...editForm, guests: numOrEmpty(e.target.value) })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
                   </div>
                 </div>
@@ -829,13 +835,13 @@ export default function AdminReservations() {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Precio total (EUR)</label>
                     <input type="number" min="0" step="0.01" value={editForm.totalPrice}
-                      onChange={(e) => setEditForm({ ...editForm, totalPrice: parseFloat(e.target.value) || 0 })}
+                      onChange={(e) => setEditForm({ ...editForm, totalPrice: numOrEmpty(e.target.value) })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Señal (EUR)</label>
                     <input type="number" min="0" step="0.01" value={editForm.depositAmount}
-                      onChange={(e) => setEditForm({ ...editForm, depositAmount: parseFloat(e.target.value) || 0 })}
+                      onChange={(e) => setEditForm({ ...editForm, depositAmount: numOrEmpty(e.target.value) })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
                   </div>
                 </div>
@@ -864,7 +870,7 @@ export default function AdminReservations() {
 
         {/* Delete Confirmation Modal */}
         {deleteReservation && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setDeleteReservation(null)}>
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" {...backdropClose(() => setDeleteReservation(null))}>
             <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6" onClick={(e) => e.stopPropagation()}>
               <h3 className="text-lg font-bold text-gray-900 mb-2">Eliminar reserva</h3>
               <p className="text-gray-600 text-sm mb-1">Vas a eliminar la reserva #{deleteReservation.id} de {deleteReservation.name || deleteReservation.email || 'cliente'}.</p>
@@ -904,7 +910,7 @@ export default function AdminReservations() {
           </div>
         )}
         {depositLinkModal && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setDepositLinkModal(null)}>
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" {...backdropClose(() => setDepositLinkModal(null))}>
             <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
               <h3 className="text-lg font-bold text-gray-900 mb-2">Enlace de pago de la señal</h3>
               <p className="text-sm text-gray-600 mb-4">
