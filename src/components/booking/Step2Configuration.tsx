@@ -7,6 +7,10 @@ import { ChevronLeft, ChevronRight, Users, Package, Check, AlertCircle, Clock } 
 export default function Step2Configuration() {
   const { state, dispatch, nextStep, prevStep, calculateExtrasPrice } = useBooking();
   const [error, setError] = useState<string | null>(null);
+  // Texto del input de invitados: permite borrarlo por completo mientras se escribe
+  const [guestsDraft, setGuestsDraft] = useState(String(state.guests));
+
+  useEffect(() => { setGuestsDraft(String(state.guests)); }, [state.guests]);
 
   useEffect(() => {
     if (state.services.length > 0) return;
@@ -121,8 +125,12 @@ export default function Step2Configuration() {
               <div className="flex-1 max-w-[200px]">
                 <input
                   type="number"
-                  value={state.guests}
-                  onChange={(e) => handleGuestsChange(parseInt(e.target.value) || 0)}
+                  value={guestsDraft}
+                  onChange={(e) => {
+                    setGuestsDraft(e.target.value);
+                    if (e.target.value !== '') handleGuestsChange(parseInt(e.target.value));
+                  }}
+                  onBlur={() => setGuestsDraft(String(state.guests))}
                   min="1"
                   max="50"
                   className="w-full text-center text-4xl font-bold text-primary-600 border-2 border-gray-200 rounded-xl py-4 focus:border-primary-500 focus:outline-none"

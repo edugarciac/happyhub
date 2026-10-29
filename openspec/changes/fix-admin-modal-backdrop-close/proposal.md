@@ -17,3 +17,10 @@ Al editar un partner en `/admin/partners`, el modal se cierra de golpe a mitad d
 
 - **Frontend**: `src/hooks/useBackdropClose.ts` (nuevo), `src/pages/admin/partners.tsx`, `src/pages/admin/reservations/index.tsx`, `src/pages/admin/reviews.tsx`
 - Sin cambios de backend, DB ni APIs
+
+## Addendum: campos numéricos que no se pueden vaciar
+
+Al editar importes (precio total, señal) o invitados, borrar el contenido del input dejaba un `0` inmediatamente (`parseFloat(v) || 0`), obligando a escribir delante del 0. Afecta a: modal de edición de reservas (invitados, precio total, señal), orden en `/admin/services` e invitados en el paso 2 de la reserva pública (que además forzaba un mínimo de 1 al borrar).
+
+- El estado del campo acepta `''` mientras se escribe; la validación/conversión se hace al guardar (reservas: error si precio o señal quedan vacíos) o al salir del campo (paso 2: vuelve al último valor válido).
+- Impacto adicional: `src/pages/admin/services.tsx`, `src/components/booking/Step2Configuration.tsx`.
