@@ -28,6 +28,7 @@
 - [x] 4.2 `/guia-sala/panel` kiosk layout (no header/footer/cookie banner, `noindex`)
 - [x] 4.2b Open the chat widget on `/guia-sala/panel` (phase 2)
 - [x] 4.3 `next.config.js`: for `/guia-sala/panel/:path*`, drop `X-Frame-Options` and add `frame-ancestors 'self' http://homeassistant.local https://homeassistant.local`; check the Home Assistant iframe loads
+- [x] 4.3b Add the Home Assistant origins on port 8123 (`http://homeassistant.local:8123`, `http://192.168.100.116:8123`) to `frame-ancestors`: the iframe was blocked because origins without a port only match 80/443
 - [x] 4.4 GA4 events `chat_open`, `chat_message`, `chat_handoff_whatsapp`
 
 ## 5. Verify

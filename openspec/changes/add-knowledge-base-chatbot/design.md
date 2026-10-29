@@ -85,7 +85,7 @@ tags: [panel, inicio]
   - Sin cabecera, pie ni menú de la web; botones grandes para pantalla táctil; enlaces internos se quedan dentro de `/guia-sala/panel/...`.
   - Empieza por el Panel de control y Operaciones; el widget del chat va abierto.
   - Es pública (no hay sesión en la tablet) y solo muestra contenido de la KB.
-  - **Cabeceras**: `next.config.js` envía `X-Frame-Options: SAMEORIGIN` a todas las rutas, que bloquearía el iframe. Para `/guia-sala/panel/:path*` se quita `X-Frame-Options` y se añade `frame-ancestors 'self' http://homeassistant.local https://homeassistant.local` a la CSP (la tablet abre Home Assistant en la red local como `homeassistant.local`, sin puerto: 80/443). El resto de rutas no cambian.
+  - **Cabeceras**: `next.config.js` envía `X-Frame-Options: SAMEORIGIN` a todas las rutas, que bloquearía el iframe. Para `/guia-sala/panel/:path*` se quita `X-Frame-Options` y se añade `frame-ancestors 'self' http://homeassistant.local:8123 http://192.168.100.116:8123 http://homeassistant.local https://homeassistant.local` a la CSP. Home Assistant escucha en el puerto 8123: `frame-ancestors` compara esquema, host y puerto exactos, así que un origen sin puerto solo cubre 80/443 y no basta. Se incluye la IP porque la *Start URL* de Fully Kiosk en la tablet usa `http://192.168.100.116:8123`. El resto de rutas no cambian.
   - `noindex` para que no aparezca en buscadores.
 
 ### 3b. Contenido recogido hasta ahora
@@ -194,7 +194,7 @@ Los `.md` **no** son fuente de verdad para precio ni fechas libres (se quedaría
 ## Open Questions
 
 - Resto del contenido de la guía: el propietario lo irá dictando (ver 3b). Pendiente: lo marcado en 3b, wifi, electrodomésticos, salida, emergencias.
-- Si algún día la tablet abre Home Assistant por otra URL (Nabu Casa, IP), hay que añadirla a `frame-ancestors` o el botón Ayuda dejará de mostrar la guía.
+- Si algún día la tablet abre Home Assistant por otra URL (Nabu Casa, otra IP u otro puerto), hay que añadirla, con el mismo esquema, host y puerto, a `frame-ancestors` o el botón Ayuda dejará de mostrar la guía.
 - ¿Guardar conversaciones (anonimizadas) para mejorar la KB? Implica actualizar la política de privacidad.
 
 ## Later phase: WhatsApp

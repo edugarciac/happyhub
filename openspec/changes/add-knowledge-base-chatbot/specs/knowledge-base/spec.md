@@ -48,11 +48,15 @@ Documents SHALL have a `type` of `hub`, `detalle` or `operacion`. Hubs SHALL giv
 - **THEN** `/como-funciona` SHALL render the documents with `como-funciona` in `pages`, ordered by `order`
 
 ### Requirement: Kiosk guide embeddable from Home Assistant
-`/guia-sala/panel` SHALL render the guide without the site header, footer or menu, and SHALL be embeddable in an iframe only from the site itself and the room's Home Assistant (`http://homeassistant.local` or `https://homeassistant.local`, default ports). All other routes SHALL keep `X-Frame-Options: SAMEORIGIN`.
+`/guia-sala/panel` SHALL render the guide without the site header, footer or menu, and SHALL be embeddable in an iframe only from the site itself and the room's Home Assistant (`http://homeassistant.local:8123`, `http://192.168.100.116:8123`, and `http://homeassistant.local` / `https://homeassistant.local` on default ports). All other routes SHALL keep `X-Frame-Options: SAMEORIGIN`.
 
 #### Scenario: Help button on the room tablet
 - **WHEN** a customer taps "Ayuda" on the Home Assistant panel
 - **THEN** the iframe SHALL load `/guia-sala/panel` starting with "Panel de control" and the chat open
+
+#### Scenario: Home Assistant on port 8123
+- **WHEN** the tablet opens Home Assistant at `http://192.168.100.116:8123` or `http://homeassistant.local:8123` and taps "Ayuda"
+- **THEN** the response for `/guia-sala/panel` SHALL carry no `X-Frame-Options` and a `frame-ancestors` that lists that exact origin, and the guide SHALL load
 
 #### Scenario: Embedding from another site
 - **WHEN** a page from any other origin embeds `/guia-sala/panel`
