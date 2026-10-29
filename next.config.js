@@ -19,12 +19,20 @@ const securityHeaders = [
 ]
 
 // /guia-sala/panel se muestra dentro de un iframe en el panel de Home Assistant de la sala.
-// Solo esa ruta puede embeberse, y solo desde la web y desde homeassistant.local.
+// Solo esa ruta puede embeberse, y solo desde la web y desde Home Assistant en la red local.
+// frame-ancestors compara esquema, host y puerto exactos: HA escucha en el 8123.
+const HA_ORIGINS = [
+  'http://homeassistant.local:8123',
+  'http://192.168.100.116:8123',
+  'http://homeassistant.local',
+  'https://homeassistant.local',
+].join(' ')
+
 const kioskHeaders = securityHeaders
   .filter((h) => h.key !== 'X-Frame-Options')
   .map((h) =>
     h.key === 'Content-Security-Policy'
-      ? { ...h, value: `${h.value}; frame-ancestors 'self' http://homeassistant.local https://homeassistant.local` }
+      ? { ...h, value: `${h.value}; frame-ancestors 'self' ${HA_ORIGINS}` }
       : h
   )
 
