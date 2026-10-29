@@ -3,6 +3,7 @@ import Head from 'next/head';
 import AdminLayout from '../../components/admin/AdminLayout';
 import toast, { Toaster } from 'react-hot-toast';
 import { Trash2, ChevronLeft, ChevronRight, Search, Star, X } from 'lucide-react';
+import { useBackdropClose } from '../../hooks/useBackdropClose';
 
 type ReviewStatus = 'pending_review' | 'published' | 'archived' | 'cancelled';
 
@@ -42,6 +43,7 @@ function Stars({ rating }: { rating: number }) {
 }
 
 export default function AdminReviews() {
+  const backdropClose = useBackdropClose();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -224,7 +226,7 @@ export default function AdminReviews() {
 
         {/* Review Detail Modal */}
         {viewingReview && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setViewingReview(null)}>
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" {...backdropClose(() => setViewingReview(null))}>
             <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-bold text-gray-900">Detalle de reseña</h3>
@@ -275,7 +277,7 @@ export default function AdminReviews() {
 
         {/* Delete Confirmation Modal */}
         {deleteConfirm && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setDeleteConfirm(null)}>
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" {...backdropClose(() => setDeleteConfirm(null))}>
             <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-gray-900">Eliminar Reseña</h3>

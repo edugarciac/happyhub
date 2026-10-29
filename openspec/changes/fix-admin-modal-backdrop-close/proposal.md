@@ -1,0 +1,19 @@
+## Why
+
+Al editar un partner en `/admin/partners`, el modal se cierra de golpe a mitad de edición y se pierden los cambios. Causa: el fondo oscuro (backdrop) cierra el modal con `onClick`. Si el usuario selecciona texto de un input arrastrando el ratón y suelta fuera del recuadro blanco, el navegador dispara `click` sobre el ancestro común (el backdrop) y el modal se cierra sin aviso. El mismo patrón existe en los modales de reservas y reseñas.
+
+## What Changes
+
+- Nuevo hook `useBackdropClose` que solo cierra el modal si el `mousedown` **y** el `click` ocurren directamente sobre el backdrop.
+- Aplicarlo a todos los modales admin con backdrop: partners (editar, borrar), reservations (4 modales), reviews (2 modales).
+
+## Capabilities
+
+### New Capabilities
+
+- `admin-modal-dismissal`: Reglas de cierre de modales en el panel admin
+
+## Impact
+
+- **Frontend**: `src/hooks/useBackdropClose.ts` (nuevo), `src/pages/admin/partners.tsx`, `src/pages/admin/reservations/index.tsx`, `src/pages/admin/reviews.tsx`
+- Sin cambios de backend, DB ni APIs

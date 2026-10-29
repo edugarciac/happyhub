@@ -23,6 +23,7 @@ import ReservationFlowGuide from '@/components/admin/ReservationFlowGuide';
 import ReservationChargesModal from '@/components/admin/ReservationChargesModal';
 import { slotEndTime, extraHoursPrice } from '@/utils/pricing';
 import ReservationExtrasFields, { type ExtraOption, type ExtrasValue } from '@/components/admin/ReservationExtrasFields';
+import { useBackdropClose } from '../../../hooks/useBackdropClose';
 
 interface EventTypeOption { id: number; name: string; icon: string; }
 
@@ -84,6 +85,7 @@ function jsonHeaders(): HeadersInit {
 }
 
 export default function AdminReservations() {
+  const backdropClose = useBackdropClose();
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
   const [eventTypes, setEventTypes] = useState<EventTypeOption[]>([]);
@@ -750,7 +752,7 @@ export default function AdminReservations() {
 
         {/* Marcar pago total */}
         {fullPaymentFor && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setFullPaymentFor(null)}>
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" {...backdropClose(() => setFullPaymentFor(null))}>
             <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
               <h3 className="text-lg font-bold text-gray-900 mb-2">Marcar pago total · #{fullPaymentFor.id}</h3>
               <p className="text-sm text-gray-600 mb-4">
@@ -779,7 +781,7 @@ export default function AdminReservations() {
 
         {/* Edit Modal */}
         {editReservation && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setEditReservation(null)}>
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" {...backdropClose(() => setEditReservation(null))}>
             <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-gray-900">Editar reserva #{editReservation.id}</h3>
@@ -864,7 +866,7 @@ export default function AdminReservations() {
 
         {/* Delete Confirmation Modal */}
         {deleteReservation && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setDeleteReservation(null)}>
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" {...backdropClose(() => setDeleteReservation(null))}>
             <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6" onClick={(e) => e.stopPropagation()}>
               <h3 className="text-lg font-bold text-gray-900 mb-2">Eliminar reserva</h3>
               <p className="text-gray-600 text-sm mb-1">Vas a eliminar la reserva #{deleteReservation.id} de {deleteReservation.name || deleteReservation.email || 'cliente'}.</p>
@@ -904,7 +906,7 @@ export default function AdminReservations() {
           </div>
         )}
         {depositLinkModal && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setDepositLinkModal(null)}>
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" {...backdropClose(() => setDepositLinkModal(null))}>
             <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
               <h3 className="text-lg font-bold text-gray-900 mb-2">Enlace de pago de la señal</h3>
               <p className="text-sm text-gray-600 mb-4">
