@@ -1,6 +1,8 @@
 // src/lib/kb.ts
 // Base de conocimiento: lee content/kb/*.md (FAQ + guía de la sala) en build.
 // Solo para servidor (getStaticProps); los componentes usan los tipos de kbTypes.ts.
+// El manual interno está en kbManual.ts: este módulo no debe mencionar content/interno,
+// para que sus ficheros no se empaqueten con las páginas públicas ni el chatbot.
 import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
@@ -8,7 +10,7 @@ import MarkdownIt from 'markdown-it';
 import { z } from 'zod';
 import { CONTACT_INFO } from '@/config/contact';
 import { BIZUM_ENABLED } from '@/config/payments';
-import { MANUAL_BASE_PATH, type KbDocLink, type KbPage, type KbRenderedDoc, type KbType } from './kbTypes';
+import { type KbDocLink, type KbPage, type KbRenderedDoc, type KbType } from './kbTypes';
 
 export const KB_DIR = path.join(process.cwd(), 'content', 'kb');
 
@@ -33,7 +35,25 @@ const frontmatterSchema = z.object({
   emoji: z.string().nullable().default(null),
   tags: z.array(z.string()).default([]),
   when: z.string().nullable().default(null),
+  summary: z.string().nullable().default(null),
 });
+
+// Marcas de contenido interno: si aparecen en content/kb, el build falla.
+// La guía pública la leen los clientes (web, tablet y chatbot); lo interno va en content/interno.
+export const INTERNAL_MARKERS = [
+  'switch.',
+  'script.',
+  'sensor.',
+  'binary_sensor.',
+  'media_player.',
+  'input_text.',
+  'input_boolean.',
+  'climate.',
+  'automation.',
+  '/admin/',
+  'content/interno',
+  'homeassistant.local',
+];
 
 export interface KbSection {
   heading: string;
@@ -51,6 +71,7 @@ export interface KbDoc {
   emoji: string | null;
   tags: string[];
   when: string | null;
+  summary: string | null;
   intro: string;
   sections: KbSection[];
 }
@@ -98,6 +119,10 @@ export function parseKbFile(relPath: string, source: string): KbDoc {
   const fm = parsed.data;
   const { intro, sections } = splitSections(content);
 
+  if (fm.type === 'hub' && !fm.summary) {
+    throw new Error(`KB ${relPath}: al hub le falta "summary" (una línea que resuma el tema)`);
+  }
+
   if (fm.type === 'operacion') {
     if (!fm.when) throw new Error(`KB ${relPath}: a la operación le falta "when" en el frontmatter`);
     const headings = sections.map((s) => s.heading);
@@ -119,6 +144,7 @@ export function parseKbFile(relPath: string, source: string): KbDoc {
     emoji: fm.emoji,
     tags: fm.tags,
     when: fm.when,
+    summary: fm.summary,
     intro,
     sections,
   };
@@ -193,6 +219,28 @@ function listMarkdownFiles(dir: string, base = ''): string[] {
 
 let cache: KbDoc[] | null = null;
 
+/** Falla si un documento público contiene marcas internas */
+export function assertNoInternalContent(docs: KbDoc[]): void {
+  const errors: string[] = [];
+  for (const doc of docs) {
+    const text = [doc.title, doc.summary ?? '', doc.when ?? '', doc.intro, ...doc.sections.flatMap((s) => [s.heading, s.markdown])].join('\n');
+    for (const marker of INTERNAL_MARKERS) {
+      if (text.includes(marker)) {
+        errors.push(`KB ${doc.file}: contiene "${marker}", que es contenido interno. Muévelo a content/interno/`);
+      }
+    }
+  }
+  if (errors.length) throw new Error(errors.join('\n'));
+}
+
+/** Falla si un documento interno intenta publicarse en una página pública */
+export function assertManualNotPublished(docs: KbDoc[]): void {
+  const published = docs.filter((d) => d.pages.length > 0);
+  if (published.length) {
+    throw new Error(published.map((d) => `Manual ${d.file}: no puede tener "pages" (el manual interno nunca se publica)`).join('\n'));
+  }
+}
+
 /** Lee y valida toda la KB (una vez por proceso de build) */
 export function loadKb(dir: string = KB_DIR): KbDoc[] {
   if (dir === KB_DIR && cache) return cache;
@@ -200,6 +248,8 @@ export function loadKb(dir: string = KB_DIR): KbDoc[] {
     .sort()
     .map((rel) => parseKbFile(rel, fs.readFileSync(path.join(dir, rel), 'utf8')));
   validateKb(docs);
+  if (dir === KB_DIR) assertNoInternalContent(docs);
+  else assertManualNotPublished(docs);
   docs.sort((a, b) => a.order - b.order || a.title.localeCompare(b.title, 'es'));
   if (dir === KB_DIR) cache = docs;
   return docs;
@@ -244,6 +294,7 @@ export function renderKbDoc(doc: KbDoc, basePath: string): KbRenderedDoc {
     title: doc.title,
     emoji: doc.emoji,
     when: doc.when,
+    summary: doc.summary,
     parent: doc.parent,
     href: `${basePath}/${doc.slug}`,
     introHtml: doc.intro ? renderKbMarkdown(doc.intro, doc, basePath) : '',
@@ -262,6 +313,7 @@ export function kbDocLink(doc: KbDoc, basePath: string): KbDocLink {
     title: doc.title,
     emoji: doc.emoji,
     when: doc.when,
+    summary: doc.summary,
     href: `${basePath}/${doc.slug}`,
     questions: doc.type === 'operacion' ? [] : doc.sections.map((s) => ({ id: slugifyHeading(s.heading), heading: s.heading })),
   };
@@ -288,7 +340,7 @@ export function getGuidePaths(): string[][] {
   return loadKb().map((d) => d.slug.split('/'));
 }
 
-function docProps(docs: KbDoc[], slug: string, basePath: string) {
+export function docProps(docs: KbDoc[], slug: string, basePath: string) {
   const doc = getKbDoc(slug, docs);
   if (!doc) return null;
   const parent = doc.parent ? getKbDoc(doc.parent, docs) : null;
@@ -304,23 +356,6 @@ export function getGuideDocProps(slug: string, basePath: string) {
   return docProps(loadKb(), slug, basePath);
 }
 
-// ───────── Manual interno (/admin/manual, solo admins) ─────────
-// Carpeta aparte: loadKb() sin argumentos nunca la lee, así no llega a la web pública ni al chatbot.
-
-export const MANUAL_DIR = path.join(process.cwd(), 'content', 'interno');
-
-export function getManualIndexProps() {
-  const docs = loadKb(MANUAL_DIR);
-  return {
-    operations: getKbDocs({ type: 'operacion' }, docs).map((d) => kbDocLink(d, MANUAL_BASE_PATH)),
-    docs: docs.filter((d) => d.type !== 'operacion').map((d) => kbDocLink(d, MANUAL_BASE_PATH)),
-  };
-}
-
-export function getManualDocProps(slug: string) {
-  return docProps(loadKb(MANUAL_DIR), slug, MANUAL_BASE_PATH);
-}
-
 // ───────── Texto para el chatbot ─────────
 
 /** Documento en Markdown para el prompt: variables sustituidas y enlaces a otros .md convertidos en rutas de la web */
@@ -331,6 +366,7 @@ export function kbDocAsMarkdown(doc: KbDoc, basePath: string): string {
       return link ? `](${basePath}/${link.slug}${link.hash})` : match;
     });
   const parts = [`# ${doc.title}`, `URL: ${basePath}/${doc.slug}`];
+  if (doc.summary) parts.push(`Resumen: ${doc.summary}`);
   if (doc.intro) parts.push(rewrite(doc.intro));
   for (const s of doc.sections) parts.push(`## ${s.heading}\n\n${rewrite(s.markdown)}`);
   return parts.join('\n\n');

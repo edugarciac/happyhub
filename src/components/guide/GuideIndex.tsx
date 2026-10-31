@@ -82,7 +82,7 @@ export default function GuideIndex({ basePath, panel, operations, zones, hubs, k
             >
               <span>
                 <span className="block font-semibold text-gray-900">{op.title}</span>
-                {op.when && <span className="block text-sm text-gray-500 mt-0.5">{op.when}</span>}
+                {(op.when ?? op.summary) && <span className="block text-sm text-gray-500 mt-0.5">{op.when ?? op.summary}</span>}
               </span>
               <ChevronRight className="w-5 h-5 text-primary-600 flex-shrink-0" />
             </Link>

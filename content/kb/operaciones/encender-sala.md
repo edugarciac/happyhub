@@ -1,6 +1,6 @@
 ---
 type: operacion
-title: Encender sala
+title: Encender la sala (Sala ON)
 parent: panel-de-control
 order: 1
 when: Nada más entrar en la sala
@@ -32,6 +32,6 @@ No enciende el aire acondicionado ni pone música: eso lo eliges tú.
 
 ## Si algo falla
 
-- **Sale «Sonido incompleto»** o **no suena la música**: pulsa **Música ON** en el grupo **Música** y espera unos segundos. Enciende el amplificador y el subwoofer.
+- **Sale «Sonido incompleto»** o **no suena la música**: pulsa **Música ON** en el grupo **Música** y espera unos segundos ([Encender la música](encender-musica.md)). Enciende el amplificador y el subwoofer.
 - **No se ha encendido la Sala Kids**: enciéndela desde el grupo **Luces**.
 - Si sigue sin funcionar, [escríbenos por WhatsApp]({{whatsapp}}).

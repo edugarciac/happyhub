@@ -55,7 +55,7 @@ export default function KbDocBody({ doc, related }: KbDocBodyProps) {
               >
                 <span>
                   <span className="block font-semibold text-gray-900">{c.title}</span>
-                  {c.when && <span className="block text-sm text-gray-500 mt-0.5">{c.when}</span>}
+                  {(c.when ?? c.summary) && <span className="block text-sm text-gray-500 mt-0.5">{c.when ?? c.summary}</span>}
                 </span>
                 <ChevronRight className="w-5 h-5 text-primary-600 flex-shrink-0" />
               </Link>

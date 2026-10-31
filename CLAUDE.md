@@ -31,7 +31,9 @@ Active
 - **OpenSpec first**: All implementations MUST be documented in `openspec/` before writing any code. Create proposal.md, design.md, specs, and tasks before implementing. No exceptions.
 - OpenSpec structure: `openspec/changes/<change-name>/` with `.openspec.yaml`, `proposal.md`, `design.md`, `specs/`, `tasks.md`
 - Product vision: `openspec/openspec-plataforma-eventos.md`
-- **Guides always in sync**: every change (code, Home Assistant panel/scripts in `home-assistant/`, rules, prices, flows) MUST be reflected in the same commit/PR in both guides. No exceptions.
-  - User guide: `content/kb/` (public `/guia-sala`, the tablet's **Ayuda** button, the FAQ and the chatbot). Format in `content/kb/README.md`.
-  - Internal guide: `content/interno/` (admins only, `/admin/manual`). Format in `content/interno/README.md`.
-  - Add the guide updates as a task in the OpenSpec `tasks.md`, and before finishing grep both folders for the old texts/names to leave nothing stale.
+- **Guides always in sync**: every change that modifies the behaviour or usability of the website or of Home Assistant (code, `home-assistant/` panel/scripts/sensors, rules, prices, flows, texts the user sees) MUST update, in the same commit/PR, both guides. No exceptions.
+  - **User guide (public)**: `content/kb/` → `/guia-sala`, `/como-funciona`, the tablet's **Ayuda** button and the customer chatbot. Format: `content/kb/README.md`.
+  - **Internal guide (private)**: `content/interno/` → only `/admin/manual` for admins. Format: `content/interno/README.md`.
+  - **Never show internal content to end users**: internal details (HA entities/scripts, `/admin/` routes, business processes) go ONLY in `content/interno/`. The build fails if `content/kb/` contains any `INTERNAL_MARKERS` (`src/lib/kb.ts`) or if an internal doc declares `pages`. Never weaken these checks to make a build pass.
+  - **Structure by topic**: `hub` (topic, mandatory one-line `summary`) → `detalle` (explanations) and `operacion` (in `operaciones/`) nested with `parent`. Link sub-pages from the hub. Use the hubs' `summary` to locate docs quickly when answering questions or learning the business logic.
+  - Add the guide updates as a task in the OpenSpec `tasks.md`, and before finishing grep both folders for old texts/names to leave nothing stale.

@@ -1,6 +1,7 @@
 ---
 type: operacion
 title: Actualizar la guía de la sala
+parent: guias/guias-y-manual
 order: 1
 when: Cuando cambie una norma, un botón del panel o una respuesta de la FAQ
 tags: [guía, web, faq]
@@ -31,5 +32,5 @@ Vercel vuelve a generar la web con el texto nuevo. La misma pregunta se actualiz
 
 ## Si algo falla
 
-- **La web no se actualiza**: en Vercel, mira si el último despliegue ha fallado. Si el error empieza por `KB`, dice el fichero y el problema: un enlace a un documento que no existe, o una operación a la que le falta una sección.
+- **La web no se actualiza**: en Vercel, mira si el último despliegue ha fallado. Si el error empieza por `KB`, dice el fichero y el problema: un enlace a un documento que no existe, una operación a la que le falta una sección, un tema sin `summary`, o **contenido interno en la guía pública** (muévelo a `content/interno/`).
 - **Prefieres no tocar GitHub**: pide el cambio a Edu o a Claude.

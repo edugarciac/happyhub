@@ -1,6 +1,7 @@
 ---
 type: hub
 title: Normas del espacio
+summary: Aforo, Chiquipark, tabaco, mascotas, música y ruido, y equipos de sonido.
 pages: [como-funciona, guia-sala]
 order: 4
 emoji: 📋

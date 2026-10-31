@@ -4,6 +4,7 @@ import { CONTACT_INFO } from '@/config/contact';
 const hub = `---
 type: hub
 title: Normas
+summary: Aforo, Chiquipark y tabaco.
 pages: [como-funciona, guia-sala]
 order: 4
 ---
@@ -76,11 +77,15 @@ describe('validateKb', () => {
   });
 
   it('fails on a reserved slug', () => {
-    expect(() => validateKb([parseKbFile('panel.md', '---\ntype: hub\ntitle: X\n---\n')])).toThrow(/reservada/);
+    expect(() => validateKb([parseKbFile('panel.md', '---\ntype: hub\ntitle: X\nsummary: Y\n---\n')])).toThrow(/reservada/);
+  });
+
+  it('requires a summary on hubs', () => {
+    expect(() => parseKbFile('x.md', '---\ntype: hub\ntitle: X\n---\n')).toThrow(/summary/);
   });
 
   it('fails on an unknown {{variable}}', () => {
-    expect(() => validateKb([parseKbFile('x.md', '---\ntype: hub\ntitle: X\n---\n\n## A\n\n{{telefono}}')])).toThrow(/telefono/);
+    expect(() => validateKb([parseKbFile('x.md', '---\ntype: hub\ntitle: X\nsummary: Y\n---\n\n## A\n\n{{telefono}}')])).toThrow(/telefono/);
   });
 });
 
@@ -120,7 +125,7 @@ describe('content/kb', () => {
 
 describe('content/interno (internal manual)', () => {
   it('is valid and links to /admin/manual', () => {
-    const { getManualIndexProps } = require('@/lib/kb');
+    const { getManualIndexProps } = require('@/lib/kbManual');
     const props = getManualIndexProps();
     expect(props.operations.length).toBeGreaterThan(0);
     expect(props.operations.every((d: { href: string }) => d.href.startsWith('/admin/manual/'))).toBe(true);
@@ -128,9 +133,43 @@ describe('content/interno (internal manual)', () => {
 
   it('never ends up in the public knowledge base', () => {
     const publicSlugs = loadKb().map((d) => d.slug);
-    const { MANUAL_DIR } = require('@/lib/kb');
+    const { MANUAL_DIR } = require('@/lib/kbManual');
     for (const doc of loadKb(MANUAL_DIR)) expect(publicSlugs).not.toContain(doc.slug);
     expect(publicSlugs).not.toContain('home-assistant');
+  });
+});
+
+describe('public / internal separation', () => {
+  const { assertNoInternalContent, assertManualNotPublished } = require('@/lib/kb');
+  const { MANUAL_DIR } = require('@/lib/kbManual');
+
+  it('fails when a public doc contains internal content', () => {
+    const leak = parseKbFile('x.md', '---\ntype: detalle\ntitle: X\n---\n\n## A\n\nLlama a script.encender_sala');
+    expect(() => assertNoInternalContent([leak])).toThrow(/script\./);
+    const admin = parseKbFile('y.md', '---\ntype: detalle\ntitle: Y\n---\n\n## A\n\n[Manual](/admin/manual)');
+    expect(() => assertNoInternalContent([admin])).toThrow(/\/admin\//);
+  });
+
+  it('fails when an internal doc declares public pages', () => {
+    const doc = parseKbFile('x.md', '---\ntype: detalle\ntitle: X\npages: [guia-sala]\n---\n');
+    expect(() => assertManualNotPublished([doc])).toThrow(/pages/);
+  });
+
+  it('keeps the real public KB and chatbot prompt free of internal content', () => {
+    const { getKbPromptText } = require('@/lib/kb');
+    const prompt = getKbPromptText();
+    for (const m of ['script.', 'switch.', 'sensor.', 'media_player.', '/admin/']) expect(prompt).not.toContain(m);
+    expect(loadKb(MANUAL_DIR).every((d: { pages: string[] }) => d.pages.length === 0)).toBe(true);
+  });
+
+  it('keeps content/interno out of the public module (so it is never bundled with public pages)', () => {
+    const src = require('fs').readFileSync(require('path').join(process.cwd(), 'src/lib/kb.ts'), 'utf8');
+    expect(src).not.toMatch(/['"]interno['"]/);
+  });
+
+  it('starts each chatbot document with its summary', () => {
+    const { getKbPromptText } = require('@/lib/kb');
+    expect(getKbPromptText()).toContain('Resumen: Aforo, Chiquipark');
   });
 });
 

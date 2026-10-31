@@ -1,6 +1,7 @@
 ---
 type: hub
 title: Panel de control
+summary: "La pantalla táctil de la sala: Sala ON / Sala OFF, luces, aire y música."
 pages: [guia-sala]
 order: 0
 emoji: 🎛️
@@ -11,8 +12,9 @@ tags: [panel, inicio, luces, aire, música]
 
 Todo empieza en el **panel de control**, la pantalla táctil de la sala. Nada más entrar, pulsa **Sala ON**: enciende las luces y deja lista la música. Cuando os vayáis, pulsa **Sala OFF** para apagarlo todo.
 
-- [Encender sala](operaciones/encender-sala.md)
-- [Desactivar sala](operaciones/desactivar-sala.md)
+- [Encender la sala (Sala ON)](operaciones/encender-sala.md)
+- [Encender la música (Música ON)](operaciones/encender-musica.md)
+- [Apagar la sala (Sala OFF)](operaciones/desactivar-sala.md)
 
 ## ¿Qué hay en el panel?
 
@@ -25,8 +27,8 @@ Debajo, las funciones agrupadas por tipo:
 
 - **Luces**: Sala Principal, Sala Kids, Barra y Jardín. [Encender o apagar luces](operaciones/encender-luces.md)
 - **Aire acondicionado**: Sala Principal y Sala Kids. [Ajustar el aire](operaciones/ajustar-aire.md)
-- **Música**: arriba, el botón **Música ON** (enciende solo el sonido) o, si ya está encendido, «Sonido listo», y si el Amplificador y el Subwoofer están encendidos. Debajo, cómo está conectada la música, la canción y el volumen. Para poner música, conecta tu móvil por Bluetooth. La **Gramola** (listas preparadas) sale en gris porque aún no está disponible. [Conectar mi móvil](operaciones/conectar-movil-bluetooth.md)
+- **Música**: arriba, el botón **Música ON** (enciende solo el sonido) o, si ya está encendido, «Sonido listo», y si el Amplificador y el Subwoofer están encendidos. Debajo, cómo está conectada la música, la canción y el volumen. Para poner música, conecta tu móvil por Bluetooth. La **Gramola** (listas preparadas) sale en gris porque aún no está disponible. [Encender la música](operaciones/encender-musica.md) · [Conectar mi móvil](operaciones/conectar-movil-bluetooth.md)
 
 ## No suena la música, ¿qué hago?
 
-Mira el grupo **Música**: si no dice «Sonido listo», pulsa **Música ON** y espera unos segundos. Enciende el amplificador y el subwoofer sin tocar las luces (también lo hace **Sala ON**). Mientras se enciende, el botón desaparece: no hace falta pulsarlo más veces. Sin él, la música no suena aunque el panel diga que está sonando.
+Mira el grupo **Música**: si no dice «Sonido listo», pulsa **Música ON** y espera unos segundos. Enciende el amplificador y el subwoofer sin tocar las luces (también lo hace **Sala ON**). Mientras se enciende, el botón desaparece: no hace falta pulsarlo más veces. Sin él, la música no suena aunque el panel diga que está sonando. [Encender la música (Música ON)](operaciones/encender-musica.md)

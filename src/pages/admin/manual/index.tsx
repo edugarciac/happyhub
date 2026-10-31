@@ -4,7 +4,7 @@ import type { GetServerSideProps } from 'next';
 import { BookLock, ChevronRight } from 'lucide-react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { adminOnlyRedirect } from '@/lib/adminPage';
-import { getManualIndexProps } from '@/lib/kb';
+import { getManualIndexProps } from '@/lib/kbManual';
 import type { KbDocLink } from '@/lib/kbTypes';
 
 interface Props {
@@ -33,7 +33,7 @@ function DocList({ items }: { items: KbDocLink[] }) {
               {d.emoji && <span className="mr-2">{d.emoji}</span>}
               {d.title}
             </span>
-            {d.when && <span className="block text-sm text-gray-500 mt-0.5">{d.when}</span>}
+            {(d.when ?? d.summary) && <span className="block text-sm text-gray-500 mt-0.5">{d.when ?? d.summary}</span>}
           </span>
           <ChevronRight className="w-5 h-5 text-primary-600 flex-shrink-0" />
         </Link>
@@ -54,7 +54,7 @@ export default function AdminManual({ operations, docs }: Props) {
               Manual interno
             </h1>
             <p className="text-sm text-gray-500 mt-1">
-              Operaciones del negocio. Solo visible para administradores; se edita en <code>content/interno/</code>.
+              Operaciones y explicaciones del negocio. Solo visible para administradores; se edita en <code>content/interno/</code> y nunca se muestra a los clientes.
             </p>
           </div>
 
@@ -65,7 +65,7 @@ export default function AdminManual({ operations, docs }: Props) {
 
           {docs.length > 0 && (
             <section>
-              <h2 className="text-lg font-semibold text-gray-900 mb-3">Documentación</h2>
+              <h2 className="text-lg font-semibold text-gray-900 mb-3">Explicaciones por tema</h2>
               <DocList items={docs} />
             </section>
           )}

@@ -17,7 +17,7 @@ Cuando quieras poner tu propia música. Si ya había otro móvil conectado, se d
 
 ## Pasos
 
-1. Si el grupo **Música** no dice «Sonido listo», pulsa **Música ON** y espera unos segundos.
+1. Si el grupo **Música** no dice «Sonido listo», pulsa **Música ON** y espera unos segundos ([Encender la música](encender-musica.md)).
 2. En el grupo **Música**, pulsa **Conectar mi móvil** y confirma.
 3. Espera unos 10 segundos, hasta que el panel diga **«Listo para conectar»**.
 4. En el Bluetooth de tu móvil, elige **«HappyHub Música»**.

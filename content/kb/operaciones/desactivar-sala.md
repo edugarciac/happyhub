@@ -1,8 +1,8 @@
 ---
 type: operacion
-title: Desactivar sala
+title: Apagar la sala (Sala OFF)
 parent: panel-de-control
-order: 2
+order: 9
 when: Justo antes de salir de la sala
 tags: [panel, salida, luces, aire, música]
 ---

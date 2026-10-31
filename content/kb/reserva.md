@@ -1,6 +1,7 @@
 ---
 type: hub
 title: La reserva
+summary: Cómo reservar, franjas horarias, ampliar horas, pago y cancelación.
 pages: [como-funciona]
 order: 1
 emoji: 📅

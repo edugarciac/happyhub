@@ -1,6 +1,7 @@
 ---
 type: hub
 title: El día de tu evento
+summary: Hora de acceso, qué incluye el alquiler, comida y bebida, aparcamiento y quién hay del equipo.
 pages: [como-funciona, guia-sala]
 order: 2
 emoji: 🎉

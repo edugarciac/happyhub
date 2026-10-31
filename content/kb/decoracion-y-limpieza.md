@@ -1,6 +1,7 @@
 ---
 type: hub
 title: Decoración y limpieza
+summary: Qué se puede decorar, materiales prohibidos, limpieza y desperfectos.
 pages: [como-funciona, guia-sala]
 order: 3
 emoji: ✨
