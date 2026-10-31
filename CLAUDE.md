@@ -31,3 +31,7 @@ Active
 - **OpenSpec first**: All implementations MUST be documented in `openspec/` before writing any code. Create proposal.md, design.md, specs, and tasks before implementing. No exceptions.
 - OpenSpec structure: `openspec/changes/<change-name>/` with `.openspec.yaml`, `proposal.md`, `design.md`, `specs/`, `tasks.md`
 - Product vision: `openspec/openspec-plataforma-eventos.md`
+- **Guides always in sync**: every change (code, Home Assistant panel/scripts in `home-assistant/`, rules, prices, flows) MUST be reflected in the same commit/PR in both guides. No exceptions.
+  - User guide: `content/kb/` (public `/guia-sala`, the tablet's **Ayuda** button, the FAQ and the chatbot). Format in `content/kb/README.md`.
+  - Internal guide: `content/interno/` (admins only, `/admin/manual`). Format in `content/interno/README.md`.
+  - Add the guide updates as a task in the OpenSpec `tasks.md`, and before finishing grep both folders for the old texts/names to leave nothing stale.

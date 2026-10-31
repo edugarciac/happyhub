@@ -21,6 +21,7 @@ Cuando cambie una norma, lo que hace un botón del panel, o cuando un cliente pr
 3. Cambia el texto. Cada pregunta empieza por `## `. En las operaciones no borres ninguna de las secciones fijas.
 4. Guarda con **Commit changes** en la rama `main`.
 5. Espera unos minutos a que Vercel publique la web y revisa la página.
+6. Actualiza también el manual interno (`content/interno/`) si el cambio afecta a cómo funciona algo por dentro (scripts, entidades, panel). **Las dos guías siempre van juntas**: un cambio en una sin la otra se considera incompleto.
 
 Las reglas del formato están en `content/kb/README.md`.
 

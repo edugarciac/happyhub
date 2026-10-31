@@ -31,7 +31,7 @@ Si el sensor no existe (falta el package), salen los dos botones, como antes.
 
 ## ¿Cómo funciona Música ON?
 
-Está arriba del grupo **Música** (y en la vista Gramola). Depende de `sensor.estado_sonido_sala`:
+Está arriba del grupo **Música** (y en la vista Gramola, ahora inaccesible porque la Gramola está desactivada). Depende de `sensor.estado_sonido_sala`:
 
 | Estado | Qué ve el cliente |
 |---|---|
