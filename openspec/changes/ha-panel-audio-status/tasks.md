@@ -7,6 +7,8 @@
 - [x] 1.5 Textos Sala ON / Sala OFF y `sensor.estado_sala`
 - [x] 1.6 `script.encender_musica` + botón Música ON con antirrebote
 
+- [x] 1.7 Gramola desactivada («Próximamente») hasta tener las listas
+
 ## 2. Guías
 
 - [x] 2.1 Guías de cliente: "Sala ON" / "Sala OFF", nuevas tarjetas

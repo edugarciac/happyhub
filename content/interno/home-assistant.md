@@ -31,7 +31,7 @@ Si el sensor no existe (falta el package), salen los dos botones, como antes.
 
 ## ¿Cómo funciona Música ON?
 
-Está arriba del grupo **Música** (y en la Gramola). Depende de `sensor.estado_sonido_sala`:
+Está arriba del grupo **Música** (y en la vista Gramola). Depende de `sensor.estado_sonido_sala`:
 
 | Estado | Qué ve el cliente |
 |---|---|
@@ -66,6 +66,10 @@ Mantiene «Listo para conectar» y «Móvil conectado» para Bluetooth. Para el 
 3. Apaga la luz Sala Kids y los dos aires acondicionados (si alguno falla, sigue sin avisar).
 
 Pide confirmación antes de ejecutarse.
+
+## ¿Por qué la Gramola sale en gris?
+
+Está desactivada hasta tener las listas de canciones: no se puede pulsar y dice «Próximamente». Para activarla, en `home-assistant/dashboard/panel-clientes.yaml` busca el comentario «Gramola desactivada» y sigue las instrucciones; después recupera la guía `content/kb/operaciones/poner-gramola.md` del historial de git (`git log --all -- content/kb/operaciones/poner-gramola.md`) y vuelve a enlazarla en el panel de control.
 
 ## ¿Qué hace Conectar mi móvil? (`script.modo_bluetooth`)
 

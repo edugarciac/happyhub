@@ -21,7 +21,7 @@ Si cambias algo en HA, vuelve a copiarlo aquí para que GitHub tenga siempre la 
 2. Pulsa **Música ON** varias veces seguidas: solo arranca una vez; el botón pasa a «Encendiendo música…» (parpadea) y luego «Sonido listo». Las luces no se encienden.
 3. Pulsa **Sala ON**: «Encendiendo sala… El sonido tardará unos segundos» y luego **Sala OFF**.
 4. Conecta un móvil por Bluetooth y pon música: «Móvil conectado» con canción y volumen.
-5. Pon una lista de la Gramola: muestra la fuente, la canción y el volumen.
+5. La **Gramola** sale en gris con «Próximamente» y no hace nada al pulsarla.
 6. **Sala OFF**: todo apagado, vuelve **Sala ON** y **Música ON**.
 
 Si sale un origen raro, mira el atributo `source` de `media_player.wiim_amp_happyhub` en Herramientas de desarrollador > Estados y ajusta el mapeo de `sensor.conexion_musica_sala`.

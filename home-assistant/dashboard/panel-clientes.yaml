@@ -395,15 +395,28 @@ views:
                       columns: 2
                       square: false
                       cards:
+                        # Gramola desactivada hasta tener las listas de canciones.
+                        # Para activarla: tap_action → navigate a /panel-clientes/gramola,
+                        # secondary «Elige una lista», icon_color purple y quitar card_mod.
                         - type: custom:mushroom-template-card
                           primary: Gramola
-                          secondary: Elige una lista
+                          secondary: Próximamente
                           icon: mdi:record-player
-                          icon_color: purple
+                          icon_color: grey
                           layout: horizontal
                           tap_action:
-                            action: navigate
-                            navigation_path: /panel-clientes/gramola
+                            action: none
+                          hold_action:
+                            action: none
+                          double_tap_action:
+                            action: none
+                          card_mod:
+                            style: |
+                              ha-card {
+                                opacity: 0.45;
+                                filter: grayscale(1);
+                                pointer-events: none;
+                              }
                         - type: custom:mushroom-template-card
                           primary: Conectar mi móvil
                           secondary: Pulsa y busca en tu Bluetooth

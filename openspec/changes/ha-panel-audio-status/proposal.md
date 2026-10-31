@@ -10,6 +10,7 @@ En el panel de Home Assistant de la sala el audio "no acaba de funcionar": `scri
 - Grupo **Música**: estado del sonido («Sonido listo»…) y Amplificador / Subwoofer encendido/apagado (solo lectura).
 - La tarjeta de conexión muestra también origen (Bluetooth, Gramola/WiFi, Spotify, AirPlay, cable), app, canción, artista, estado y volumen.
 - Sensores plantilla `sensor.estado_sala`, `sensor.estado_sonido_sala`, `sensor.conexion_musica_sala`.
+- Gramola desactivada en el panel («Próximamente», gris, sin acción) y su guía de cliente retirada hasta tener las listas.
 - Guías (cliente e interna) actualizadas.
 
 ## Capabilities

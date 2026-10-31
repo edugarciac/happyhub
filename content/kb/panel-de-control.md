@@ -25,7 +25,7 @@ Debajo, las funciones agrupadas por tipo:
 
 - **Luces**: Sala Principal, Sala Kids, Barra y Jardín. [Encender o apagar luces](operaciones/encender-luces.md)
 - **Aire acondicionado**: Sala Principal y Sala Kids. [Ajustar el aire](operaciones/ajustar-aire.md)
-- **Música**: arriba, el botón **Música ON** (enciende solo el sonido) o, si ya está encendido, «Sonido listo». También verás y si el Amplificador y el Subwoofer están encendidos; debajo, cómo está conectada la música (tu móvil por Bluetooth, la Gramola, Spotify…), la canción y el volumen. Para elegir música: la Gramola con listas preparadas o tu propio móvil por Bluetooth. [Poner la Gramola](operaciones/poner-gramola.md) · [Conectar mi móvil](operaciones/conectar-movil-bluetooth.md)
+- **Música**: arriba, el botón **Música ON** (enciende solo el sonido) o, si ya está encendido, «Sonido listo», y si el Amplificador y el Subwoofer están encendidos. Debajo, cómo está conectada la música, la canción y el volumen. Para poner música, conecta tu móvil por Bluetooth. La **Gramola** (listas preparadas) sale en gris porque aún no está disponible. [Conectar mi móvil](operaciones/conectar-movil-bluetooth.md)
 
 ## No suena la música, ¿qué hago?
 

@@ -29,4 +29,4 @@ El volumen de la sala está limitado para asegurar que no se sobrepasa el límit
 
 ## ¿Se puede usar equipo de sonido propio o contratar un DJ?
 
-No se pueden traer ni conectar equipos de sonido propios. Sí puedes poner tu música desde el móvil por Bluetooth con el botón «Conectar mi móvil» del panel de control, o elegir una lista de la Gramola. Si quieres animación musical profesional, podemos ayudarte a contratarla: consúltanos con antelación y te ofrecemos opciones. [Conectar mi móvil](operaciones/conectar-movil-bluetooth.md)
+No se pueden traer ni conectar equipos de sonido propios. Sí puedes poner tu música desde el móvil por Bluetooth con el botón «Conectar mi móvil» del panel de control. Si quieres animación musical profesional, podemos ayudarte a contratarla: consúltanos con antelación y te ofrecemos opciones. [Conectar mi móvil](operaciones/conectar-movil-bluetooth.md)
