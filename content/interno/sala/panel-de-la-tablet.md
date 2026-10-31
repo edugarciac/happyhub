@@ -45,3 +45,7 @@ El nombre del móvil conectado no lo da la integración del WiiM, así que no sa
 ## ¿Por qué la Gramola sale en gris?
 
 Está desactivada hasta tener las listas de canciones: dice «Próximamente» y no hace nada. [Reactivar la Gramola](../operaciones/reactivar-gramola.md)
+
+## ¿Qué muestra el grupo Proyector?
+
+El estado del proyector (apagado, listo, fondo HappyHub o proyectando) y tres tarjetas para elegir el fondo cuando no se proyecta nada; la elegida sale resaltada en rosa. Todo se explica en [El proyector](proyector.md).

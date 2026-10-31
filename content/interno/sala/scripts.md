@@ -1,7 +1,7 @@
 ---
 type: detalle
 title: Los scripts de la sala
-summary: Qué hace por dentro cada botón del panel (Sala ON, Música ON, Sala OFF, Conectar mi móvil).
+summary: Qué hace por dentro cada botón del panel (Sala ON, Música ON, Sala OFF, Conectar mi móvil) y el fondo del proyector.
 parent: sala/home-assistant
 order: 2
 tags: [scripts, home assistant]
@@ -32,6 +32,10 @@ Pide confirmación antes de ejecutarse.
 ## ¿Qué hace Conectar mi móvil? (`script.modo_bluetooth`)
 
 Cambia el amplificador a *Line In* para soltar el móvil que estuviera conectado, espera 8 segundos y vuelve a *Bluetooth* para emparejar uno nuevo («HappyHub Música»). Si se pulsa mientras está en marcha, no hace nada.
+
+## ¿Qué hace el fondo del proyector? (`script.proyector_poner_fondo`)
+
+Si el proyector está libre o mostrando el fondo, pone la imagen o el vídeo de HappyHub según la opción elegida, o para el fondo si se eligió «Fondo del Chromecast». Si un cliente está proyectando, no hace nada. Lo lanza la automatización del proyector. [El proyector](proyector.md)
 
 ## Si cambio un script, ¿qué más tengo que cambiar?
 

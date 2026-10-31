@@ -501,6 +501,144 @@ views:
                         - volume_set
                         - volume_mute
                       collapsible_controls: false
+      - type: grid
+        column_span: 3
+        cards:
+          - type: custom:mod-card
+            grid_options:
+              columns: full
+            card_mod:
+              style: |
+                ha-card {
+                  background: rgba(233, 30, 99, 0.30);
+                  border-radius: 20px;
+                  padding: 8px;
+                }
+            card:
+              type: vertical-stack
+              cards:
+                - type: heading
+                  heading: Proyector
+                  icon: mdi:projector
+                # Estado (solo lectura). Se enciende con el mando; el Chromecast se llama «Proyector».
+                - type: custom:mushroom-template-card
+                  entity: sensor.estado_proyector
+                  primary: >
+                    {% set s = states('sensor.estado_proyector') %}
+                    {{ {'apagado': 'Proyector apagado',
+                        'listo': 'Proyector listo',
+                        'fondo': 'Mostrando fondo HappyHub',
+                        'proyectando': 'Proyectando'}.get(s, 'Proyector') }}
+                  secondary: >
+                    {% set s = states('sensor.estado_proyector') %}
+                    {% set mp = 'media_player.proyector' %}
+                    {% if s == 'apagado' %}Enciéndelo con el mando a distancia y espera unos segundos
+                    {% elif s == 'proyectando' %}
+                      {%- set app = state_attr(mp, 'app_name') -%}
+                      {%- set t = state_attr(mp, 'media_title') -%}
+                      📺 {{ app or 'Desde un móvil' }}{{ (' · ' ~ t) if t else '' }}
+                    {% else %}Envía contenido desde tu móvil a «Proyector» (botón Enviar / Cast)
+                    {% endif %}
+                  multiline_secondary: true
+                  icon: >
+                    {% set s = states('sensor.estado_proyector') %}
+                    {{ {'apagado': 'mdi:projector-off', 'proyectando': 'mdi:cast-connected'}.get(s, 'mdi:projector') }}
+                  icon_color: >
+                    {% set s = states('sensor.estado_proyector') %}
+                    {{ {'apagado': 'grey', 'proyectando': 'blue', 'fondo': 'pink'}.get(s, 'green') }}
+                  layout: horizontal
+                  tap_action:
+                    action: none
+                  hold_action:
+                    action: none
+                # Fondo cuando no se proyecta nada (elige el cliente)
+                - type: custom:mushroom-title-card
+                  subtitle: Fondo cuando no se proyecta nada
+                - type: grid
+                  columns: 3
+                  square: false
+                  cards:
+                        - type: custom:mushroom-template-card
+                          primary: HappyHub imagen
+                          secondary: >
+                            {{ '✓ Elegido' if is_state('input_select.fondo_proyector', 'HappyHub imagen') else 'Logo de HappyHub' }}
+                          icon: mdi:image
+                          icon_color: >
+                            {{ 'pink' if is_state('input_select.fondo_proyector', 'HappyHub imagen') else 'grey' }}
+                          layout: vertical
+                          tap_action:
+                            action: perform-action
+                            perform_action: input_select.select_option
+                            target:
+                              entity_id: input_select.fondo_proyector
+                            data:
+                              option: HappyHub imagen
+                          hold_action:
+                            action: none
+                          double_tap_action:
+                            action: none
+                          card_mod:
+                            style: |
+                              ha-card {
+                                {% if is_state('input_select.fondo_proyector', 'HappyHub imagen') %}
+                                border: 2px solid #E91E63;
+                                {% endif %}
+                                border-radius: 16px;
+                              }
+                        - type: custom:mushroom-template-card
+                          primary: HappyHub vídeo
+                          secondary: >
+                            {{ '✓ Elegido' if is_state('input_select.fondo_proyector', 'HappyHub vídeo') else 'Vídeo de HappyHub' }}
+                          icon: mdi:movie-play
+                          icon_color: >
+                            {{ 'pink' if is_state('input_select.fondo_proyector', 'HappyHub vídeo') else 'grey' }}
+                          layout: vertical
+                          tap_action:
+                            action: perform-action
+                            perform_action: input_select.select_option
+                            target:
+                              entity_id: input_select.fondo_proyector
+                            data:
+                              option: HappyHub vídeo
+                          hold_action:
+                            action: none
+                          double_tap_action:
+                            action: none
+                          card_mod:
+                            style: |
+                              ha-card {
+                                {% if is_state('input_select.fondo_proyector', 'HappyHub vídeo') %}
+                                border: 2px solid #E91E63;
+                                {% endif %}
+                                border-radius: 16px;
+                              }
+                        - type: custom:mushroom-template-card
+                          primary: Fondo del Chromecast
+                          secondary: >
+                            {{ '✓ Elegido' if is_state('input_select.fondo_proyector', 'Fondo del Chromecast') else 'Fotos del Chromecast' }}
+                          icon: mdi:cast
+                          icon_color: >
+                            {{ 'pink' if is_state('input_select.fondo_proyector', 'Fondo del Chromecast') else 'grey' }}
+                          layout: vertical
+                          tap_action:
+                            action: perform-action
+                            perform_action: input_select.select_option
+                            target:
+                              entity_id: input_select.fondo_proyector
+                            data:
+                              option: Fondo del Chromecast
+                          hold_action:
+                            action: none
+                          double_tap_action:
+                            action: none
+                          card_mod:
+                            style: |
+                              ha-card {
+                                {% if is_state('input_select.fondo_proyector', 'Fondo del Chromecast') %}
+                                border: 2px solid #E91E63;
+                                {% endif %}
+                                border-radius: 16px;
+                              }
   - title: Gramola
     path: gramola
     subview: true
