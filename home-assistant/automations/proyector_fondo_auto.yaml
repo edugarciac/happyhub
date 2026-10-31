@@ -1,0 +1,16 @@
+# Automatización nueva: Ajustes > Automatizaciones y escenas > + Crear automatización > Crear nueva > ⋮ > Editar en YAML.
+# Requiere sensor.estado_proyector, input_select.fondo_proyector y script.proyector_poner_fondo.
+alias: Proyector - fondo cuando no se proyecta nada
+mode: restart
+triggers:
+- trigger: state
+  entity_id: sensor.estado_proyector
+  to: listo
+  for: "00:00:10"
+- trigger: state
+  entity_id: input_select.fondo_proyector
+conditions:
+- condition: template
+  value_template: '{{ states(''sensor.estado_proyector'') in [''listo'', ''fondo''] }}'
+actions:
+- action: script.proyector_poner_fondo

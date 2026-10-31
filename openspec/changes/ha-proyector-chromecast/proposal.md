@@ -21,5 +21,5 @@ La sala tiene un proyector con un Chromecast llamado «Proyector». El panel de 
 
 ## Impact
 
-- Nuevo `home-assistant/packages/sala_proyector.yaml`; `home-assistant/dashboard/panel-clientes.yaml`; `home-assistant/README.md`
+- Nuevos `home-assistant/helpers/`, `scripts/proyector_poner_fondo.yaml`, `automations/proyector_fondo_auto.yaml`; `home-assistant/dashboard/panel-clientes.yaml`; `home-assistant/README.md`
 - `content/kb/**`, `content/interno/**`

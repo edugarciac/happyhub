@@ -16,3 +16,7 @@ El proyector no tiene control (se enciende con el mando). El Chromecast «Proyec
 
 - Repetición del vídeo: al terminar, el Chromecast queda libre y la automatización lo vuelve a poner (pausa de ~10 s). Probar en la sala.
 - Imagen: algunos Chromecast ponen `idle` al mostrar una imagen; el sensor detecta el fondo por el contenido y no por el estado, así que no hay bucle.
+
+## Instalación desde la interfaz
+
+Sin packages: el editor de `configuration.yaml` no siempre es accesible. Sensores como Ayudantes de plantilla, desplegable como Ayudante, scripts y automatización desde sus editores YAML. Sin reinicio. Los ids salen del nombre, por eso cada fichero indica el nombre exacto.

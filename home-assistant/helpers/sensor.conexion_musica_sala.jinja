@@ -1,0 +1,15 @@
+{# Ayudante «Sensor de plantilla»
+   Ajustes > Dispositivos y servicios > Ayudantes > + Crear ayudante > Plantilla > Sensor de plantilla
+   Nombre: Conexión música sala   (así el id queda sensor.conexion_musica_sala)
+   Plantilla de estado: todo este fichero. Unidad, clase y clase de estado: vacíos. #}
+{% set mp = 'media_player.wiim_amp_happyhub' %}
+{% set src = (state_attr(mp, 'source') or '') | lower %}
+{% set app = (state_attr(mp, 'app_name') or '') | lower %}
+{% if states(mp) in ['unavailable', 'unknown', 'off'] %}Sin conexión
+{% elif 'bluetooth' in src %}Móvil por Bluetooth
+{% elif 'spotify' in src or 'spotify' in app %}Spotify Connect
+{% elif 'airplay' in src or 'airplay' in app %}AirPlay
+{% elif 'line' in src or 'optical' in src or 'aux' in src %}Cable ({{ state_attr(mp, 'source') }})
+{% elif src in ['wifi', 'network', 'playlist', ''] %}Gramola (WiFi)
+{% else %}{{ state_attr(mp, 'source') }}
+{% endif %}

@@ -18,7 +18,7 @@ Cuando se haya cambiado algo en `home-assistant/`. Mejor fuera del horario de ev
 ## Pasos
 
 1. Haz una copia de seguridad: Ajustes > Sistema > Copias de seguridad.
-2. Sigue el orden de `home-assistant/README.md`: primero sensores (y reinicia), después scripts, al final el dashboard.
+2. Sigue el orden de `home-assistant/README.md`: primero los ayudantes (sensores y desplegable), después scripts y automatización, al final el dashboard. Todo desde la interfaz: no hace falta tocar `configuration.yaml` ni reiniciar.
 3. Al crear un script nuevo, comprueba que su id es exactamente el del fichero (por ejemplo `script.encender_musica`).
 4. Prueba en la tablet los pasos de «Probar» del README.
 
@@ -30,4 +30,4 @@ Home Assistant usa la configuración nueva. La web no cambia: si también cambia
 
 - **El panel sale en blanco o con errores**: restaura la copia de seguridad.
 - **Sala ON enciende las luces pero no la música**: el id de `script.encender_musica` no coincide.
-- **No sale el aviso «Encendiendo…»**: faltan los sensores; revisa en Herramientas de desarrollador > Estados que existe `sensor.estado_sala`.
+- **No sale el aviso «Encendiendo…»**: falta algún ayudante de plantilla; revisa en Herramientas de desarrollador > Estados que existe `sensor.estado_sala`.

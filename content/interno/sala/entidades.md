@@ -39,4 +39,4 @@ tags: [entidades, home assistant]
 | Sala OFF | `script.cerrar_sala` |
 | Conectar mi móvil | `script.modo_bluetooth` |
 
-Los sensores del sonido están en `home-assistant/packages/sala_audio.yaml`; los del proyector, en `home-assistant/packages/sala_proyector.yaml`.
+Los sensores son **Ayudantes de plantilla** creados desde la interfaz (Ajustes > Dispositivos y servicios > Ayudantes). Su plantilla está en `home-assistant/helpers/` del repositorio; los scripts en `home-assistant/scripts/` y la automatización en `home-assistant/automations/`.

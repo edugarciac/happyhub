@@ -1,6 +1,6 @@
 ## 1. Home Assistant
 
-- [x] 1.1 `packages/sala_proyector.yaml`: `input_select.fondo_proyector`, `sensor.estado_proyector`, `script.proyector_poner_fondo`, automatización
+- [x] 1.1 `helpers/`, `scripts/`, `automations/`: `input_select.fondo_proyector`, `sensor.estado_proyector`, `script.proyector_poner_fondo`, automatización
 - [x] 1.2 Dashboard: grupo Proyector (estado + elección de fondo)
 - [x] 1.3 README: instalación, ficheros de fondo en `/media/happyhub/proyector/`, IP interna
 

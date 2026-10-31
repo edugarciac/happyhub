@@ -1,6 +1,6 @@
 ## 1. Home Assistant YAML
 
-- [x] 1.1 `home-assistant/packages/sala_audio.yaml`: sensores plantilla; `scripts/`: `encender_sala`, `encender_musica`
+- [x] 1.1 `home-assistant/helpers/`: sensores plantilla (ayudantes de la interfaz); `scripts/`: `encender_sala`, `encender_musica`
 - [x] 1.2 Versionar `home-assistant/dashboard/panel-clientes.yaml` tal como está en la tablet
 - [x] 1.3 Sobre él: botón Activar/Sala OFF, estado del sonido, Amplificador/Subwoofer, conexión ampliada (vistas Control y Gramola)
 - [x] 1.4 `home-assistant/README.md`: cómo instalarlo

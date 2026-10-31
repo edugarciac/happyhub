@@ -29,4 +29,4 @@ La próxima vez que el proyector quede libre, muestra el fichero nuevo.
 ## Si algo falla
 
 - **No sale el fondo**: comprueba que la URL local de Home Assistant usa la IP. [El proyector](../sala/proyector.md)
-- **Quiero añadir una opción más**: añade la opción en `input_select.fondo_proyector` y su rama en `script.proyector_poner_fondo` (`home-assistant/packages/sala_proyector.yaml`), y una tarjeta más en el dashboard. Actualiza también las dos guías.
+- **Quiero añadir una opción más**: añade la opción en `input_select.fondo_proyector` y su rama en `script.proyector_poner_fondo` (en Ayudantes y Scripts de Home Assistant, y en `home-assistant/helpers/` y `home-assistant/scripts/` del repositorio), y una tarjeta más en el dashboard. Actualiza también las dos guías.

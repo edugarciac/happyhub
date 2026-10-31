@@ -6,13 +6,18 @@ Usa tarjetas de HACS ya instaladas en la tablet: **mushroom**, **card-mod**, **m
 
 ## Orden de instalación
 
-| # | Fichero | Dónde va |
+Todo se crea **desde la interfaz** de Home Assistant: no hace falta tocar `configuration.yaml` ni reiniciar. En GitHub, el icono **Copy raw file** copia el fichero entero.
+
+| # | Qué | Cómo |
 |---|---|---|
-| 1 | `packages/sala_audio.yaml` | `/config/packages/sala_audio.yaml`. Requiere en `configuration.yaml`: `homeassistant: packages: !include_dir_named packages`. Después: Herramientas de desarrollador > YAML > Comprobar configuración > Reiniciar. Comprueba que existen `sensor.estado_sala`, `sensor.estado_sonido_sala` y `sensor.conexion_musica_sala`. |
-| 1b | `packages/sala_proyector.yaml` | `/config/packages/sala_proyector.yaml` (proyector). Antes: comprueba que el Chromecast es `media_player.proyector` (si no, cambia el id en el fichero); sube los fondos a `/media/happyhub/proyector/` (`happyhub.jpg` y `happyhub.mp4`, en Ajustes > Multimedia o por Samba); en Ajustes > Sistema > Red pon la URL local de HA **con IP** (`http://192.168.x.x:8123`), porque el Chromecast no resuelve `homeassistant.local`. Reinicia. |
-| 2 | `scripts/encender_musica.yaml` | Scripts > + Añadir script > ⋮ > Editar en YAML > pegar > Guardar. Comprueba que el id es `script.encender_musica`. |
-| 3 | `scripts/encender_sala.yaml` | Scripts > *Activar sala* > ⋮ > Editar en YAML > sustituir todo > Guardar (el id sigue siendo `script.encender_sala`). |
-| 4 | `dashboard/panel-clientes.yaml` | Dashboard *panel-clientes* > ✏️ > ⋮ > Editor de configuración en bruto > sustituir todo > Guardar. |
+| 1 | Comprobar el Chromecast | Herramientas para desarrolladores > Estados > busca «proyector». Debe ser `media_player.proyector`; si no, cambia el id en `helpers/sensor.estado_proyector.jinja` y `scripts/proyector_poner_fondo.yaml` antes de pegarlos. |
+| 2 | 4 sensores de plantilla | Ajustes > Dispositivos y servicios > Ayudantes > + Crear ayudante > Plantilla > **Sensor de plantilla**. Uno por fichero de `helpers/sensor.*.jinja`: el nombre que indica su cabecera y, como plantilla de estado, el fichero entero. |
+| 3 | Desplegable del fondo | Ayudantes > + Crear ayudante > **Desplegable**, según `helpers/input_select.fondo_proyector.md`. |
+| 4 | Fondos del proyector | Multimedia > Mis multimedia > carpetas `happyhub` > `proyector` > sube `happyhub.jpg` y `happyhub.mp4`. |
+| 5 | URL con IP | Ajustes > Sistema > Red > URL local: `http://<IP de HA>:8123`. El Chromecast no resuelve `homeassistant.local`. |
+| 6 | Scripts | Scripts > + Añadir script > ⋮ > Editar en YAML: `scripts/encender_musica.yaml` y `scripts/proyector_poner_fondo.yaml` (nuevos). `scripts/encender_sala.yaml` **sustituye** al script *Activar sala* (abre el existente > ⋮ > Editar en YAML). Comprueba los ids: `script.encender_musica`, `script.proyector_poner_fondo`, `script.encender_sala`. |
+| 7 | Automatización | Automatizaciones > + Crear automatización > Crear nueva > ⋮ > Editar en YAML: `automations/proyector_fondo_auto.yaml`. |
+| 8 | Dashboard | *panel-clientes* > ✏️ > ⋮ > Editor de configuración en bruto > sustituir todo por `dashboard/panel-clientes.yaml`. |
 
 Si cambias algo en HA, vuelve a copiarlo aquí para que GitHub tenga siempre la versión de la tablet.
 
