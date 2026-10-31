@@ -1,8 +1,10 @@
-# Sustituye script.encender_sala (Ajustes > Automatizaciones > Scripts > Activar sala > Editar en YAML)
-# Cambio: al final espera a que el amplificador WiiM esté disponible (máx. 60 s),
-# así el panel muestra «Activando la sala…» mientras el sonido arranca de verdad.
-alias: Activar sala
+# Sustituye script.encender_sala (Ajustes > Automatizaciones > Scripts > Activar sala > ⋮ > Editar en YAML)
+# Requiere script.encender_musica (scripts/encender_musica.yaml).
+# Enciende las luces y después el sonido, esperando a que esté listo, así el panel muestra
+# «Encendiendo…» mientras arranca. mode: single + max_exceeded: silent → ignora pulsaciones repetidas.
+alias: Sala ON
 mode: single
+max_exceeded: silent
 icon: mdi:power
 sequence:
   - action: switch.turn_on
@@ -11,17 +13,9 @@ sequence:
         - switch.sala_1_luz_sala_principal
         - switch.sala_principal_luz_barra
         - switch.shellyplugmg3_08927256e768
-        - switch.sala_principal_amplificador_audio
   - action: switch.turn_on
     target:
       entity_id: switch.sala_2_luz_sala_2
     continue_on_error: true
-  - delay: "00:00:03"
-  - action: switch.turn_on
-    target:
-      entity_id: switch.sala_principal_subwoofer
-  - wait_template: >
-      {{ states('media_player.wiim_amp_happyhub') not in ['unavailable', 'unknown'] }}
-    timeout: "00:01:00"
-    continue_on_timeout: true
-  - delay: "00:00:02"
+  # Llamada directa (no script.turn_on): espera a que termine el arranque del sonido
+  - action: script.encender_musica

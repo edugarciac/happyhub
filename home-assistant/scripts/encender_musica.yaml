@@ -1,0 +1,22 @@
+# Script nuevo: Ajustes > Automatizaciones > Scripts > + Añadir script > ⋮ > Editar en YAML.
+# Al guardar, el id debe ser script.encender_musica.
+# Enciende solo el sonido: amplificador, subwoofer y espera a que el WiiM responda (máx. 60 s).
+# mode: single + max_exceeded: silent → si se pulsa varias veces seguidas, las pulsaciones
+# extra se ignoran mientras está en marcha (y el panel oculta el botón durante ese tiempo).
+alias: Encender música
+mode: single
+max_exceeded: silent
+icon: mdi:speaker
+sequence:
+  - action: switch.turn_on
+    target:
+      entity_id: switch.sala_principal_amplificador_audio
+  - delay: "00:00:03"
+  - action: switch.turn_on
+    target:
+      entity_id: switch.sala_principal_subwoofer
+  - wait_template: >
+      {{ states('media_player.wiim_amp_happyhub') not in ['unavailable', 'unknown'] }}
+    timeout: "00:01:00"
+    continue_on_timeout: true
+  - delay: "00:00:02"

@@ -16,33 +16,50 @@ La guía para clientes del botón **Ayuda** es la página [/guia-sala/panel](/gu
 
 En la carpeta `home-assistant/` del repo (ver su `README.md`). No se despliega solo: hay que pegarlo en Home Assistant.
 
-## ¿Cómo funciona el botón Activar SALA / Desactivar SALA?
+## ¿Cómo funciona el botón Sala ON / Sala OFF?
 
-Es un solo botón que depende de `sensor.estado_sonido_sala`:
+Depende de `sensor.estado_sala`:
 
 | Estado | Qué ve el cliente |
 |---|---|
-| `apagado` | **Activar SALA** |
-| `arrancando` (el script está en marcha) | «Activando SALA… El sonido tardará unos segundos» (parpadea, no se puede pulsar) |
-| `listo` (amplificador y subwoofer ON y WiiM disponible) | **Desactivar SALA** |
-| `incompleto` (cualquier mezcla) | **Activar SALA** y **Desactivar SALA** |
+| `off` (luces, amplificador y subwoofer apagados) | **Sala ON** |
+| `arrancando` (`script.encender_sala` en marcha) | «Encendiendo sala… El sonido tardará unos segundos» (parpadea, no se puede pulsar) |
+| `on` (luz Sala Principal, amplificador y subwoofer encendidos) | **Sala OFF** |
+| `parcial` (cualquier mezcla) | **Sala ON** y **Sala OFF** |
 
 Si el sensor no existe (falta el package), salen los dos botones, como antes.
 
-## ¿Qué hace Activar SALA? (`script.encender_sala`)
+## ¿Cómo funciona Música ON?
 
-1. Enciende las luces Sala Principal, Barra y Jardín, y el amplificador de audio.
+Está arriba del grupo **Música** (y en la Gramola). Depende de `sensor.estado_sonido_sala`:
+
+| Estado | Qué ve el cliente |
+|---|---|
+| `apagado` / `incompleto` | **Música ON** |
+| `arrancando` (`encender_sala` o `encender_musica` en marcha) | «Encendiendo música…» (no se puede pulsar) |
+| `listo` (amplificador y subwoofer ON y WiiM disponible) | «Sonido listo» (sin acción) |
+
+**No se puede pulsar muchas veces seguidas**: el botón se oculta mientras arranca y, además, los scripts tienen `mode: single` + `max_exceeded: silent`, así que una segunda pulsación se ignora sin error.
+
+## ¿Qué hace Música ON? (`script.encender_musica`)
+
+1. Enciende el amplificador.
+2. A los 3 segundos, enciende el subwoofer.
+3. Espera a que el WiiM esté disponible (máx. 60 s) y 2 s más.
+
+## ¿Qué hace Sala ON? (`script.encender_sala`)
+
+1. Enciende las luces Sala Principal, Barra y Jardín.
 2. Enciende la luz Sala Kids (si falla, sigue).
-3. A los 3 segundos, enciende el subwoofer.
-4. Espera a que el WiiM esté disponible (máx. 60 s). Mientras, el panel muestra el aviso de arranque.
+3. Ejecuta `script.encender_musica` y espera a que termine. Mientras, el panel muestra el aviso de arranque.
 
-No enciende el aire ni pone música. El amplificador y el subwoofer se ven arriba del grupo **Música** pero no se pueden tocar: si un cliente dice que no suena nada, mira si pone «Sonido listo».
+No enciende el aire ni pone música. El amplificador y el subwoofer se ven arriba del grupo **Música** pero no se pueden apagar sueltos: si un cliente dice que no suena nada, mira si pone «Sonido listo» o pídele que pulse **Música ON**.
 
 ## ¿Qué muestra la tarjeta de conexión del grupo Música?
 
 Mantiene «Listo para conectar» y «Móvil conectado» para Bluetooth. Para el resto, `sensor.conexion_musica_sala` traduce el atributo `source` del WiiM: Móvil por Bluetooth, Gramola (WiFi), Spotify Connect, AirPlay o Cable. Además muestra app, canción, artista, estado y volumen. El nombre del móvil Bluetooth no lo da la integración del WiiM, así que normalmente no sale.
 
-## ¿Qué hace Desactivar SALA? (`script.cerrar_sala`)
+## ¿Qué hace Sala OFF? (`script.cerrar_sala`)
 
 1. Pausa la música.
 2. Apaga el subwoofer y, a los 3 segundos, el amplificador y las luces Sala Principal, Barra y Jardín.
@@ -68,7 +85,9 @@ Cambia el amplificador a *Line In* para soltar el móvil que estuviera conectado
 | Aire Sala Kids | `climate.aidoo_pro_2` |
 | Música (WiiM) | `media_player.wiim_amp_happyhub` |
 | Nombre del evento en el panel | `input_text.evento` |
+| Estado de la sala (plantilla) | `sensor.estado_sala` |
 | Estado del sonido (plantilla) | `sensor.estado_sonido_sala` |
+| Script Música ON | `script.encender_musica` |
 | Cómo está conectada la música (plantilla) | `sensor.conexion_musica_sala` |
 
 ## ¿Cómo cambio el nombre del evento que sale en el panel?

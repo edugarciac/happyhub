@@ -58,17 +58,17 @@ views:
                 card:
                   type: horizontal-stack
                   cards:
-                    # Activar SALA: apagado, incompleto (o si falta el sensor)
+                    # Sala ON: apagada o a medias (o si falta el sensor)
                     - type: conditional
                       conditions:
                         - condition: state
-                          entity: sensor.estado_sonido_sala
+                          entity: sensor.estado_sala
                           state_not:
                             - arrancando
-                            - listo
+                            - 'on'
                       card:
                         type: custom:mushroom-template-card
-                        primary: Activar SALA
+                        primary: Sala ON
                         secondary: Luces y música
                         icon: mdi:power
                         icon_color: green
@@ -94,11 +94,11 @@ views:
                     - type: conditional
                       conditions:
                         - condition: state
-                          entity: sensor.estado_sonido_sala
+                          entity: sensor.estado_sala
                           state: arrancando
                       card:
                         type: custom:mushroom-template-card
-                        primary: Activando SALA…
+                        primary: Encendiendo sala…
                         secondary: El sonido tardará unos segundos
                         icon: mdi:timer-sand
                         icon_color: amber
@@ -125,17 +125,17 @@ views:
                             @keyframes hh-pulse {
                               50% { opacity: 0.6; }
                             }
-                    # Desactivar SALA: listo, incompleto (o si falta el sensor)
+                    # Sala OFF: encendida o a medias (o si falta el sensor)
                     - type: conditional
                       conditions:
                         - condition: state
-                          entity: sensor.estado_sonido_sala
+                          entity: sensor.estado_sala
                           state_not:
-                            - apagado
+                            - 'off'
                             - arrancando
                       card:
                         type: custom:mushroom-template-card
-                        primary: Desactivar SALA
+                        primary: Sala OFF
                         secondary: Apaga todo
                         icon: mdi:power-off
                         icon_color: red
@@ -287,32 +287,82 @@ views:
                     - type: heading
                       heading: Música
                       icon: mdi:music
-                    - type: custom:mushroom-template-card
-                      entity: sensor.estado_sonido_sala
-                      primary: >
-                        {% set s = states('sensor.estado_sonido_sala') %}
-                        {{ {'listo': 'Sonido listo',
-                            'arrancando': 'Activando el sonido…',
-                            'incompleto': 'Sonido incompleto'}.get(s, 'Sonido apagado') }}
-                      secondary: >
-                        {% set s = states('sensor.estado_sonido_sala') %}
-                        {% if s == 'listo' %}Amplificador y subwoofer encendidos
-                        {% elif s == 'arrancando' %}Tardará unos segundos, espera antes de poner música
-                        {% else %}Pulsa «Activar SALA» y espera unos segundos
-                        {% endif %}
-                      icon: >
-                        {% set s = states('sensor.estado_sonido_sala') %}
-                        {{ {'listo': 'mdi:speaker-wireless', 'arrancando': 'mdi:timer-sand',
-                            'incompleto': 'mdi:speaker-off'}.get(s, 'mdi:volume-off') }}
-                      icon_color: >
-                        {% set s = states('sensor.estado_sonido_sala') %}
-                        {{ {'listo': 'green', 'arrancando': 'amber',
-                            'incompleto': 'orange'}.get(s, 'grey') }}
-                      layout: horizontal
-                      tap_action:
-                        action: none
-                      hold_action:
-                        action: none
+                    # Música ON: sonido apagado o incompleto (o si falta el sensor).
+                    # Se oculta mientras arranca, así no se puede pulsar varias veces seguidas.
+                    - type: conditional
+                      conditions:
+                        - condition: state
+                          entity: sensor.estado_sonido_sala
+                          state_not:
+                            - arrancando
+                            - listo
+                      card:
+                        type: custom:mushroom-template-card
+                        primary: Música ON
+                        secondary: >
+                          {{ 'Sonido incompleto: púlsalo otra vez'
+                             if is_state('sensor.estado_sonido_sala', 'incompleto')
+                             else 'Enciende el amplificador y el subwoofer' }}
+                        icon: mdi:speaker
+                        icon_color: green
+                        layout: horizontal
+                        tap_action:
+                          action: perform-action
+                          perform_action: script.encender_musica
+                        hold_action:
+                          action: none
+                        double_tap_action:
+                          action: none
+                        card_mod:
+                          style: |
+                            ha-card {
+                              border: 2px solid #4CAF50;
+                              border-radius: 16px;
+                            }
+                    # Arrancando: aviso, no se puede pulsar
+                    - type: conditional
+                      conditions:
+                        - condition: state
+                          entity: sensor.estado_sonido_sala
+                          state: arrancando
+                      card:
+                        type: custom:mushroom-template-card
+                        primary: Encendiendo música…
+                        secondary: El sonido tardará unos segundos, espera antes de poner música
+                        icon: mdi:timer-sand
+                        icon_color: amber
+                        layout: horizontal
+                        tap_action:
+                          action: none
+                        hold_action:
+                          action: none
+                        card_mod:
+                          style: |
+                            ha-card {
+                              border: 2px solid #FFC107;
+                              border-radius: 16px;
+                              animation: hh-pulse 1.6s ease-in-out infinite;
+                            }
+                            @keyframes hh-pulse {
+                              50% { opacity: 0.6; }
+                            }
+                    # Listo: solo estado
+                    - type: conditional
+                      conditions:
+                        - condition: state
+                          entity: sensor.estado_sonido_sala
+                          state: listo
+                      card:
+                        type: custom:mushroom-template-card
+                        primary: Sonido listo
+                        secondary: Amplificador y subwoofer encendidos
+                        icon: mdi:speaker-wireless
+                        icon_color: green
+                        layout: horizontal
+                        tap_action:
+                          action: none
+                        hold_action:
+                          action: none
                     - type: grid
                       columns: 2
                       square: false
@@ -394,7 +444,7 @@ views:
                         {% set vol = (' · 🔊 ' ~ ((v * 100) | round(0) | int) ~ '%'
                           ~ (' (silenciado)' if state_attr(mp, 'is_volume_muted') else '')) if v is not none else '' %}
                         {% if states(mp) in ['unavailable', 'unknown', 'off'] %}
-                          Pulsa «Activar SALA» y espera unos segundos
+                          Pulsa «Música ON» y espera unos segundos
                         {% elif src == 'Bluetooth' and is_state(mp, 'playing') %}
                           📱 {{ info or 'Sonando desde tu móvil' }}{{ vol }}
                         {% elif src == 'Bluetooth' %}
@@ -572,7 +622,7 @@ views:
               {% set vol = (' · 🔊 ' ~ ((v * 100) | round(0) | int) ~ '%'
                 ~ (' (silenciado)' if state_attr(mp, 'is_volume_muted') else '')) if v is not none else '' %}
               {% if states(mp) in ['unavailable', 'unknown', 'off'] %}
-                Pulsa «Activar SALA» y espera unos segundos
+                Pulsa «Música ON» y espera unos segundos
               {% elif src == 'Bluetooth' and is_state(mp, 'playing') %}
                 📱 {{ info or 'Sonando desde tu móvil' }}{{ vol }}
               {% elif src == 'Bluetooth' %}
@@ -605,6 +655,54 @@ views:
             layout: vertical
             grid_options:
               columns: 6
+          # Música ON (solo si el sonido no está listo ni arrancando)
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.estado_sonido_sala
+                state_not:
+                  - arrancando
+                  - listo
+            card:
+              type: custom:mushroom-template-card
+              primary: Música ON
+              secondary: Enciende el amplificador y el subwoofer
+              icon: mdi:speaker
+              icon_color: green
+              layout: horizontal
+              tap_action:
+                action: perform-action
+                perform_action: script.encender_musica
+              hold_action:
+                action: none
+              double_tap_action:
+                action: none
+              card_mod:
+                style: |
+                  ha-card {
+                    border: 2px solid #4CAF50;
+                    border-radius: 16px;
+                  }
+            grid_options:
+              columns: full
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: sensor.estado_sonido_sala
+                state: arrancando
+            card:
+              type: custom:mushroom-template-card
+              primary: Encendiendo música…
+              secondary: El sonido tardará unos segundos
+              icon: mdi:timer-sand
+              icon_color: amber
+              layout: horizontal
+              tap_action:
+                action: none
+              hold_action:
+                action: none
+            grid_options:
+              columns: full
           - type: custom:mushroom-template-card
             primary: Volver
             icon: mdi:arrow-left

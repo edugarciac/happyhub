@@ -4,13 +4,13 @@ En el panel de Home Assistant de la sala el audio "no acaba de funcionar": `scri
 
 ## What Changes
 
-- Un único botón que cambia de texto: **Activar SALA** / **Desactivar SALA**.
-- Mientras arranca, el botón se sustituye por el aviso «Activando la sala… el sonido tardará unos segundos».
-- `script.encender_sala` espera (máx. 60 s) a que el WiiM esté disponible antes de terminar, así el aviso dura lo que tarda de verdad.
+- Botón de sala con texto **Sala ON** / **Sala OFF** (según `sensor.estado_sala`); mientras arranca, «Encendiendo sala… El sonido tardará unos segundos» (no se puede pulsar).
+- Nuevo botón **Música ON** (grupo Música y vista Gramola): enciende solo amplificador + subwoofer (`script.encender_musica`). Se oculta mientras arranca y el script ignora pulsaciones repetidas (`mode: single`, `max_exceeded: silent`).
+- `script.encender_sala` enciende luces y llama a `script.encender_musica`, que espera (máx. 60 s) a que el WiiM esté disponible.
 - Grupo **Música**: estado del sonido («Sonido listo»…) y Amplificador / Subwoofer encendido/apagado (solo lectura).
-- La tarjeta de conexión del grupo Música muestra también: origen (Bluetooth, Gramola/WiFi, Spotify, AirPlay, cable), app, canción, artista, estado y volumen.
-- Sensores plantilla `sensor.estado_sonido_sala` y `sensor.conexion_musica_sala`.
-- Guías (cliente e interna) actualizadas con los nuevos textos.
+- La tarjeta de conexión muestra también origen (Bluetooth, Gramola/WiFi, Spotify, AirPlay, cable), app, canción, artista, estado y volumen.
+- Sensores plantilla `sensor.estado_sala`, `sensor.estado_sonido_sala`, `sensor.conexion_musica_sala`.
+- Guías (cliente e interna) actualizadas.
 
 ## Capabilities
 

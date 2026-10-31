@@ -2,13 +2,33 @@
 # Instalar: copiar a /config/packages/ (ver README.md)
 template:
   - sensor:
+      # Estado de la sala para el botón Sala ON / Sala OFF
+      #   arrancando: script.encender_sala en marcha
+      #   on: luz Sala Principal, amplificador y subwoofer encendidos
+      #   off: luces, amplificador y subwoofer apagados
+      #   parcial: cualquier mezcla (el panel muestra Sala ON y Sala OFF)
+      - name: Estado sala
+        unique_id: estado_sala
+        state: >
+          {% set todo = ['switch.sala_1_luz_sala_principal', 'switch.sala_2_luz_sala_2',
+                         'switch.sala_principal_luz_barra', 'switch.shellyplugmg3_08927256e768',
+                         'switch.sala_principal_amplificador_audio', 'switch.sala_principal_subwoofer'] %}
+          {% set clave = ['switch.sala_1_luz_sala_principal',
+                          'switch.sala_principal_amplificador_audio', 'switch.sala_principal_subwoofer'] %}
+          {% if is_state('script.encender_sala', 'on') %}arrancando
+          {% elif clave | select('is_state', 'on') | list | count == clave | count %}on
+          {% elif todo | select('is_state', 'on') | list | count == 0 %}off
+          {% else %}parcial
+          {% endif %}
+
+      # Estado del sonido (amplificador + subwoofer + WiiM)
       - name: Estado sonido sala
         unique_id: estado_sonido_sala
         state: >
           {% set amp = is_state('switch.sala_principal_amplificador_audio', 'on') %}
           {% set sub = is_state('switch.sala_principal_subwoofer', 'on') %}
           {% set wiim = states('media_player.wiim_amp_happyhub') not in ['unavailable', 'unknown'] %}
-          {% if is_state('script.encender_sala', 'on') %}arrancando
+          {% if is_state('script.encender_sala', 'on') or is_state('script.encender_musica', 'on') %}arrancando
           {% elif amp and sub and wiim %}listo
           {% elif not amp and not sub %}apagado
           {% else %}incompleto

@@ -9,9 +9,11 @@ El dashboard `panel-clientes` y los scripts viven en Home Assistant, no en este 
 - **Estado derivado en un sensor plantilla** (`sensor.estado_sonido_sala`: `apagado` / `arrancando` / `listo` / `incompleto`) para que todas las tarjetas lean una sola fuente.
   - `arrancando` = `script.encender_sala` en marcha.
   - `listo` = amplificador ON + subwoofer ON + WiiM disponible.
-  - `incompleto` = cualquier mezcla (p. ej. subwoofer apagado): se muestra **Activar SALA** y **Desactivar SALA** para poder arreglarlo.
+  - `incompleto` = cualquier mezcla (p. ej. subwoofer apagado): se muestra **Sala ON** y **Sala OFF** para poder arreglarlo.
 - **Conexión**: se amplía la tarjeta existente (mantiene «Listo para conectar» / «Móvil conectado», que usa la guía) en vez de añadir otra.
-- **El script espera al WiiM** (`wait_template`, timeout 60 s, continúa si vence) en vez de un delay fijo.
+- **El sonido se enciende en un script propio** (`script.encender_musica`) que reutiliza `encender_sala`. Espera al WiiM (`wait_template`, timeout 60 s, continúa si vence) en vez de un delay fijo.
+- **Antirrebote en dos capas**: el panel oculta el botón mientras el script está en marcha, y los scripts usan `mode: single` + `max_exceeded: silent` por si llega una pulsación antes de que el panel se actualice.
+- **Dos sensores**: `estado_sala` (luces + sonido) para Sala ON/OFF y `estado_sonido_sala` (solo sonido) para Música ON. Así Música ON sin luces no hace que el botón diga Sala OFF.
 - **Amplificador/Subwoofer sin acción al tocar**: el cliente ve el estado pero no puede apagarlos sueltos.
 - **"Quién está conectado"**: la integración LinkPlay/WiiM expone `source`, `app_name`, `media_title`, `media_artist`, `volume_level`. El nombre del móvil Bluetooth no se expone en la integración del núcleo; no se muestra.
 

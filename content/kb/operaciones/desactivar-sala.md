@@ -18,7 +18,7 @@ Es lo último que se hace antes de salir: la sala se queda a oscuras.
 ## Pasos
 
 1. Comprueba que la sala está recogida y que no queda nadie dentro.
-2. En el panel de control, pulsa **Desactivar SALA** (apaga todo). Es el mismo botón que **Activar SALA**: cambia de nombre cuando la sala está encendida.
+2. En el panel de control, pulsa **Sala OFF** (apaga todo). Sale en el lugar de **Sala ON** cuando la sala está encendida.
 3. Confirma en el aviso «¿Desactivar toda la sala?».
 4. Sal de la sala.
 
