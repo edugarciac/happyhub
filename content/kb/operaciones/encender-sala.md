@@ -18,7 +18,7 @@ Al principio, nada más entrar en la sala.
 ## Pasos
 
 1. En el panel de control, pulsa **Activar SALA** (luces y música).
-2. Verás «Activando la sala… el sonido tardará unos segundos». Espera a que **Equipo de sonido** diga **«Sonido listo»** (Amplificador y Subwoofer en verde).
+2. Verás «Activando SALA… El sonido tardará unos segundos». Espera a que el grupo **Música** diga **«Sonido listo»** (Amplificador y Subwoofer en verde).
 3. Elige la música: una lista de la [Gramola](poner-gramola.md) o [tu móvil por Bluetooth](conectar-movil-bluetooth.md).
 
 ## Qué hace

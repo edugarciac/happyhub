@@ -18,17 +18,15 @@ Todo empieza en el **panel de control**, la pantalla táctil de la sala. Nada m�
 
 Arriba, el nombre de tu evento y dos botones:
 
-- **Activar SALA** (luces y música): úsalo al llegar. Mientras arranca verás «Activando la sala… el sonido tardará unos segundos»; después el botón cambia a **Desactivar SALA** (apaga todo), que te pedirá confirmación al salir.
+- **Activar SALA** (luces y música): úsalo al llegar. Mientras arranca verás «Activando SALA… El sonido tardará unos segundos»; después el botón cambia a **Desactivar SALA** (apaga todo), que te pedirá confirmación al salir.
 - **Ayuda** (cómo funciona la sala): abre esta guía.
 
 Debajo, las funciones agrupadas por tipo:
 
 - **Luces**: Sala Principal, Sala Kids, Barra y Jardín. [Encender o apagar luces](operaciones/encender-luces.md)
 - **Aire acondicionado**: Sala Principal y Sala Kids. [Ajustar el aire](operaciones/ajustar-aire.md)
-- **Equipo de sonido**: muestra si el Amplificador y el Subwoofer están encendidos y si el sonido está listo.
-- **Qué está sonando**: cómo está conectada la música (móvil por Bluetooth, Gramola, Spotify, AirPlay…), la canción y el volumen.
-- **Música**: la Gramola con listas preparadas o tu propio móvil por Bluetooth. [Poner la Gramola](operaciones/poner-gramola.md) · [Conectar mi móvil](operaciones/conectar-movil-bluetooth.md)
+- **Música**: arriba verás si el sonido está listo y si el Amplificador y el Subwoofer están encendidos; debajo, cómo está conectada la música (tu móvil por Bluetooth, la Gramola, Spotify…), la canción y el volumen. Para elegir música: la Gramola con listas preparadas o tu propio móvil por Bluetooth. [Poner la Gramola](operaciones/poner-gramola.md) · [Conectar mi móvil](operaciones/conectar-movil-bluetooth.md)
 
 ## No suena la música, ¿qué hago?
 
-Mira la tarjeta **Equipo de sonido**: si no dice «Sonido listo», pulsa **Activar SALA** y espera unos segundos. Es el botón que enciende el amplificador y el subwoofer, que no tienen botón propio. Sin él, la música no suena aunque el panel diga que está sonando.
+Mira el grupo **Música**: si no dice «Sonido listo», pulsa **Activar SALA** y espera unos segundos. Es el botón que enciende el amplificador y el subwoofer, que no tienen botón propio. Sin él, la música no suena aunque el panel diga que está sonando.

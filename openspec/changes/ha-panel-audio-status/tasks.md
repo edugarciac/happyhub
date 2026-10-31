@@ -1,8 +1,9 @@
 ## 1. Home Assistant YAML
 
 - [x] 1.1 `home-assistant/packages/sala_audio.yaml`: sensores plantilla y `script.encender_sala` con espera al WiiM
-- [x] 1.2 `home-assistant/dashboard/panel-clientes-audio.yaml`: botón Activar/Desactivar SALA, Equipo de sonido, Qué está sonando
-- [x] 1.3 `home-assistant/README.md`: cómo instalarlo
+- [x] 1.2 Versionar `home-assistant/dashboard/panel-clientes.yaml` tal como está en la tablet
+- [x] 1.3 Sobre él: botón Activar/Desactivar SALA, estado del sonido, Amplificador/Subwoofer, conexión ampliada (vistas Control y Gramola)
+- [x] 1.4 `home-assistant/README.md`: cómo instalarlo
 
 ## 2. Guías
 

@@ -4,14 +4,16 @@ El dashboard `panel-clientes` y los scripts viven en Home Assistant, no en este 
 
 ## Decisions
 
-- **Solo tarjetas del núcleo de HA** (conditional, button, tile, markdown): no depende de HACS.
+- **Mismo estilo que el panel actual** (mushroom + card_mod, ya instalados vía HACS). Se parte del YAML real de la tablet, versionado en un commit previo, para que el diff muestre solo el cambio.
+- **Si falta el sensor**, las condiciones usan `state_not` y se ven Activar y Desactivar a la vez (comportamiento anterior): nunca se queda el panel sin botón.
 - **Estado derivado en un sensor plantilla** (`sensor.estado_sonido_sala`: `apagado` / `arrancando` / `listo` / `incompleto`) para que todas las tarjetas lean una sola fuente.
   - `arrancando` = `script.encender_sala` en marcha.
   - `listo` = amplificador ON + subwoofer ON + WiiM disponible.
   - `incompleto` = cualquier mezcla (p. ej. subwoofer apagado): se muestra **Activar SALA** y **Desactivar SALA** para poder arreglarlo.
+- **Conexión**: se amplía la tarjeta existente (mantiene «Listo para conectar» / «Móvil conectado», que usa la guía) en vez de añadir otra.
 - **El script espera al WiiM** (`wait_template`, timeout 60 s, continúa si vence) en vez de un delay fijo.
 - **Amplificador/Subwoofer sin acción al tocar**: el cliente ve el estado pero no puede apagarlos sueltos.
-- **"Quién está conectado"**: la integración LinkPlay/WiiM expone `source`, `app_name`, `media_title`, `media_artist`, `volume_level`. El nombre del móvil Bluetooth no se expone en la integración del núcleo; la tarjeta lo muestra solo si existe algún atributo con él.
+- **"Quién está conectado"**: la integración LinkPlay/WiiM expone `source`, `app_name`, `media_title`, `media_artist`, `volume_level`. El nombre del móvil Bluetooth no se expone en la integración del núcleo; no se muestra.
 
 ## Risks
 

@@ -23,9 +23,11 @@ Es un solo botón que depende de `sensor.estado_sonido_sala`:
 | Estado | Qué ve el cliente |
 |---|---|
 | `apagado` | **Activar SALA** |
-| `arrancando` (el script está en marcha) | «Activando la sala… el sonido tardará unos segundos» |
+| `arrancando` (el script está en marcha) | «Activando SALA… El sonido tardará unos segundos» (parpadea, no se puede pulsar) |
 | `listo` (amplificador y subwoofer ON y WiiM disponible) | **Desactivar SALA** |
-| `incompleto` (cualquier mezcla) | Aviso + **Activar SALA** y **Desactivar SALA** |
+| `incompleto` (cualquier mezcla) | **Activar SALA** y **Desactivar SALA** |
+
+Si el sensor no existe (falta el package), salen los dos botones, como antes.
 
 ## ¿Qué hace Activar SALA? (`script.encender_sala`)
 
@@ -34,11 +36,11 @@ Es un solo botón que depende de `sensor.estado_sonido_sala`:
 3. A los 3 segundos, enciende el subwoofer.
 4. Espera a que el WiiM esté disponible (máx. 60 s). Mientras, el panel muestra el aviso de arranque.
 
-No enciende el aire ni pone música. El amplificador y el subwoofer se ven en la tarjeta **Equipo de sonido** pero no se pueden tocar: si un cliente dice que no suena nada, mira si pone «Sonido listo».
+No enciende el aire ni pone música. El amplificador y el subwoofer se ven arriba del grupo **Música** pero no se pueden tocar: si un cliente dice que no suena nada, mira si pone «Sonido listo».
 
-## ¿Qué muestra «Qué está sonando»?
+## ¿Qué muestra la tarjeta de conexión del grupo Música?
 
-`sensor.conexion_musica_sala` traduce el atributo `source` del WiiM: Móvil por Bluetooth, Gramola (WiFi), Spotify Connect, AirPlay o Cable. Además muestra app, canción, artista, estado y volumen. El nombre del móvil Bluetooth no lo da la integración del WiiM, así que normalmente no sale.
+Mantiene «Listo para conectar» y «Móvil conectado» para Bluetooth. Para el resto, `sensor.conexion_musica_sala` traduce el atributo `source` del WiiM: Móvil por Bluetooth, Gramola (WiFi), Spotify Connect, AirPlay o Cable. Además muestra app, canción, artista, estado y volumen. El nombre del móvil Bluetooth no lo da la integración del WiiM, así que normalmente no sale.
 
 ## ¿Qué hace Desactivar SALA? (`script.cerrar_sala`)
 

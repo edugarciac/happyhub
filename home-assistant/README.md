@@ -1,18 +1,25 @@
 # Home Assistant de la sala
 
-YAML versionado del panel `panel-clientes`. **No se despliega solo**: hay que pegarlo en Home Assistant.
+YAML versionado del panel `panel-clientes` y lo que necesita. **No se despliega solo**: hay que pegarlo en Home Assistant. Antes, haz una copia de seguridad (Ajustes > Sistema > Copias de seguridad).
 
-| Fichero | Dónde va |
-|---|---|
-| `packages/sala_audio.yaml` | `/config/packages/sala_audio.yaml`. Requiere en `configuration.yaml`: `homeassistant: packages: !include_dir_named packages`. Después: Herramientas de desarrollador > Comprobar configuración > Reiniciar. |
-| `scripts/encender_sala.yaml` | Scripts > *Activar sala* > ⋮ > Editar en YAML > sustituir todo. |
-| `dashboard/panel-clientes-audio.yaml` | Dashboard *panel-clientes* > Editar > Añadir tarjeta > Manual. Son 3 tarjetas separadas por `---`: pégalas una a una. La 1 sustituye a los botones Activar y Desactivar. |
+Usa tarjetas de HACS ya instaladas en la tablet: **mushroom**, **card-mod**, **mini-media-player** y **kiosk-mode**.
+
+## Orden de instalación
+
+| # | Fichero | Dónde va |
+|---|---|---|
+| 1 | `packages/sala_audio.yaml` | `/config/packages/sala_audio.yaml`. Requiere en `configuration.yaml`: `homeassistant: packages: !include_dir_named packages`. Después: Herramientas de desarrollador > YAML > Comprobar configuración > Reiniciar. Comprueba que existen `sensor.estado_sonido_sala` y `sensor.conexion_musica_sala`. |
+| 2 | `scripts/encender_sala.yaml` | Scripts > *Activar sala* > ⋮ > Editar en YAML > sustituir todo > Guardar. |
+| 3 | `dashboard/panel-clientes.yaml` | Dashboard *panel-clientes* > ✏️ > ⋮ > Editor de configuración en bruto > sustituir todo > Guardar. |
+
+Si cambias algo en HA, vuelve a copiarlo aquí para que GitHub tenga siempre la versión de la tablet.
 
 ## Probar
 
-1. Con todo apagado: el panel muestra **Activar SALA** y «Sonido apagado».
-2. Pulsa **Activar SALA**: aparece «⏳ Activando la sala… el sonido tardará unos segundos».
-3. Cuando el WiiM vuelve: «🟢 Sonido listo», Amplificador y Subwoofer en verde, y **Desactivar SALA**.
-4. Conecta un móvil por Bluetooth: «📱 Móvil por Bluetooth» con canción y volumen.
+1. Con todo apagado: **Activar SALA** y «Sonido apagado» en el grupo Música.
+2. Pulsa **Activar SALA**: el botón pasa a «Activando SALA… El sonido tardará unos segundos» (parpadea).
+3. Cuando el WiiM responde: «Sonido listo», Amplificador y Subwoofer en verde, y el botón pasa a **Desactivar SALA**.
+4. Conecta un móvil por Bluetooth y pon música: «Móvil conectado» con canción y volumen.
+5. Pon una lista de la Gramola: muestra la fuente, la canción y el volumen.
 
-Si la tarjeta *Qué está sonando* muestra un origen raro, mira el atributo `source` de `media_player.wiim_amp_happyhub` en Herramientas de desarrollador > Estados y ajusta el mapeo en `sensor.conexion_musica_sala`.
+Si sale un origen raro, mira el atributo `source` de `media_player.wiim_amp_happyhub` en Herramientas de desarrollador > Estados y ajusta el mapeo de `sensor.conexion_musica_sala`.

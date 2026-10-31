@@ -58,54 +58,107 @@ views:
                 card:
                   type: horizontal-stack
                   cards:
-                    - type: custom:mushroom-template-card
-                      primary: Activar
-                      secondary: Luces y música
-                      icon: mdi:power
-                      icon_color: green
-                      layout: vertical
-                      tap_action:
-                        action: perform-action
-                        perform_action: script.encender_sala
-                      card_mod:
-                        style: |
-                          ha-card {
-                            background: rgba(76, 175, 80, 0.30);
-                            --primary-text-color: white;
-                            --secondary-text-color: rgba(255, 255, 255, 0.85);
-                            --card-primary-font-size: 20px;
-                            --card-primary-line-height: 26px;
-                            --card-secondary-font-size: 13px;
-                            --icon-size: 44px;
-                            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
-                            border: 2px solid #4CAF50;
-                            border-radius: 16px;
-                          }
-                    - type: custom:mushroom-template-card
-                      primary: Desactivar
-                      secondary: Apaga todo
-                      icon: mdi:power-off
-                      icon_color: red
-                      layout: vertical
-                      tap_action:
-                        action: perform-action
-                        perform_action: script.cerrar_sala
-                        confirmation:
-                          text: ¿Desactivar toda la sala?
-                      card_mod:
-                        style: |
-                          ha-card {
-                            background: rgba(244, 67, 54, 0.30);
-                            --primary-text-color: white;
-                            --secondary-text-color: rgba(255, 255, 255, 0.85);
-                            --card-primary-font-size: 20px;
-                            --card-primary-line-height: 26px;
-                            --card-secondary-font-size: 13px;
-                            --icon-size: 44px;
-                            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
-                            border: 2px solid #F44336;
-                            border-radius: 16px;
-                          }
+                    # Activar SALA: apagado, incompleto (o si falta el sensor)
+                    - type: conditional
+                      conditions:
+                        - condition: state
+                          entity: sensor.estado_sonido_sala
+                          state_not:
+                            - arrancando
+                            - listo
+                      card:
+                        type: custom:mushroom-template-card
+                        primary: Activar SALA
+                        secondary: Luces y música
+                        icon: mdi:power
+                        icon_color: green
+                        layout: vertical
+                        tap_action:
+                          action: perform-action
+                          perform_action: script.encender_sala
+                        card_mod:
+                          style: |
+                            ha-card {
+                              background: rgba(76, 175, 80, 0.30);
+                              --primary-text-color: white;
+                              --secondary-text-color: rgba(255, 255, 255, 0.85);
+                              --card-primary-font-size: 20px;
+                              --card-primary-line-height: 26px;
+                              --card-secondary-font-size: 13px;
+                              --icon-size: 44px;
+                              text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+                              border: 2px solid #4CAF50;
+                              border-radius: 16px;
+                            }
+                    # Arrancando: aviso, no se puede pulsar
+                    - type: conditional
+                      conditions:
+                        - condition: state
+                          entity: sensor.estado_sonido_sala
+                          state: arrancando
+                      card:
+                        type: custom:mushroom-template-card
+                        primary: Activando SALA…
+                        secondary: El sonido tardará unos segundos
+                        icon: mdi:timer-sand
+                        icon_color: amber
+                        layout: vertical
+                        tap_action:
+                          action: none
+                        hold_action:
+                          action: none
+                        card_mod:
+                          style: |
+                            ha-card {
+                              background: rgba(255, 193, 7, 0.30);
+                              --primary-text-color: white;
+                              --secondary-text-color: rgba(255, 255, 255, 0.85);
+                              --card-primary-font-size: 20px;
+                              --card-primary-line-height: 26px;
+                              --card-secondary-font-size: 13px;
+                              --icon-size: 44px;
+                              text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+                              border: 2px solid #FFC107;
+                              border-radius: 16px;
+                              animation: hh-pulse 1.6s ease-in-out infinite;
+                            }
+                            @keyframes hh-pulse {
+                              50% { opacity: 0.6; }
+                            }
+                    # Desactivar SALA: listo, incompleto (o si falta el sensor)
+                    - type: conditional
+                      conditions:
+                        - condition: state
+                          entity: sensor.estado_sonido_sala
+                          state_not:
+                            - apagado
+                            - arrancando
+                      card:
+                        type: custom:mushroom-template-card
+                        primary: Desactivar SALA
+                        secondary: Apaga todo
+                        icon: mdi:power-off
+                        icon_color: red
+                        layout: vertical
+                        tap_action:
+                          action: perform-action
+                          perform_action: script.cerrar_sala
+                          confirmation:
+                            text: ¿Desactivar toda la sala?
+                        card_mod:
+                          style: |
+                            ha-card {
+                              background: rgba(244, 67, 54, 0.30);
+                              --primary-text-color: white;
+                              --secondary-text-color: rgba(255, 255, 255, 0.85);
+                              --card-primary-font-size: 20px;
+                              --card-primary-line-height: 26px;
+                              --card-secondary-font-size: 13px;
+                              --icon-size: 44px;
+                              text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+                              border: 2px solid #F44336;
+                              border-radius: 16px;
+                            }
                     - type: custom:mushroom-template-card
                       primary: Ayuda
                       secondary: Cómo funciona la sala
@@ -234,6 +287,60 @@ views:
                     - type: heading
                       heading: Música
                       icon: mdi:music
+                    - type: custom:mushroom-template-card
+                      entity: sensor.estado_sonido_sala
+                      primary: >
+                        {% set s = states('sensor.estado_sonido_sala') %}
+                        {{ {'listo': 'Sonido listo',
+                            'arrancando': 'Activando el sonido…',
+                            'incompleto': 'Sonido incompleto'}.get(s, 'Sonido apagado') }}
+                      secondary: >
+                        {% set s = states('sensor.estado_sonido_sala') %}
+                        {% if s == 'listo' %}Amplificador y subwoofer encendidos
+                        {% elif s == 'arrancando' %}Tardará unos segundos, espera antes de poner música
+                        {% else %}Pulsa «Activar SALA» y espera unos segundos
+                        {% endif %}
+                      icon: >
+                        {% set s = states('sensor.estado_sonido_sala') %}
+                        {{ {'listo': 'mdi:speaker-wireless', 'arrancando': 'mdi:timer-sand',
+                            'incompleto': 'mdi:speaker-off'}.get(s, 'mdi:volume-off') }}
+                      icon_color: >
+                        {% set s = states('sensor.estado_sonido_sala') %}
+                        {{ {'listo': 'green', 'arrancando': 'amber',
+                            'incompleto': 'orange'}.get(s, 'grey') }}
+                      layout: horizontal
+                      tap_action:
+                        action: none
+                      hold_action:
+                        action: none
+                    - type: grid
+                      columns: 2
+                      square: false
+                      cards:
+                        - type: custom:mushroom-entity-card
+                          entity: switch.sala_principal_amplificador_audio
+                          name: Amplificador
+                          icon: mdi:amplifier
+                          icon_color: green
+                          layout: horizontal
+                          tap_action:
+                            action: none
+                          hold_action:
+                            action: none
+                          double_tap_action:
+                            action: none
+                        - type: custom:mushroom-entity-card
+                          entity: switch.sala_principal_subwoofer
+                          name: Subwoofer
+                          icon: mdi:speaker
+                          icon_color: green
+                          layout: horizontal
+                          tap_action:
+                            action: none
+                          hold_action:
+                            action: none
+                          double_tap_action:
+                            action: none
                     - type: grid
                       columns: 2
                       square: false
@@ -262,34 +369,61 @@ views:
                                 ¿Continuar?
                     - type: custom:mushroom-template-card
                       primary: >
-                        {% set src =
-                        state_attr('media_player.wiim_amp_happyhub','source') %}
-                        {% if src == 'Bluetooth' and
-                        is_state('media_player.wiim_amp_happyhub','playing') %}
+                        {% set mp = 'media_player.wiim_amp_happyhub' %}
+                        {% set src = state_attr(mp, 'source') %}
+                        {% set con = states('sensor.conexion_musica_sala') %}
+                        {% if states(mp) in ['unavailable', 'unknown', 'off'] %}
+                          Equipo de música apagado
+                        {% elif src == 'Bluetooth' and is_state(mp, 'playing') %}
                           Móvil conectado
                         {% elif src == 'Bluetooth' %}
                           Listo para conectar
+                        {% elif con not in ['unknown', 'unavailable'] %}
+                          {{ con }}
                         {% else %}
                           Fuente: {{ src or '—' }}
                         {% endif %}
                       secondary: >
-                        {% set src =
-                        state_attr('media_player.wiim_amp_happyhub','source') %}
-                        {% if src == 'Bluetooth' and
-                        is_state('media_player.wiim_amp_happyhub','playing') %}
-                          Sonando desde tu móvil
+                        {% set mp = 'media_player.wiim_amp_happyhub' %}
+                        {% set src = state_attr(mp, 'source') %}
+                        {% set t = state_attr(mp, 'media_title') %}
+                        {% set a = state_attr(mp, 'media_artist') %}
+                        {% set app = state_attr(mp, 'app_name') %}
+                        {% set v = state_attr(mp, 'volume_level') %}
+                        {% set info = (t ~ ((' — ' ~ a) if a else '')) if t else '' %}
+                        {% set vol = (' · 🔊 ' ~ ((v * 100) | round(0) | int) ~ '%'
+                          ~ (' (silenciado)' if state_attr(mp, 'is_volume_muted') else '')) if v is not none else '' %}
+                        {% if states(mp) in ['unavailable', 'unknown', 'off'] %}
+                          Pulsa «Activar SALA» y espera unos segundos
+                        {% elif src == 'Bluetooth' and is_state(mp, 'playing') %}
+                          📱 {{ info or 'Sonando desde tu móvil' }}{{ vol }}
                         {% elif src == 'Bluetooth' %}
                           Busca «HappyHub Música» en el Bluetooth de tu móvil
+                        {% elif is_state(mp, 'playing') %}
+                          🎵 {{ info or 'Sonando' }}{{ ((' · ' ~ app) if app else '') }}{{ vol }}
+                        {% elif is_state(mp, 'paused') %}
+                          ⏸️ En pausa{{ (': ' ~ info) if info else '' }}{{ vol }}
                         {% else %}
                           Pulsa «Conectar mi móvil» para usar Bluetooth
                         {% endif %}
-                      icon: mdi:cellphone-sound
+                      multiline_secondary: true
+                      icon: >
+                        {% set mp = 'media_player.wiim_amp_happyhub' %}
+                        {% set src = (state_attr(mp, 'source') or '') %}
+                        {% if states(mp) in ['unavailable', 'unknown', 'off'] %}mdi:volume-off
+                        {% elif src == 'Bluetooth' %}mdi:cellphone-sound
+                        {% elif 'spotify' in (src ~ (state_attr(mp, 'app_name') or '')) | lower %}mdi:spotify
+                        {% elif 'airplay' in src | lower %}mdi:apple
+                        {% elif 'line' in src | lower or 'optical' in src | lower %}mdi:cable-data
+                        {% else %}mdi:record-player
+                        {% endif %}
                       icon_color: >
-                        {% set src =
-                        state_attr('media_player.wiim_amp_happyhub','source') %}
-                        {{ 'blue' if src == 'Bluetooth' and
-                        is_state('media_player.wiim_amp_happyhub','playing')
-                           else ('amber' if src == 'Bluetooth' else 'grey') }}
+                        {% set mp = 'media_player.wiim_amp_happyhub' %}
+                        {% set src = state_attr(mp, 'source') %}
+                        {% if src == 'Bluetooth' %}{{ 'blue' if is_state(mp, 'playing') else 'amber' }}
+                        {% elif is_state(mp, 'playing') %}purple
+                        {% else %}grey
+                        {% endif %}
                       layout: horizontal
                     - type: custom:mushroom-media-player-card
                       entity: media_player.wiim_amp_happyhub
@@ -413,31 +547,61 @@ views:
               columns: 6
           - type: custom:mushroom-template-card
             primary: >
-              {% set src = state_attr('media_player.wiim_amp_happyhub','source')
-              %} {% if src == 'Bluetooth' and
-              is_state('media_player.wiim_amp_happyhub','playing') %}
+              {% set mp = 'media_player.wiim_amp_happyhub' %}
+              {% set src = state_attr(mp, 'source') %}
+              {% set con = states('sensor.conexion_musica_sala') %}
+              {% if states(mp) in ['unavailable', 'unknown', 'off'] %}
+                Equipo de música apagado
+              {% elif src == 'Bluetooth' and is_state(mp, 'playing') %}
                 Móvil conectado
               {% elif src == 'Bluetooth' %}
                 Listo para conectar
+              {% elif con not in ['unknown', 'unavailable'] %}
+                {{ con }}
               {% else %}
                 Fuente: {{ src or '—' }}
               {% endif %}
             secondary: >
-              {% set src = state_attr('media_player.wiim_amp_happyhub','source')
-              %} {% if src == 'Bluetooth' and
-              is_state('media_player.wiim_amp_happyhub','playing') %}
-                Sonando desde tu móvil
+              {% set mp = 'media_player.wiim_amp_happyhub' %}
+              {% set src = state_attr(mp, 'source') %}
+              {% set t = state_attr(mp, 'media_title') %}
+              {% set a = state_attr(mp, 'media_artist') %}
+              {% set app = state_attr(mp, 'app_name') %}
+              {% set v = state_attr(mp, 'volume_level') %}
+              {% set info = (t ~ ((' — ' ~ a) if a else '')) if t else '' %}
+              {% set vol = (' · 🔊 ' ~ ((v * 100) | round(0) | int) ~ '%'
+                ~ (' (silenciado)' if state_attr(mp, 'is_volume_muted') else '')) if v is not none else '' %}
+              {% if states(mp) in ['unavailable', 'unknown', 'off'] %}
+                Pulsa «Activar SALA» y espera unos segundos
+              {% elif src == 'Bluetooth' and is_state(mp, 'playing') %}
+                📱 {{ info or 'Sonando desde tu móvil' }}{{ vol }}
               {% elif src == 'Bluetooth' %}
                 Busca «HappyHub Música»
+              {% elif is_state(mp, 'playing') %}
+                🎵 {{ info or 'Sonando' }}{{ ((' · ' ~ app) if app else '') }}{{ vol }}
+              {% elif is_state(mp, 'paused') %}
+                ⏸️ En pausa{{ (': ' ~ info) if info else '' }}{{ vol }}
               {% else %}
                 Sin Bluetooth
               {% endif %}
-            icon: mdi:cellphone-sound
+            multiline_secondary: true
+            icon: >
+              {% set mp = 'media_player.wiim_amp_happyhub' %}
+              {% set src = (state_attr(mp, 'source') or '') %}
+              {% if states(mp) in ['unavailable', 'unknown', 'off'] %}mdi:volume-off
+              {% elif src == 'Bluetooth' %}mdi:cellphone-sound
+              {% elif 'spotify' in (src ~ (state_attr(mp, 'app_name') or '')) | lower %}mdi:spotify
+              {% elif 'airplay' in src | lower %}mdi:apple
+              {% elif 'line' in src | lower or 'optical' in src | lower %}mdi:cable-data
+              {% else %}mdi:record-player
+              {% endif %}
             icon_color: >
-              {% set src = state_attr('media_player.wiim_amp_happyhub','source')
-              %} {{ 'blue' if src == 'Bluetooth' and
-              is_state('media_player.wiim_amp_happyhub','playing')
-                 else ('amber' if src == 'Bluetooth' else 'grey') }}
+              {% set mp = 'media_player.wiim_amp_happyhub' %}
+              {% set src = state_attr(mp, 'source') %}
+              {% if src == 'Bluetooth' %}{{ 'blue' if is_state(mp, 'playing') else 'amber' }}
+              {% elif is_state(mp, 'playing') %}purple
+              {% else %}grey
+              {% endif %}
             layout: vertical
             grid_options:
               columns: 6
