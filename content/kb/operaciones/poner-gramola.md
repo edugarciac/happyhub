@@ -17,7 +17,7 @@ Cuando quieras música de fondo sin preocuparte de elegir canciones.
 
 ## Pasos
 
-1. Si aún no lo has hecho, pulsa **Activar** para encender el equipo de música.
+1. Si aún no lo has hecho, pulsa **Activar SALA** para encender el equipo de música.
 2. En el grupo **Música**, pulsa **Gramola**.
 3. Elige una lista: **Música Española**, **Cumpleaños**, **Verbena** o **Remember**.
 4. Ajusta el volumen en **Sonando ahora**.
@@ -29,5 +29,5 @@ Reproduce la lista elegida por los altavoces de la sala. En **Sonando ahora** pu
 
 ## Si algo falla
 
-- **No suena**: pulsa **Activar** y espera unos segundos; después vuelve a elegir la lista.
+- **No suena**: pulsa **Activar SALA** y espera unos segundos; después vuelve a elegir la lista.
 - Si sigue sin funcionar, [escríbenos por WhatsApp]({{whatsapp}}).

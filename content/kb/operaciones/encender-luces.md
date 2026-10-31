@@ -13,7 +13,7 @@ Enciende o apaga las luces de cada zona por separado.
 
 ## Cuándo usarla
 
-Cuando quieras cambiar la luz de una zona sin tocar el resto. Para encender o apagar todo a la vez, usa **Activar** o **Desactivar**.
+Cuando quieras cambiar la luz de una zona sin tocar el resto. Para encender o apagar todo a la vez, usa **Activar SALA** o **Desactivar SALA**.
 
 ## Pasos
 

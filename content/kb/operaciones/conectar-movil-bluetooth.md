@@ -17,7 +17,7 @@ Cuando quieras poner tu propia música. Si ya había otro móvil conectado, se d
 
 ## Pasos
 
-1. Si aún no lo has hecho, pulsa **Activar** para encender el equipo de música.
+1. Si aún no lo has hecho, pulsa **Activar SALA** para encender el equipo de música.
 2. En el grupo **Música**, pulsa **Conectar mi móvil** y confirma.
 3. Espera unos 10 segundos, hasta que el panel diga **«Listo para conectar»**.
 4. En el Bluetooth de tu móvil, elige **«HappyHub Música»**.
@@ -33,5 +33,5 @@ Desconecta el móvil que estuviera sonando, espera 8 segundos y deja el equipo l
 
 - **El panel no dice «Listo para conectar»**: espera unos segundos más. Si lo pulsas otra vez mientras se está conectando, no hace nada.
 - **No aparece «HappyHub Música» en tu móvil**: comprueba que tu móvil no sigue conectado a otro altavoz o a unos auriculares y vuelve a pulsar **Conectar mi móvil**.
-- **Está conectado pero no suena**: pulsa **Activar** y sube el volumen en el panel y en tu móvil.
+- **Está conectado pero no suena**: pulsa **Activar SALA** y sube el volumen en el panel y en tu móvil.
 - Si sigue sin funcionar, [escríbenos por WhatsApp]({{whatsapp}}).

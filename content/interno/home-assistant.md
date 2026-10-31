@@ -12,15 +12,35 @@ Home Assistant controla las luces, el aire y la música de la sala. La tablet de
 
 La guía para clientes del botón **Ayuda** es la página [/guia-sala/panel](/guia-sala/panel) de la web, que solo se puede mostrar dentro de `homeassistant.local`. Si algún día la tablet abre Home Assistant con otra dirección, el botón Ayuda saldrá en blanco hasta añadir esa dirección en `next.config.js`.
 
-## ¿Qué hace el botón Activar? (`script.encender_sala`)
+## ¿Dónde está el YAML del panel?
+
+En la carpeta `home-assistant/` del repo (ver su `README.md`). No se despliega solo: hay que pegarlo en Home Assistant.
+
+## ¿Cómo funciona el botón Activar SALA / Desactivar SALA?
+
+Es un solo botón que depende de `sensor.estado_sonido_sala`:
+
+| Estado | Qué ve el cliente |
+|---|---|
+| `apagado` | **Activar SALA** |
+| `arrancando` (el script está en marcha) | «Activando la sala… el sonido tardará unos segundos» |
+| `listo` (amplificador y subwoofer ON y WiiM disponible) | **Desactivar SALA** |
+| `incompleto` (cualquier mezcla) | Aviso + **Activar SALA** y **Desactivar SALA** |
+
+## ¿Qué hace Activar SALA? (`script.encender_sala`)
 
 1. Enciende las luces Sala Principal, Barra y Jardín, y el amplificador de audio.
 2. Enciende la luz Sala Kids (si falla, sigue).
 3. A los 3 segundos, enciende el subwoofer.
+4. Espera a que el WiiM esté disponible (máx. 60 s). Mientras, el panel muestra el aviso de arranque.
 
-No enciende el aire ni pone música. El amplificador y el subwoofer no tienen botón en el panel: si un cliente dice que no suena nada, casi siempre es que no ha pulsado **Activar**.
+No enciende el aire ni pone música. El amplificador y el subwoofer se ven en la tarjeta **Equipo de sonido** pero no se pueden tocar: si un cliente dice que no suena nada, mira si pone «Sonido listo».
 
-## ¿Qué hace el botón Desactivar? (`script.cerrar_sala`)
+## ¿Qué muestra «Qué está sonando»?
+
+`sensor.conexion_musica_sala` traduce el atributo `source` del WiiM: Móvil por Bluetooth, Gramola (WiFi), Spotify Connect, AirPlay o Cable. Además muestra app, canción, artista, estado y volumen. El nombre del móvil Bluetooth no lo da la integración del WiiM, así que normalmente no sale.
+
+## ¿Qué hace Desactivar SALA? (`script.cerrar_sala`)
 
 1. Pausa la música.
 2. Apaga el subwoofer y, a los 3 segundos, el amplificador y las luces Sala Principal, Barra y Jardín.
@@ -46,6 +66,8 @@ Cambia el amplificador a *Line In* para soltar el móvil que estuviera conectado
 | Aire Sala Kids | `climate.aidoo_pro_2` |
 | Música (WiiM) | `media_player.wiim_amp_happyhub` |
 | Nombre del evento en el panel | `input_text.evento` |
+| Estado del sonido (plantilla) | `sensor.estado_sonido_sala` |
+| Cómo está conectada la música (plantilla) | `sensor.conexion_musica_sala` |
 
 ## ¿Cómo cambio el nombre del evento que sale en el panel?
 

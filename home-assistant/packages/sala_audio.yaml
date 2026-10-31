@@ -1,0 +1,34 @@
+# Sensores del estado del sonido de la sala (panel-clientes)
+# Instalar: copiar a /config/packages/ (ver README.md)
+template:
+  - sensor:
+      - name: Estado sonido sala
+        unique_id: estado_sonido_sala
+        state: >
+          {% set amp = is_state('switch.sala_principal_amplificador_audio', 'on') %}
+          {% set sub = is_state('switch.sala_principal_subwoofer', 'on') %}
+          {% set wiim = states('media_player.wiim_amp_happyhub') not in ['unavailable', 'unknown'] %}
+          {% if is_state('script.encender_sala', 'on') %}arrancando
+          {% elif amp and sub and wiim %}listo
+          {% elif not amp and not sub %}apagado
+          {% else %}incompleto
+          {% endif %}
+        icon: >
+          {% set s = this.state %}
+          {{ {'listo': 'mdi:speaker', 'arrancando': 'mdi:timer-sand',
+              'incompleto': 'mdi:speaker-off'}.get(s, 'mdi:power') }}
+
+      - name: Conexión música sala
+        unique_id: conexion_musica_sala
+        state: >
+          {% set mp = 'media_player.wiim_amp_happyhub' %}
+          {% set src = (state_attr(mp, 'source') or '') | lower %}
+          {% set app = (state_attr(mp, 'app_name') or '') | lower %}
+          {% if states(mp) in ['unavailable', 'unknown', 'off'] %}Sin conexión
+          {% elif 'bluetooth' in src %}Móvil por Bluetooth
+          {% elif 'spotify' in src or 'spotify' in app %}Spotify Connect
+          {% elif 'airplay' in src or 'airplay' in app %}AirPlay
+          {% elif 'line' in src or 'optical' in src or 'aux' in src %}Cable ({{ state_attr(mp, 'source') }})
+          {% elif src in ['wifi', 'network', 'playlist', ''] %}Gramola (WiFi)
+          {% else %}{{ state_attr(mp, 'source') }}
+          {% endif %}
