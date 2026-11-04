@@ -62,7 +62,34 @@ async function handleDelete(id: number, res: NextApiResponse) {
     });
   }
 
-  const result = await query('DELETE FROM users WHERE id = $1 RETURNING id', [id]);
+  const organized = await query(
+    'SELECT COUNT(*) as count FROM collaborative_events WHERE organizer_id = $1',
+    [id]
+  ).catch((err: any) => {
+    // Table may not exist yet on fresh installs (created lazily)
+    if (err?.code === '42P01') return { rows: [{ count: '0' }] };
+    throw err;
+  });
+  const organizedCount = parseInt(organized.rows[0].count);
+  if (organizedCount > 0) {
+    return res.status(409).json({
+      success: false,
+      error: `No se puede eliminar: el cliente organiza ${organizedCount} evento(s) colaborativo(s)`,
+    });
+  }
+
+  let result;
+  try {
+    result = await query('DELETE FROM users WHERE id = $1 RETURNING id', [id]);
+  } catch (err: any) {
+    if (err?.code === '23503') {
+      return res.status(409).json({
+        success: false,
+        error: `No se puede eliminar: el cliente tiene datos asociados (${err.table || 'otra tabla'})`,
+      });
+    }
+    throw err;
+  }
   if (result.rows.length === 0) {
     return res.status(404).json({ success: false, error: 'Cliente no encontrado' });
   }

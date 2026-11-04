@@ -64,7 +64,7 @@ export async function ensureCollaborativeEventsSchema(): Promise<void> {
     CREATE TABLE IF NOT EXISTS collaborative_event_participants (
       id SERIAL PRIMARY KEY,
       event_id INTEGER NOT NULL REFERENCES collaborative_events(id) ON DELETE CASCADE,
-      user_id INTEGER REFERENCES users(id),
+      user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
       name VARCHAR(255) NOT NULL,
       email VARCHAR(255),
       role VARCHAR(100) DEFAULT 'participant',
