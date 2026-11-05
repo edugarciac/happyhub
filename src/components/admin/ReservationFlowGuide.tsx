@@ -1,6 +1,6 @@
 import { X, ArrowDown, MousePointerClick, Zap, Ban, Lock, Receipt } from 'lucide-react';
 import { DISPLAY_STATUS_COLORS, DISPLAY_STATUS_LABELS, type DisplayStatus } from '@/utils/reservationStatus';
-import { PAYMENT_GRACE_HOURS, PAYMENT_WINDOW_HOURS, REMAINING_REMINDER_DAYS_BEFORE, SECURITY_DEPOSIT_AMOUNT } from '@/config/payments';
+import { PAYMENT_GRACE_HOURS, PAYMENT_WINDOW_HOURS, SECURITY_DEPOSIT_AMOUNT } from '@/config/payments';
 
 /** Paso del flujo: estado + cómo se llega al siguiente (botón del admin o automático) */
 interface Step {
@@ -35,10 +35,7 @@ const STEPS: Step[] = [
     meaning: 'Señal cobrada. Queda el resto del precio.',
     next: {
       admin: ['Marcar pago total (datáfono, efectivo o transferencia)', 'Cobro del día: QR o enviar por email'],
-      auto: [
-        `${REMAINING_REMINDER_DAYS_BEFORE} días antes: correo con enlace para pagar el resto`,
-        'Pago del resto con tarjeta por Stripe',
-      ],
+      auto: ['Pago del resto con tarjeta por Stripe (el día del evento)'],
     },
   },
   {

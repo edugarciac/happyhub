@@ -68,7 +68,7 @@ describe('emailTemplates', () => {
   });
 });
 
-import { reservationApprovedEmail, depositReceivedEmail, depositReminderEmail, remainingPaymentReminderEmail, dayOfPaymentEmail } from '@/lib/emailTemplates';
+import { reservationApprovedEmail, depositReceivedEmail, depositReminderEmail, dayOfPaymentEmail } from '@/lib/emailTemplates';
 import { BIZUM_ENABLED, isBookingPaymentMethod } from '@/config/payments';
 
 describe('approval & payment flow emails', () => {
@@ -139,19 +139,6 @@ describe('approval & payment flow emails', () => {
       expect(html).not.toContain('Paga la señal por Bizum');
       expect(html).toContain('Pagar la señal (60 €)');
     }
-  });
-
-  it('remaining payment reminder asks to pay the remaining before the event', () => {
-    const { subject, html } = remainingPaymentReminderEmail({
-      name: 'Ana', code: 'RES-20261020-007', date: '2026-10-20', timeSlot: 'afternoon', totalPrice: 200, depositPaid: 60,
-      payUrl: 'https://www.happyhub.es/pagar/xyz',
-    });
-    expect(subject).toBe('Tu evento es en 3 días: paga el resto de la reserva RES-20261020-007 (140 €)');
-    expect(html).toContain('antes del evento');
-    expect(html).toContain('<strong>140 €</strong>');
-    expect(html).toContain('href="https://www.happyhub.es/pagar/xyz"');
-    expect(html).toContain('Pagar 140 €');
-    expect(html).toContain('fianza de 150 €');
   });
 
   it('day-of email asks to pay the remaining and hold the deposit', () => {
