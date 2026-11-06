@@ -1,13 +1,13 @@
 ---
 type: detalle
 title: Los scripts de la sala
-summary: Qué hace por dentro cada botón del panel (Sala ON, Música ON, Sala OFF, Conectar mi móvil) y el fondo del proyector.
+summary: Qué hace por dentro cada botón del panel (Encender sala, Apagar sala, Encender música, Apagar música, Liberar Bluetooth) y el fondo del proyector.
 parent: sala/home-assistant
 order: 2
 tags: [scripts, home assistant]
 ---
 
-## ¿Qué hace Sala ON? (`script.encender_sala`)
+## ¿Qué hace Encender sala? (`script.encender_sala`)
 
 1. Enciende las luces Sala Principal, Barra y Jardín.
 2. Enciende la luz Sala Kids (si falla, sigue).
@@ -15,13 +15,18 @@ tags: [scripts, home assistant]
 
 No enciende el aire ni pone música.
 
-## ¿Qué hace Música ON? (`script.encender_musica`)
+## ¿Qué hace Encender música? (`script.encender_musica`)
 
 1. Enciende el amplificador.
 2. A los 3 segundos, enciende el subwoofer.
-3. Espera a que el WiiM esté disponible (máx. 60 s) y 2 s más.
 
-## ¿Qué hace Sala OFF? (`script.cerrar_sala`)
+No espera al WiiM. La automatización `wiim_volumen_inicial` pone el volumen al 25 % al encender el amplificador y reintenta cada 10 s durante 5 minutos.
+
+## ¿Qué hace Apagar música? (`script.apagar_musica`)
+
+Pausa la música, apaga el subwoofer y, a los 3 segundos, el amplificador. Pide confirmación antes de ejecutarse.
+
+## ¿Qué hace Apagar sala? (`script.cerrar_sala`)
 
 1. Pausa la música.
 2. Apaga el subwoofer y, a los 3 segundos, el amplificador y las luces Sala Principal, Barra y Jardín.
@@ -29,9 +34,11 @@ No enciende el aire ni pone música.
 
 Pide confirmación antes de ejecutarse.
 
-## ¿Qué hace Conectar mi móvil? (`script.modo_bluetooth`)
+## ¿Qué hace Liberar Bluetooth? (`script.liberar_bluetooth`)
 
-Cambia el amplificador a *Line In* para soltar el móvil que estuviera conectado, espera 8 segundos y vuelve a *Bluetooth* para emparejar uno nuevo («HappyHub Música»). Si se pulsa mientras está en marcha, no hace nada.
+Cambia el WiiM a línea para soltar el móvil que estuviera conectado, espera 8 segundos y vuelve a Bluetooth para conectar uno nuevo («HappyHub Música»). Si se pulsa mientras está en marcha, no hace nada.
+
+Habla directamente con el WiiM por `rest_command` porque `dlna_dmr` no permite cambiar de entrada. Necesita que el WiiM conserve su IP: resérvala en el router.
 
 ## ¿Qué hace el fondo del proyector? (`script.proyector_poner_fondo`)
 

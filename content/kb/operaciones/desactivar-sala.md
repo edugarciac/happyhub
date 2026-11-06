@@ -1,6 +1,6 @@
 ---
 type: operacion
-title: Apagar la sala (Sala OFF)
+title: Apagar la sala
 parent: panel-de-control
 order: 9
 when: Justo antes de salir de la sala
@@ -18,9 +18,9 @@ Es lo último que se hace antes de salir: la sala se queda a oscuras.
 ## Pasos
 
 1. Comprueba que la sala está recogida y que no queda nadie dentro.
-2. En el panel de control, pulsa **Sala OFF** (apaga todo). Sale en el lugar de **Sala ON** cuando la sala está encendida.
+2. En el panel de control, pulsa **Apagar sala** (apaga todo). Sale en el lugar de **Encender sala** cuando la sala está encendida.
 3. Confirma en el aviso «¿Desactivar toda la sala?».
-4. Si habéis usado el proyector, apágalo con su **mando a distancia**: Sala OFF no lo apaga.
+4. Si habéis usado el proyector, apágalo con su **mando a distancia**: **Apagar sala** no lo apaga.
 5. Sal de la sala.
 
 ## Qué hace

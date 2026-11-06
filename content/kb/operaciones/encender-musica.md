@@ -1,35 +1,33 @@
 ---
 type: operacion
-title: Encender la música (Música ON)
+title: Encender o apagar la música
 parent: panel-de-control
 order: 2
-when: Si el panel no dice «Sonido listo» o no suena nada
-tags: [música, sonido, amplificador, subwoofer]
+when: Si el panel dice «Música apagada» o no suena nada
+tags: [música, sonido]
 ---
 
 ## Para qué sirve
 
-Enciende solo el equipo de sonido (amplificador y subwoofer), sin tocar las luces.
+Enciende o apaga solo el equipo de sonido, sin tocar las luces.
 
 ## Cuándo usarla
 
-Cuando el grupo **Música** del panel no dice «Sonido listo», o si no suena nada. Si acabas de pulsar **Sala ON**, no hace falta: ya enciende el sonido.
+Cuando el grupo **Música** del panel dice que está apagada, o si no suena nada. Si acabas de pulsar **Encender sala**, no hace falta: ya enciende el sonido.
 
 ## Pasos
 
-1. En el grupo **Música** del panel, pulsa **Música ON**.
-2. El botón cambia a «Encendiendo música…». Espera unos segundos: no hace falta pulsarlo más veces.
-3. Cuando ponga **«Sonido listo»** (Amplificador y Subwoofer en verde), [conecta tu móvil](conectar-movil-bluetooth.md) y pon música.
+1. En el grupo **Música** del panel, pulsa **Encender música**.
+2. Espera a que ponga **«Música encendida»**.
+3. Espera hasta un minuto a que el equipo termine de arrancar, [conecta tu móvil](conectar-movil-bluetooth.md) y pon música.
+
+Para apagarla, pulsa **Apagar música** y confirma.
 
 ## Qué hace
 
-1. Enciende el amplificador.
-2. A los 3 segundos, enciende el subwoofer.
-3. Espera a que el equipo de música esté listo (como mucho un minuto).
-
-Mientras se enciende, el botón desaparece para que no se pulse varias veces.
+Enciende el equipo de sonido y, al arrancar, pone el volumen inicial. No pone música: eso lo eliges tú.
 
 ## Si algo falla
 
-- **Sale «Sonido incompleto»**: pulsa **Música ON** otra vez y espera.
-- **Pasa más de un minuto y no dice «Sonido listo»**: [escríbenos por WhatsApp]({{whatsapp}}).
+- **Sale «Sonido incompleto»**: pulsa **Encender música** otra vez.
+- **Pasa más de un minuto y tu móvil no encuentra «HappyHub Música»**: [escríbenos por WhatsApp]({{whatsapp}}).

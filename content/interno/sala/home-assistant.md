@@ -19,7 +19,7 @@ En la carpeta `home-assistant/` del repositorio (dashboard, scripts y sensores).
 
 ## Explicaciones
 
-- [El panel de la tablet](panel-de-la-tablet.md): qué ve el cliente y cuándo (Sala ON / Sala OFF, Música ON, Gramola, conexión).
+- [El panel de la tablet](panel-de-la-tablet.md): qué ve el cliente y cuándo (encender y apagar la sala y la música, botones e información).
 - [Los scripts](scripts.md): qué hace cada botón por dentro.
 - [El proyector](proyector.md): cómo se sabe si está encendido y cómo funciona el fondo por defecto.
 - [Las entidades](entidades.md): el nombre de cada aparato en Home Assistant.

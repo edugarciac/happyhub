@@ -1,0 +1,12 @@
+# Script: script.liberar_bluetooth (botón del panel).
+# Suelta el móvil conectado: cambia el WiiM a otra entrada y vuelve a Bluetooth.
+# Habla directo con el WiiM (rest_command de configuration-wiim.yaml), porque
+# la integración dlna_dmr no permite cambiar de entrada.
+alias: Liberar Bluetooth
+mode: single
+max_exceeded: silent
+icon: mdi:bluetooth-off
+sequence:
+  - action: rest_command.wiim_linea
+  - delay: "00:00:08"
+  - action: rest_command.wiim_bluetooth

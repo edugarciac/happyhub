@@ -1,0 +1,32 @@
+# Automatización: id wiim_volumen_inicial.
+# El WiiM conserva el último volumen. Al encender el amplificador lo pone al 25 %,
+# reintentando cada 10 s hasta 5 min porque el WiiM tarda en arrancar.
+# from: 'off': una reconexión en mitad de un evento no cambia el volumen.
+alias: WiiM - volumen inicial al encender
+mode: restart
+triggers:
+- trigger: state
+  entity_id: switch.sala_principal_amplificador_audio
+  from: "off"
+  to: "on"
+actions:
+- repeat:
+    count: 30
+    sequence:
+    - if:
+      - condition: state
+        entity_id: switch.sala_principal_amplificador_audio
+        state: "off"
+      then:
+      - stop: Amplificador apagado
+    - action: rest_command.wiim_volumen
+      data:
+        volumen: 25
+      response_variable: respuesta
+      continue_on_error: true
+    - if:
+      - condition: template
+        value_template: "{{ respuesta is defined and respuesta.status == 200 and respuesta.content == 'OK' }}"
+      then:
+      - stop: Volumen fijado
+    - delay: "00:00:10"

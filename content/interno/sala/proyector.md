@@ -12,7 +12,7 @@ tags: [proyector, chromecast, fondo, home assistant]
 1. Se enciende con el **mando a distancia** (no tiene control desde Home Assistant; a futuro, emisor IR).
 2. El cliente envía contenido desde su móvil al Chromecast **«Proyector»** (botón Enviar / Cast).
 
-Sala ON y Sala OFF **no** encienden ni apagan el proyector.
+**Encender sala** y **Apagar sala** **no** encienden ni apagan el proyector.
 
 ## ¿Cómo sabe el panel si está encendido?
 
@@ -41,4 +41,4 @@ Para cambiar las imágenes o el vídeo: [Cambiar los fondos del proyector](../op
 
 ## ¿Por qué el Chromecast necesita la IP de Home Assistant?
 
-El fondo se envía como una URL de Home Assistant. El Chromecast no entiende `homeassistant.local`, así que en Ajustes > Sistema > Red la URL local debe ser la IP (`http://192.168.x.x:8123`). Si no, el fondo no aparece.
+El fondo se envía como una URL de Home Assistant. El Chromecast no entiende `homeassistant.local`, así que en Ajustes > Sistema > Red la URL local debe ser la IP (`http://192.168.x.x`, con el puerto que use Home Assistant; en la sala es el 80). Si no, el fondo no aparece.

@@ -4,9 +4,8 @@
    Plantilla de estado: todo este fichero. Unidad, clase y clase de estado: vacíos. #}
 {% set amp = is_state('switch.sala_principal_amplificador_audio', 'on') %}
 {% set sub = is_state('switch.sala_principal_subwoofer', 'on') %}
-{% set wiim = states('media_player.wiim_amp_happyhub') not in ['unavailable', 'unknown'] %}
 {% if is_state('script.encender_sala', 'on') or is_state('script.encender_musica', 'on') %}arrancando
-{% elif amp and sub and wiim %}listo
+{% elif amp and sub %}listo
 {% elif not amp and not sub %}apagado
 {% else %}incompleto
 {% endif %}

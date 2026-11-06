@@ -1,0 +1,30 @@
+# Script: script.cerrar_sala (botón Sala OFF). Apaga sonido, luces y clima.
+alias: Cerrar sala
+icon: mdi:door-closed-lock
+sequence:
+- action: media_player.media_pause
+  target:
+    entity_id: media_player.wiim_amp_happyhub
+  continue_on_error: true
+- action: switch.turn_off
+  target:
+    entity_id: switch.sala_principal_subwoofer
+- delay: 00:00:03
+- action: switch.turn_off
+  target:
+    entity_id:
+    - switch.sala_principal_amplificador_audio
+    - switch.sala_1_luz_sala_principal
+    - switch.sala_principal_luz_barra
+    - switch.shellyplugmg3_08927256e768
+- action: switch.turn_off
+  target:
+    entity_id: switch.sala_2_luz_sala_2
+  continue_on_error: true
+- action: climate.turn_off
+  target:
+    entity_id:
+    - climate.aidoo_pro
+    - climate.aidoo_pro_2
+  continue_on_error: true
+mode: single

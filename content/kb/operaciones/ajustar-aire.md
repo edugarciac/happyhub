@@ -13,7 +13,7 @@ Enciende, apaga y regula el aire acondicionado de cada sala.
 
 ## Cuándo usarla
 
-Cuando quieras cambiar la temperatura. **Sala ON** no enciende el aire: se enciende aquí.
+Cuando quieras cambiar la temperatura. **Encender sala** no enciende el aire: se enciende aquí.
 
 ## Pasos
 
@@ -23,7 +23,7 @@ Cuando quieras cambiar la temperatura. **Sala ON** no enciende el aire: se encie
 
 ## Qué hace
 
-Cada sala tiene su propio aire acondicionado, que se controla por separado. Al salir, **Sala OFF** apaga los dos.
+Cada sala tiene su propio aire acondicionado, que se controla por separado. Al salir, **Apagar sala** apaga los dos.
 
 ## Si algo falla
 

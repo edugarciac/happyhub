@@ -1,0 +1,17 @@
+# Script: script.apagar_musica (botón Apagar música). Pausa y apaga, subwoofer primero, como Sala OFF.
+alias: Apagar música
+mode: single
+max_exceeded: silent
+icon: mdi:power
+sequence:
+  - action: media_player.media_pause
+    target:
+      entity_id: media_player.wiim_amp_happyhub
+    continue_on_error: true
+  - action: switch.turn_off
+    target:
+      entity_id: switch.sala_principal_subwoofer
+  - delay: "00:00:03"
+  - action: switch.turn_off
+    target:
+      entity_id: switch.sala_principal_amplificador_audio
