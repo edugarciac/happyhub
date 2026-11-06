@@ -34,8 +34,8 @@ const STEPS: Step[] = [
     status: 'deposit_paid',
     meaning: 'Señal cobrada. Queda el resto del precio.',
     next: {
-      admin: ['Marcar pago total (datáfono, efectivo o transferencia)', 'Cobro del día: QR o enviar por email'],
-      auto: ['Pago del resto con tarjeta por Stripe (el día del evento)'],
+      admin: ['Cobro del día: QR o enviar por email', 'Marcar pago total (efectivo o transferencia, excepcional)'],
+      auto: ['El día antes: correo con enlace para pagar el resto y bloquear la fianza', 'Pago del resto y bloqueo de la fianza por Stripe'],
     },
   },
   {
@@ -123,7 +123,7 @@ export default function ReservationFlowGuide({ onClose }: { onClose: () => void 
             <div className="border border-gray-200 rounded-xl p-3">
               <p className="text-sm font-semibold text-gray-900 flex items-center gap-1"><Lock className="w-4 h-4" /> Fianza de {SECURITY_DEPOSIT_AMOUNT} €</p>
               <ul className="text-xs text-gray-600 space-y-1 mt-2 list-disc list-inside">
-                <li>Se bloquea el día del evento en «Cobro del día» (QR, email o datáfono). No es un cobro.</li>
+                <li>Se bloquea por Stripe antes de empezar: con el enlace del correo del día antes o en «Cobro del día» (QR o email). No es un cobro.</li>
                 <li>Después del evento: <strong>liberar</strong> o <strong>cobrar daños</strong>.</li>
               </ul>
             </div>

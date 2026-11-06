@@ -4,7 +4,7 @@ import { verifyAdminSession } from '@/utils/adminAuth';
 import { ensureReservationFlowColumns } from '@/lib/reservationFlow';
 import { MANUAL_FULL_PAYMENT_METHODS } from '@/utils/reservationStatus';
 
-// El admin registra a mano el pago total (resto cobrado en datáfono, efectivo o transferencia).
+// El admin registra a mano el pago total (resto cobrado en efectivo o transferencia).
 // El pago del resto con tarjeta por enlace/QR lo registra el webhook de Stripe.
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -18,7 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!Number.isSafeInteger(id) || id <= 0) {
     return res.status(400).json({ success: false, error: 'ID de reserva inválido' });
   }
-  const method = req.body?.method ?? 'terminal';
+  const method = req.body?.method;
   if (!(MANUAL_FULL_PAYMENT_METHODS as readonly string[]).includes(method)) {
     return res.status(400).json({ success: false, error: 'Método de pago no válido' });
   }

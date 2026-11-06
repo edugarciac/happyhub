@@ -332,10 +332,52 @@ export function depositReceivedEmail(params: {
       ['Pendiente', `${escapeHtml(remaining)} €`],
     ])}
     ${note(
-      `<strong>El día del evento, antes de empezar:</strong> pagarás el resto (<strong>${escapeHtml(remaining)} €</strong>) con tarjeta, con un enlace o código QR en tu móvil o en nuestro datáfono, y se bloqueará una <strong>fianza de ${SECURITY_DEPOSIT_AMOUNT} €</strong> en tu tarjeta de crédito o débito. La fianza no es un cobro: la liberamos en cuanto revisamos el espacio (como máximo en 7 días). Con tarjeta de débito, ese importe queda retenido de tu saldo hasta entonces. <strong>Bizum no está disponible para el resto ni para la fianza.</strong>`
+      `<strong>El día del evento, antes de empezar:</strong> pagarás el resto (<strong>${escapeHtml(remaining)} €</strong>) con tarjeta desde el enlace de pago que te enviaremos por correo el día antes, y se bloqueará una <strong>fianza de ${SECURITY_DEPOSIT_AMOUNT} €</strong> en tu tarjeta de crédito o débito. La fianza no es un cobro: la liberamos en cuanto revisamos el espacio (como máximo en 7 días). Con tarjeta de débito, ese importe queda retenido de tu saldo hasta entonces. <strong>Bizum no está disponible para el resto ni para la fianza.</strong>`
     )}
     ${CONTACT_HTML}`;
   return { subject: `Reserva ${params.code} confirmada - HappyHub`, html: layout('HappyHub', 'Reserva confirmada', body) };
+}
+
+/** Aviso el día antes del evento: antes de empezar hay que pagar el resto y bloquear la fianza (Stripe) */
+export function dayBeforePaymentEmail(params: {
+  name: string;
+  code: string;
+  date: string;
+  timeSlot: string;
+  remaining: number;
+  payUrl: string;
+}): { subject: string; html: string } {
+  const remaining = Math.round(params.remaining * 100) / 100;
+  const deposit = escapeHtml(SECURITY_DEPOSIT_AMOUNT);
+  const steps =
+    remaining > 0
+      ? `<ol style="padding-left: 20px; line-height: 1.6;">
+      <li><strong>Pagar el resto: ${escapeHtml(remaining)} €</strong></li>
+      <li><strong>Bloquear la fianza de ${deposit} €</strong> en tu tarjeta</li>
+    </ol>`
+      : `<p>El resto ya está pagado. Solo falta <strong>bloquear la fianza de ${deposit} €</strong> en tu tarjeta.</p>`;
+  const body = `<h2 style="color: #FF6B35; margin-top: 0;">¡Hola ${escapeHtml(params.name || '')}! Mañana es tu evento 🎉</h2>
+    <p>Te recordamos que <strong>antes de empezar el evento</strong> hay que completar estos pasos con tarjeta (crédito o débito) desde el enlace. Puedes hacerlo ya o mañana al llegar:</p>
+    ${rows([
+      ['Nº de reserva', `<strong>${escapeHtml(params.code)}</strong>`],
+      ['Fecha', escapeHtml(formatDateEs(params.date))],
+      ['Horario', escapeHtml(SLOT_LABELS[params.timeSlot] || params.timeSlot)],
+      ...(remaining > 0 ? ([['Resto pendiente', `<strong>${escapeHtml(remaining)} €</strong>`]] as [string, string][]) : []),
+      ['Fianza (bloqueo)', `${deposit} €`],
+    ])}
+    ${steps}
+    <p style="text-align: center; margin: 28px 0;">
+      <a href="${escapeHtml(params.payUrl)}" style="background: #FF6B35; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold;">${remaining > 0 ? `Pagar ${escapeHtml(remaining)} € y bloquear la fianza` : 'Bloquear la fianza'}</a>
+    </p>
+    ${note(`<strong>Sin el pago del resto y el bloqueo de la fianza, el evento no puede comenzar</strong>, y el tiempo que se tarde cuenta dentro de tu franja: te recomendamos hacerlo antes de llegar. <strong>La fianza no es un cobro:</strong> el importe queda retenido en tu tarjeta y lo liberamos en cuanto revisamos el espacio (como máximo en 7 días). El enlace es válido hasta el final del día del evento.`)}
+    ${CONTACT_HTML}`;
+  return {
+    subject:
+      remaining > 0
+        ? `Mañana es tu evento: paga el resto (${remaining} €) y bloquea la fianza · ${params.code}`
+        : `Mañana es tu evento: bloquea la fianza de ${SECURITY_DEPOSIT_AMOUNT} € · ${params.code}`,
+    html: layout('HappyHub', 'Recordatorio de pago', body),
+  };
 }
 
 /** Enlace del día del evento enviado por el admin: resto (si queda) + bloqueo de la fianza */

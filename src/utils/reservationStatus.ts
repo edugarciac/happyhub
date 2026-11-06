@@ -85,7 +85,8 @@ export function canMarkFullyPaid(status: ReservationStatus, paymentStatus?: stri
 }
 
 /** Métodos para registrar a mano el pago total */
-export const MANUAL_FULL_PAYMENT_METHODS = ['terminal', 'cash', 'transfer'] as const;
+/** Cobro manual del resto (excepción): el datáfono ya no se usa (2026-11-06). 'terminal' queda en las etiquetas para reservas antiguas. */
+export const MANUAL_FULL_PAYMENT_METHODS = ['cash', 'transfer'] as const;
 export type ManualFullPaymentMethod = (typeof MANUAL_FULL_PAYMENT_METHODS)[number];
 export const REMAINING_PAYMENT_METHOD_LABELS: Record<string, string> = {
   terminal: 'datáfono',

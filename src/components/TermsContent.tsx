@@ -35,7 +35,7 @@ export default function TermsContent() {
           <li>Si se aprueba, el cliente recibe un correo con el enlace para pagar un depósito del <strong>30% del precio total</strong> con tarjeta{BIZUM_ENABLED && ', o con las instrucciones para pagarlo por Bizum'}.</li>
           <li>El cliente dispone de <strong>24 horas</strong> desde la aprobación para pagar el depósito. Si no se recibe en ese plazo, HappyHub le envía un recordatorio por correo y, si el depósito no se paga en las <strong>24 horas siguientes</strong> (48 horas desde la aprobación), la reserva se cancela y la fecha queda libre.</li>
           <li>Una vez recibido el depósito, la reserva queda confirmada y HappyHub envía la confirmación por correo.</li>
-          <li>El día del evento, antes de empezar, se paga el resto (70%) y se bloquea una fianza de 150 € en la tarjeta del cliente (ver apartado 4).</li>
+          <li>Antes de empezar el evento se paga el resto (70%) y se bloquea una fianza de 150 € en la tarjeta del cliente, con el enlace de pago que enviamos por correo el día antes (ver apartado 4).</li>
         </ol>
       </div>
 
@@ -71,12 +71,12 @@ export default function TermsContent() {
               </tr>
               <tr>
                 <td className="p-2 border-b"><strong>Resto: 70% del precio</strong></td>
-                <td className="p-2 border-b">El día del evento, antes de empezar</td>
-                <td className="p-2 border-b">Solo tarjeta: enlace o código QR en tu móvil, o datáfono.{BIZUM_ENABLED && <> <strong>No se admite Bizum.</strong></>}</td>
+                <td className="p-2 border-b">Antes de empezar el evento (desde el día antes)</td>
+                <td className="p-2 border-b">Solo tarjeta, por la pasarela de pago: enlace que te enviamos por correo el día antes (o código QR al llegar).{BIZUM_ENABLED && <> <strong>No se admite Bizum.</strong></>}</td>
               </tr>
               <tr>
                 <td className="p-2"><strong>Fianza: 150 €</strong></td>
-                <td className="p-2">El día del evento, antes de empezar, junto con el resto</td>
+                <td className="p-2">Antes de empezar el evento, junto con el resto</td>
                 <td className="p-2">Bloqueo temporal en tarjeta de crédito o débito. <strong>No se admite {BIZUM_ENABLED ? 'Bizum ni efectivo' : 'efectivo'}.</strong></td>
               </tr>
             </tbody>
@@ -92,7 +92,7 @@ export default function TermsContent() {
           <li><strong>Con tarjeta de crédito,</strong> los 150 € reducen tu crédito disponible mientras dure el bloqueo.</li>
           <li><strong>Con tarjeta de débito,</strong> los 150 € quedan retenidos de tu saldo y no podrás usarlos hasta que se liberen. Si no hay saldo suficiente, el bloqueo no se puede hacer.</li>
           <li>Algunas tarjetas prepago o virtuales no admiten bloqueos. En ese caso tendrás que usar otra tarjeta.</li>
-          <li><strong>Liberación:</strong> la liberamos en cuanto revisamos el espacio tras el evento, normalmente en 1 o 2 días y como máximo en 7 días si se hace con enlace o QR. Si se hace con datáfono, el bloqueo dura menos (unos 2 días; hasta 5 con Visa). Una vez liberada, tu banco puede tardar unos días más en reflejarlo.</li>
+          <li><strong>Liberación:</strong> la liberamos en cuanto revisamos el espacio tras el evento, normalmente en 1 o 2 días y como máximo en 7 días. Una vez liberada, tu banco puede tardar unos días más en reflejarlo.</li>
           <li><strong>Si hay daños</strong> o se aplican los cargos del apartado 6 (limpieza o exceso de horario), te avisaremos por escrito con fotos y cobraremos de la fianza solo el importe justificado; el resto se libera. Si el coste supera los 150 €, podremos reclamar la diferencia.</li>
         </ul>
       </div>

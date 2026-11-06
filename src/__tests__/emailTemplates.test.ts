@@ -68,7 +68,7 @@ describe('emailTemplates', () => {
   });
 });
 
-import { reservationApprovedEmail, depositReceivedEmail, depositReminderEmail, dayOfPaymentEmail } from '@/lib/emailTemplates';
+import { reservationApprovedEmail, depositReceivedEmail, depositReminderEmail, dayOfPaymentEmail, dayBeforePaymentEmail } from '@/lib/emailTemplates';
 import { BIZUM_ENABLED, isBookingPaymentMethod } from '@/config/payments';
 
 describe('approval & payment flow emails', () => {
@@ -139,6 +139,21 @@ describe('approval & payment flow emails', () => {
       expect(html).not.toContain('Paga la señal por Bizum');
       expect(html).toContain('Pagar la señal (60 €)');
     }
+  });
+
+  it('day-before email reminds to pay the remaining and hold the deposit before the event', () => {
+    const base = { name: 'Ana', code: 'RES-20261020-007', date: '2026-10-20', timeSlot: 'afternoon', payUrl: 'https://www.happyhub.es/pagar/db1' };
+    const pending = dayBeforePaymentEmail({ ...base, remaining: 140 });
+    expect(pending.subject).toBe('Mañana es tu evento: paga el resto (140 €) y bloquea la fianza · RES-20261020-007');
+    expect(pending.html).toContain('antes de empezar el evento');
+    expect(pending.html).toContain('Pagar el resto: 140 €');
+    expect(pending.html).toContain('Bloquear la fianza de 150 €');
+    expect(pending.html).toContain('href="https://www.happyhub.es/pagar/db1"');
+    expect(pending.html).not.toContain('datáfono');
+
+    const onlyDeposit = dayBeforePaymentEmail({ ...base, remaining: 0 });
+    expect(onlyDeposit.subject).toBe('Mañana es tu evento: bloquea la fianza de 150 € · RES-20261020-007');
+    expect(onlyDeposit.html).toContain('El resto ya está pagado');
   });
 
   it('day-of email asks to pay the remaining and hold the deposit', () => {

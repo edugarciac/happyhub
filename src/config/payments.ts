@@ -3,7 +3,7 @@ export const PAYMENT_WINDOW_HOURS = 24;
 /** Sin pago al acabar el plazo: recordatorio por correo y cancelación si no se paga en estas horas más (2026-10-18) */
 export const PAYMENT_GRACE_HOURS = 24;
 export const BIZUM_PHONE = '624 645 517';
-/** Métodos para la señal. El resto y la fianza se pagan solo con tarjeta (enlace/QR o datáfono). */
+/** Métodos para la señal. El resto y la fianza se pagan solo con tarjeta (enlace/QR de Stripe). */
 export const PAYMENT_METHODS = ['card', 'bizum'] as const;
 /** Bizum desactivado temporalmente (decisión del propietario, 2026-10-24). Poner a true para reactivarlo. */
 export const BIZUM_ENABLED = false;
@@ -12,7 +12,7 @@ export const BIZUM_ENABLED = false;
 export const SECURITY_DEPOSIT_AMOUNT = 150;
 /** Validez del bloqueo hecho por enlace/QR (pago iniciado por el cliente): 7 días según Stripe */
 export const SECURITY_DEPOSIT_ONLINE_HOLD_DAYS = 7;
-/** Validez orientativa del bloqueo en datáfono: 2 días Mastercard/Amex (Visa ~5) */
+/** Validez orientativa del bloqueo en datáfono (solo reservas antiguas; el datáfono ya no se usa): 2 días Mastercard/Amex (Visa ~5) */
 export const SECURITY_DEPOSIT_TERMINAL_HOLD_DAYS = 2;
 export const SECURITY_DEPOSIT_STATUSES = ['none', 'held', 'released', 'captured', 'expired'] as const;
 export type SecurityDepositStatus = (typeof SECURITY_DEPOSIT_STATUSES)[number];

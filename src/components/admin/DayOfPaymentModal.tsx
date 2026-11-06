@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
-import { X, CheckCircle, Lock, Unlock, Euro, QrCode, CreditCard, Mail } from 'lucide-react';
-import { SECURITY_DEPOSIT_AMOUNT, SECURITY_DEPOSIT_TERMINAL_HOLD_DAYS, formatDueAt } from '@/config/payments';
+import { X, CheckCircle, Lock, Unlock, Euro, QrCode, Mail } from 'lucide-react';
+import { SECURITY_DEPOSIT_AMOUNT, formatDueAt } from '@/config/payments';
 import { REMAINING_PAYMENT_METHOD_LABELS } from '@/utils/reservationStatus';
 
 export interface DayOfReservation {
@@ -26,7 +26,7 @@ const DEPOSIT_LABELS: Record<string, string> = {
   expired: 'Caducada sin cobrar',
 };
 
-/** Cobro del día del evento: enlace/QR (resto + fianza) o datáfono, y gestión de la fianza. */
+/** Cobro del día del evento: enlace/QR/email de Stripe (resto + fianza) y gestión de la fianza. */
 export default function DayOfPaymentModal({
   reservation: r,
   onClose,
@@ -94,14 +94,7 @@ export default function DayOfPaymentModal({
     }
   };
 
-  const markRemainingTerminal = async () => {
-    if (!confirm(`¿Confirmas que has cobrado ${remaining.toFixed(2)} € en el datáfono?`)) return;
-    const data = await call(`/api/admin/reservations/${r.id}/mark-remaining-paid`);
-    if (data) onChanged('Resto registrado como cobrado en datáfono', 'success');
-  };
-
-  const deposit = async (action: 'record_terminal' | 'release' | 'capture') => {
-    if (action === 'record_terminal' && !confirm(`¿Has bloqueado ${SECURITY_DEPOSIT_AMOUNT} € en el datáfono (preautorización)?`)) return;
+  const deposit = async (action: 'release' | 'capture') => {
     if (action === 'release' && !confirm('¿Liberar la fianza? Esta acción no se puede deshacer.')) return;
     if (action === 'capture' && !confirm(`¿Cobrar ${captureAmount} € de la fianza por daños? El resto se libera.`)) return;
     const data = await call(`/api/admin/reservations/${r.id}/security-deposit`, {
@@ -146,7 +139,7 @@ export default function DayOfPaymentModal({
         {/* Opción preferente: enlace / QR */}
         {(!remainingPaid || r.securityDepositStatus === 'none') && (
           <div className="border border-primary-200 bg-primary-50/40 rounded-xl p-4 mb-4">
-            <p className="font-semibold text-gray-900 flex items-center gap-2 mb-1"><QrCode className="w-4 h-4" /> Enlace, QR o email (recomendado)</p>
+            <p className="font-semibold text-gray-900 flex items-center gap-2 mb-1"><QrCode className="w-4 h-4" /> Enlace, QR o email</p>
             <p className="text-xs text-gray-600 mb-3">
               El cliente paga el resto y bloquea la fianza desde su móvil. El bloqueo dura hasta 7 días.
             </p>
@@ -179,29 +172,6 @@ export default function DayOfPaymentModal({
                 )}
               </div>
             )}
-          </div>
-        )}
-
-        {/* Alternativa: datáfono */}
-        {(!remainingPaid || r.securityDepositStatus === 'none') && (
-          <div className="border rounded-xl p-4 mb-4">
-            <p className="font-semibold text-gray-900 flex items-center gap-2 mb-1"><CreditCard className="w-4 h-4" /> Datáfono</p>
-            <p className="text-xs text-gray-600 mb-3">
-              Cobra en el terminal y regístralo aquí. Ojo: en datáfono el bloqueo de la fianza dura solo unos {SECURITY_DEPOSIT_TERMINAL_HOLD_DAYS} días
-              (Visa ~5): revisa el espacio y libérala o cóbrala desde el terminal antes de que caduque.
-            </p>
-            <div className="flex flex-col gap-2">
-              {!remainingPaid && r.paymentStatus === 'deposit_paid' && (
-                <button onClick={markRemainingTerminal} disabled={busy} className="px-4 py-2 border rounded-lg text-sm hover:bg-gray-50 disabled:opacity-50">
-                  Resto cobrado en datáfono ({remaining.toFixed(2)} €)
-                </button>
-              )}
-              {r.securityDepositStatus === 'none' && (
-                <button onClick={() => deposit('record_terminal')} disabled={busy} className="px-4 py-2 border rounded-lg text-sm hover:bg-gray-50 disabled:opacity-50">
-                  Fianza bloqueada en datáfono ({SECURITY_DEPOSIT_AMOUNT} €)
-                </button>
-              )}
-            </div>
           </div>
         )}
 

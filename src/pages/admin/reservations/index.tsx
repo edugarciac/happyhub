@@ -112,9 +112,9 @@ export default function AdminReservations() {
   const [showFlowGuide, setShowFlowGuide] = useState(false);
   const [showCalendarFeed, setShowCalendarFeed] = useState(false);
 
-  // Marcar pago total a mano (datáfono, efectivo o transferencia)
+  // Marcar pago total a mano (efectivo o transferencia)
   const [fullPaymentFor, setFullPaymentFor] = useState<Reservation | null>(null);
-  const [fullPaymentMethod, setFullPaymentMethod] = useState<ManualFullPaymentMethod>('terminal');
+  const [fullPaymentMethod, setFullPaymentMethod] = useState<ManualFullPaymentMethod>('cash');
   const [fullPaymentSaving, setFullPaymentSaving] = useState(false);
 
   // Cobros adicionales
@@ -544,7 +544,7 @@ export default function AdminReservations() {
                             )}
                             <div className="flex flex-wrap gap-1 mt-2">
                               {canMarkFullyPaid(r.status, r.paymentStatus) && (
-                                <button onClick={() => { setFullPaymentFor(r); setFullPaymentMethod('terminal'); }}
+                                <button onClick={() => { setFullPaymentFor(r); setFullPaymentMethod('cash'); }}
                                   className="px-2 py-1 text-xs rounded border border-green-500 text-green-700 hover:bg-green-50 transition-colors">
                                   Marcar pago total
                                 </button>
@@ -764,7 +764,7 @@ export default function AdminReservations() {
                 Si el cliente paga con el enlace o el QR de Stripe, se marca solo.
               </p>
               <label className="block text-sm font-medium text-gray-700 mb-2">¿Cómo lo has cobrado?</label>
-              <div className="grid grid-cols-3 gap-2 mb-5">
+              <div className="grid grid-cols-2 gap-2 mb-5">
                 {MANUAL_FULL_PAYMENT_METHODS.map((m) => (
                   <button key={m} type="button" onClick={() => setFullPaymentMethod(m)}
                     className={`px-2 py-2 rounded-lg border text-sm capitalize transition-colors ${fullPaymentMethod === m ? 'border-primary-600 bg-primary-50 text-primary-700 font-semibold' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}>
