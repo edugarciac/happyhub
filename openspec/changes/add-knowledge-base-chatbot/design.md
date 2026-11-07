@@ -123,7 +123,7 @@ Debajo, tres grupos por tipología:
   - **Conectar mi móvil** (`script.modo_bluetooth`, alias "Conectar móvil"): pide confirmación ("Si hay otro móvil sonando se desconectará"), cambia el amplificador a *Line In* para soltar el móvil anterior, espera **8 segundos** y vuelve a *Bluetooth* en modo emparejamiento. Para el cliente:
     1. Pulsar "Conectar mi móvil" y confirmar.
     2. Esperar unos 10 segundos, hasta que el estado diga "Listo para conectar".
-    3. En el Bluetooth del móvil, elegir «HappyHub Música».
+    3. En el Bluetooth del móvil, elegir «Audio HappyHub».
     4. Poner música: el estado cambia a "Móvil conectado".
     - Si falla: volver a pulsar cuando hayan pasado los 8 s (si se pulsa mientras está en marcha, no hace nada: modo `single`); comprobar que el móvil no sigue conectado a otro altavoz.
   - Estado: "Listo para conectar" / "Móvil conectado" / fuente actual.
