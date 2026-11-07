@@ -1,6 +1,7 @@
 ---
 type: operacion
 title: Dar acceso al manual a un familiar
+parent: guias/guias-y-manual
 order: 2
 when: Cuando alguien de la familia empiece a ayudar con la sala
 tags: [usuarios, acceso, admin]

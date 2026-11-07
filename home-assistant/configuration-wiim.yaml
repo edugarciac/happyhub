@@ -1,0 +1,17 @@
+# Pegar al final de configuration.yaml (File editor) y reiniciar Home Assistant.
+# Si ya existe una sección rest_command:, añade estas tres entradas dentro de ella.
+# 192.168.100.184 es el WiiM: reserva esa IP en el router para que no cambie.
+# verify_ssl: false porque el WiiM usa un certificado autofirmado.
+rest_command:
+  wiim_linea:
+    url: "https://192.168.100.184/httpapi.asp?command=setPlayerCmd:switchmode:line-in"
+    verify_ssl: false
+    timeout: 5
+  wiim_bluetooth:
+    url: "https://192.168.100.184/httpapi.asp?command=setPlayerCmd:switchmode:bluetooth"
+    verify_ssl: false
+    timeout: 5
+  wiim_volumen:
+    url: "https://192.168.100.184/httpapi.asp?command=setPlayerCmd:vol:{{ volumen }}"
+    verify_ssl: false
+    timeout: 5

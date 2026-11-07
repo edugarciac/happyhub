@@ -1,0 +1,41 @@
+# Script nuevo: Ajustes > Automatizaciones y escenas > Scripts > + Añadir script > ⋮ > Editar en YAML.
+# Al guardar, comprueba que el id es script.proyector_poner_fondo.
+alias: Proyector - poner fondo
+mode: single
+max_exceeded: silent
+icon: mdi:image
+sequence:
+- condition: template
+  value_template: '{{ states(''sensor.estado_proyector'') in [''listo'', ''fondo''] }}'
+- choose:
+  - conditions:
+    - condition: state
+      entity_id: input_select.fondo_proyector
+      state: HappyHub imagen
+    sequence:
+    - action: media_player.play_media
+      target:
+        entity_id: media_player.proyector
+      data:
+        media_content_id: media-source://media_source/local/happyhub/proyector/happyhub.jpg
+        media_content_type: image/jpeg
+  - conditions:
+    - condition: state
+      entity_id: input_select.fondo_proyector
+      state: HappyHub vídeo
+    sequence:
+    - action: media_player.play_media
+      target:
+        entity_id: media_player.proyector
+      data:
+        media_content_id: media-source://media_source/local/happyhub/proyector/happyhub.mp4
+        media_content_type: video/mp4
+  default:
+  - if:
+    - condition: state
+      entity_id: sensor.estado_proyector
+      state: fondo
+    then:
+    - action: media_player.turn_off
+      target:
+        entity_id: media_player.proyector

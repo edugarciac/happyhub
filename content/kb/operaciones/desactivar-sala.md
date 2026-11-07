@@ -1,8 +1,8 @@
 ---
 type: operacion
-title: Desactivar sala
+title: Apagar la sala
 parent: panel-de-control
-order: 2
+order: 9
 when: Justo antes de salir de la sala
 tags: [panel, salida, luces, aire, música]
 ---
@@ -18,15 +18,18 @@ Es lo último que se hace antes de salir: la sala se queda a oscuras.
 ## Pasos
 
 1. Comprueba que la sala está recogida y que no queda nadie dentro.
-2. En el panel de control, pulsa **Desactivar** (apaga todo).
+2. En el panel de control, pulsa **Apagar sala** (apaga todo). Sale en el lugar de **Encender sala** cuando la sala está encendida.
 3. Confirma en el aviso «¿Desactivar toda la sala?».
-4. Sal de la sala.
+4. Si habéis usado el proyector, apágalo con su **mando a distancia**: **Apagar sala** no lo apaga.
+5. Sal de la sala.
 
 ## Qué hace
 
 1. Pausa la música.
 2. Apaga el subwoofer y, a los 3 segundos, el amplificador y las luces de la Sala Principal, la Barra y el Jardín.
 3. Apaga la luz de la Sala Kids y los dos aires acondicionados.
+
+No apaga el proyector: se apaga con su mando.
 
 ## Si algo falla
 

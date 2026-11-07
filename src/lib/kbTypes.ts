@@ -21,6 +21,7 @@ export interface KbRenderedDoc {
   title: string;
   emoji: string | null;
   when: string | null;
+  summary: string | null;
   parent: string | null;
   href: string;
   introHtml: string;
@@ -34,6 +35,7 @@ export interface KbDocLink {
   title: string;
   emoji: string | null;
   when: string | null;
+  summary: string | null;
   href: string;
   questions: { id: string; heading: string }[];
 }

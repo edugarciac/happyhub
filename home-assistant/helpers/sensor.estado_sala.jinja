@@ -1,0 +1,14 @@
+{# Ayudante «Sensor de plantilla»
+   Ajustes > Dispositivos y servicios > Ayudantes > + Crear ayudante > Plantilla > Sensor de plantilla
+   Nombre: Estado sala   (así el id queda sensor.estado_sala)
+   Plantilla de estado: todo este fichero. Unidad, clase y clase de estado: vacíos. #}
+{% set todo = ['switch.sala_1_luz_sala_principal', 'switch.sala_2_luz_sala_2',
+               'switch.sala_principal_luz_barra', 'switch.shellyplugmg3_08927256e768',
+               'switch.sala_principal_amplificador_audio', 'switch.sala_principal_subwoofer'] %}
+{% set clave = ['switch.sala_1_luz_sala_principal',
+                'switch.sala_principal_amplificador_audio', 'switch.sala_principal_subwoofer'] %}
+{% if is_state('script.encender_sala', 'on') %}arrancando
+{% elif clave | select('is_state', 'on') | list | count == clave | count %}on
+{% elif todo | select('is_state', 'on') | list | count == 0 %}off
+{% else %}parcial
+{% endif %}

@@ -1,0 +1,16 @@
+# Script: script.encender_musica
+# Enciende solo el sonido: amplificador y subwoofer. No espera al WiiM.
+# El volumen inicial lo fija automations/wiim_volumen_inicial.yaml.
+# mode: single + max_exceeded: silent: ignora pulsaciones repetidas.
+alias: Encender música
+mode: single
+max_exceeded: silent
+icon: mdi:speaker
+sequence:
+  - action: switch.turn_on
+    target:
+      entity_id: switch.sala_principal_amplificador_audio
+  - delay: "00:00:03"
+  - action: switch.turn_on
+    target:
+      entity_id: switch.sala_principal_subwoofer

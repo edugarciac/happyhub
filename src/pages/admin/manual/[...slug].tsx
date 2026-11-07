@@ -5,7 +5,7 @@ import { ChevronLeft } from 'lucide-react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import KbDocBody from '@/components/guide/KbDocBody';
 import { adminOnlyRedirect } from '@/lib/adminPage';
-import { getManualDocProps } from '@/lib/kb';
+import { getManualDocProps } from '@/lib/kbManual';
 import { MANUAL_BASE_PATH, type KbDocLink, type KbRenderedDoc } from '@/lib/kbTypes';
 
 interface Props {

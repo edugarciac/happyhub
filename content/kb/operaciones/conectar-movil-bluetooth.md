@@ -4,34 +4,33 @@ title: Conectar mi móvil
 parent: panel-de-control
 order: 3
 when: Para poner tu propia música desde el móvil
-tags: [música, bluetooth, móvil]
+tags: [música, bluetooth, móvil, liberar]
 ---
 
 ## Para qué sirve
 
-Pone la música de tu móvil por los altavoces de la sala, por Bluetooth.
+Pone la música de tu móvil por los altavoces de la sala, por Bluetooth. Solo puede haber un móvil conectado a la vez.
 
 ## Cuándo usarla
 
-Cuando quieras poner tu propia música. Si ya había otro móvil conectado, se desconecta.
+Cuando quieras poner tu propia música o cambiar el móvil que está sonando.
 
 ## Pasos
 
-1. Si aún no lo has hecho, pulsa **Activar** para encender el equipo de música.
-2. En el grupo **Música**, pulsa **Conectar mi móvil** y confirma.
-3. Espera unos 10 segundos, hasta que el panel diga **«Listo para conectar»**.
-4. En el Bluetooth de tu móvil, elige **«HappyHub Música»**.
-5. Pon música en tu móvil: el panel cambia a **«Móvil conectado»**.
+1. Si el grupo **Música** dice que está apagada, pulsa **Encender música** ([Encender o apagar la música](encender-musica.md)) y espera hasta un minuto.
+2. En el Bluetooth de tu móvil, elige **«HappyHub Música»**.
+3. Pon música en tu móvil.
+
+**Si ya hay otro móvil conectado**: pulsa **Liberar Bluetooth**, confirma, espera unos 10 segundos y conecta el tuyo.
 
 El volumen se controla en **Sonando ahora** del panel.
 
 ## Qué hace
 
-Desconecta el móvil que estuviera sonando, espera 8 segundos y deja el equipo listo para emparejar un móvil nuevo por Bluetooth. Mientras tanto, la música se corta.
+**Liberar Bluetooth** desconecta el móvil que estuviera sonando y deja el equipo listo para conectar otro. Mientras tanto, la música se corta.
 
 ## Si algo falla
 
-- **El panel no dice «Listo para conectar»**: espera unos segundos más. Si lo pulsas otra vez mientras se está conectando, no hace nada.
-- **No aparece «HappyHub Música» en tu móvil**: comprueba que tu móvil no sigue conectado a otro altavoz o a unos auriculares y vuelve a pulsar **Conectar mi móvil**.
-- **Está conectado pero no suena**: pulsa **Activar** y sube el volumen en el panel y en tu móvil.
+- **No aparece «HappyHub Música» en tu móvil**: comprueba que tu móvil no sigue conectado a otro altavoz o a unos auriculares, y pulsa **Liberar Bluetooth**.
+- **Está conectado pero no suena**: comprueba que la música está encendida y sube el volumen en el panel y en tu móvil.
 - Si sigue sin funcionar, [escríbenos por WhatsApp]({{whatsapp}}).

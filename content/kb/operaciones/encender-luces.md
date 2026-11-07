@@ -13,12 +13,12 @@ Enciende o apaga las luces de cada zona por separado.
 
 ## Cuándo usarla
 
-Cuando quieras cambiar la luz de una zona sin tocar el resto. Para encender o apagar todo a la vez, usa **Activar** o **Desactivar**.
+Cuando quieras cambiar la luz de una zona sin tocar el resto. Para encender o apagar todo a la vez, usa **Encender sala** o **Apagar sala**.
 
 ## Pasos
 
 1. En el grupo **Luces**, busca la zona: **Sala Principal**, **Sala Kids**, **Barra** o **Jardín**.
-2. Tócala para encenderla o apagarla.
+2. Tócala para encenderla o apagarla. Amarilla significa encendida; blanca, apagada.
 
 ## Qué hace
 

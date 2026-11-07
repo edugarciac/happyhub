@@ -1,0 +1,12 @@
+{# Ayudante «Sensor de plantilla»
+   Ajustes > Dispositivos y servicios > Ayudantes > + Crear ayudante > Plantilla > Sensor de plantilla
+   Nombre: Estado proyector   (así el id queda sensor.estado_proyector)
+   Plantilla de estado: todo este fichero. Unidad, clase y clase de estado: vacíos. #}
+{% set mp = 'media_player.proyector' %}
+{% set st = states(mp) %}
+{% set contenido = (state_attr(mp, 'media_content_id') or '') %}
+{% if st in ['unavailable', 'unknown'] %}apagado
+{% elif 'happyhub/proyector' in contenido and st not in ['off'] %}fondo
+{% elif st in ['playing', 'paused', 'buffering'] %}proyectando
+{% else %}listo
+{% endif %}
