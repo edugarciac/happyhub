@@ -49,6 +49,12 @@ export default function GuideIndex({ basePath, panel, operations, zones, hubs, k
         </header>
       )}
 
+      {/* El chat va arriba e integrado: en la tablet la página va dentro de un marco de Home Assistant
+          tan alto como el contenido, y un chat flotante solo se veía al llegar al final */}
+      <section className="mb-10" aria-label="Pregunta al asistente">
+        <ChatWidget inline guideBasePath={basePath} />
+      </section>
+
       {/* Punto de partida: el panel de control */}
       <section className="bg-gradient-to-br from-primary-50 to-secondary-50 rounded-3xl p-6 md:p-8 mb-10">
         <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6 flex items-center gap-3">
@@ -106,8 +112,6 @@ export default function GuideIndex({ basePath, panel, operations, zones, hubs, k
         </div>
       </section>
 
-      {/* En la tablet el chat va abierto al entrar desde el botón Ayuda; en la web lo monta _app */}
-      {kiosk && <ChatWidget defaultOpen guideBasePath={basePath} />}
     </GuideLayout>
   );
 }

@@ -16,6 +16,8 @@ interface ChatWidgetProps {
   defaultOpen?: boolean;
   /** Ruta base de la guía en los enlaces del asistente: '/guia-sala' o '/guia-sala/panel' en la tablet */
   guideBasePath?: string;
+  /** Integrado en la página (arriba de la guía), sin botón flotante ni posición fija */
+  inline?: boolean;
 }
 
 const GREETING = '¡Hola! Soy el asistente de HappyHub. Pregúntame por la sala, las normas, precios o fechas libres.';
@@ -49,8 +51,8 @@ function apiHistory(turns: Turn[]) {
   return history.map(({ role, content }) => ({ role, content }));
 }
 
-export default function ChatWidget({ defaultOpen = false, guideBasePath = '/guia-sala' }: ChatWidgetProps) {
-  const [open, setOpen] = useState(defaultOpen);
+export default function ChatWidget({ defaultOpen = false, guideBasePath = '/guia-sala', inline = false }: ChatWidgetProps) {
+  const [open, setOpen] = useState(defaultOpen || inline);
   const [turns, setTurns] = useState<Turn[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
@@ -59,6 +61,7 @@ export default function ChatWidget({ defaultOpen = false, guideBasePath = '/guia
   useEffect(() => setTurns(loadTurns()), []);
 
   useEffect(() => {
+    // Solo dentro de la caja de mensajes: no mueve la página
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
   }, [turns, sending, open]);
 
@@ -103,18 +106,24 @@ export default function ChatWidget({ defaultOpen = false, guideBasePath = '/guia
     <>
       {open && (
         <div
-          role="dialog"
+          role={inline ? 'region' : 'dialog'}
           aria-label="Asistente de HappyHub"
-          className="fixed z-50 bottom-24 right-4 left-4 sm:left-auto sm:w-[380px] h-[min(560px,calc(100vh-8rem))] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden"
+          className={`${
+            inline
+              ? 'w-full h-[420px] shadow-md'
+              : 'fixed z-50 bottom-24 right-4 left-4 sm:left-auto sm:w-[380px] h-[min(560px,calc(100vh-8rem))] shadow-2xl'
+          } bg-white rounded-2xl border border-gray-200 flex flex-col overflow-hidden`}
         >
           <div className="flex items-center justify-between px-4 py-3 bg-primary-600 text-white">
             <div>
               <p className="font-semibold">Asistente HappyHub</p>
               <p className="text-xs text-primary-50">Respuesta automática. Para algo importante, WhatsApp.</p>
             </div>
-            <button onClick={toggle} aria-label="Cerrar chat" className="p-1 rounded-lg hover:bg-white/20">
-              <X className="w-5 h-5" />
-            </button>
+            {!inline && (
+              <button onClick={toggle} aria-label="Cerrar chat" className="p-1 rounded-lg hover:bg-white/20">
+                <X className="w-5 h-5" />
+              </button>
+            )}
           </div>
 
           <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
@@ -178,14 +187,16 @@ export default function ChatWidget({ defaultOpen = false, guideBasePath = '/guia
         </div>
       )}
 
-      <button
-        onClick={toggle}
-        aria-label={open ? 'Cerrar chat' : 'Abrir chat con el asistente'}
-        className="fixed z-40 bottom-6 right-6 flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white shadow-lg rounded-full px-4 py-3 font-semibold"
-      >
-        {open ? <X className="w-5 h-5" /> : <MessageCircle className="w-5 h-5" />}
-        <span className="hidden sm:inline">{open ? 'Cerrar' : '¿Dudas?'}</span>
-      </button>
+      {!inline && (
+        <button
+          onClick={toggle}
+          aria-label={open ? 'Cerrar chat' : 'Abrir chat con el asistente'}
+          className="fixed z-40 bottom-6 right-6 flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white shadow-lg rounded-full px-4 py-3 font-semibold"
+        >
+          {open ? <X className="w-5 h-5" /> : <MessageCircle className="w-5 h-5" />}
+          <span className="hidden sm:inline">{open ? 'Cerrar' : '¿Dudas?'}</span>
+        </button>
+      )}
     </>
   );
 }

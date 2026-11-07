@@ -17,8 +17,8 @@ import { GA_MEASUREMENT_ID, pageview, useScrollDepthTracking } from '@/lib/analy
 const isKioskPage = (pathname: string) => pathname.startsWith('/guia-sala/panel');
 // El chat se carga aparte para no pesar en la carga inicial
 const ChatWidget = dynamic(() => import('@/components/ChatWidget'), { ssr: false });
-// Páginas donde el botón del chat taparía la barra inferior del evento
-const NO_CHAT_PAGES = ['/mis-eventos/[id]'];
+// Sin chat flotante: en el evento taparía la barra inferior; en la guía va integrado arriba
+const NO_CHAT_PAGES = ['/mis-eventos/[id]', '/guia-sala'];
 
 function AppContent({ Component, pageProps }: { Component: AppProps['Component']; pageProps: any }) {
   const router = useRouter();
