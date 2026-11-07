@@ -1,11 +1,9 @@
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
 import { ChevronLeft } from 'lucide-react';
 import type { KbDocLink, KbRenderedDoc } from '@/lib/kbTypes';
 import GuideLayout from './GuideLayout';
 import KbDocBody from './KbDocBody';
-
-const ChatWidget = dynamic(() => import('@/components/ChatWidget'), { ssr: false });
+import GuideChatToggle from './GuideChatToggle';
 
 export interface GuideDocProps {
   basePath: string;
@@ -27,9 +25,9 @@ export default function GuideDoc({ basePath, doc, parent, children, kiosk }: Gui
         {back.title}
       </Link>
 
-      <KbDocBody doc={doc} related={children} />
+      <GuideChatToggle basePath={basePath} kiosk={kiosk} />
 
-      {kiosk && <ChatWidget guideBasePath={basePath} />}
+      <KbDocBody doc={doc} related={children} />
     </GuideLayout>
   );
 }
