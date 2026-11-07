@@ -1,4 +1,5 @@
 // Formato de las respuestas del chatbot en el widget (sin dependencias de React)
+import { CONTACT_INFO } from '@/config/contact';
 
 function escapeHtml(text: string): string {
   return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -12,6 +13,10 @@ export function renderAssistantText(text: string, guideBasePath: string): string
       .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (match, label: string, rawHref: string) => {
         let href = rawHref.replace(/&amp;/g, '&');
         if (!/^(\/(?!\/)|https:\/\/)/.test(href)) return label;
+        // En la tablet (/guia-sala/panel) no hay WhatsApp instalado: se muestra el número
+        if (guideBasePath.startsWith('/guia-sala/panel') && /^https:\/\/wa\.me\//.test(href)) {
+          return `${label} (WhatsApp <strong>${CONTACT_INFO.phoneFormatted}</strong>)`;
+        }
         if (guideBasePath !== '/guia-sala' && /^\/guia-sala(\/|$)/.test(href) && !href.startsWith(guideBasePath)) {
           href = guideBasePath + href.slice('/guia-sala'.length);
         }

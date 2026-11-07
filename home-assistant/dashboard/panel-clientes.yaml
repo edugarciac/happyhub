@@ -438,7 +438,7 @@ views:
                       card:
                         type: custom:mushroom-template-card
                         primary: Liberar Bluetooth
-                        secondary: Para conectar otro móvil
+                        secondary: Cuando un móvil ya no esté cerca
                         icon: mdi:bluetooth-off
                         icon_color: grey
                         layout: horizontal
@@ -723,7 +723,7 @@ views:
               columns: full
           - type: custom:mushroom-template-card
             primary: Liberar Bluetooth
-            secondary: Para conectar otro móvil
+            secondary: Cuando un móvil ya no esté cerca
             icon: mdi:bluetooth-off
             icon_color: blue
             layout: vertical

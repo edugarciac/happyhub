@@ -53,6 +53,8 @@ function apiHistory(turns: Turn[]) {
 
 export default function ChatWidget({ defaultOpen = false, guideBasePath = '/guia-sala', inline = false }: ChatWidgetProps) {
   const [open, setOpen] = useState(defaultOpen || inline);
+  // En la tablet de la sala no hay WhatsApp instalado: se muestra el número en vez del botón
+  const kiosk = guideBasePath.startsWith('/guia-sala/panel');
   const [turns, setTurns] = useState<Turn[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
@@ -110,14 +112,16 @@ export default function ChatWidget({ defaultOpen = false, guideBasePath = '/guia
           aria-label="Asistente de HappyHub"
           className={`${
             inline
-              ? 'w-full h-[420px] shadow-md'
+              ? 'w-full h-[340px] shadow-md'
               : 'fixed z-50 bottom-24 right-4 left-4 sm:left-auto sm:w-[380px] h-[min(560px,calc(100vh-8rem))] shadow-2xl'
           } bg-white rounded-2xl border border-gray-200 flex flex-col overflow-hidden`}
         >
           <div className="flex items-center justify-between px-4 py-3 bg-primary-600 text-white">
             <div>
               <p className="font-semibold">Asistente HappyHub</p>
-              <p className="text-xs text-primary-50">Respuesta automática. Para algo importante, WhatsApp.</p>
+              <p className="text-xs text-primary-50">
+                Respuesta automática. Para algo importante, WhatsApp{kiosk ? ` ${CONTACT_INFO.phoneFormatted}` : ''}.
+              </p>
             </div>
             {!inline && (
               <button onClick={toggle} aria-label="Cerrar chat" className="p-1 rounded-lg hover:bg-white/20">
@@ -139,7 +143,13 @@ export default function ChatWidget({ defaultOpen = false, guideBasePath = '/guia
                     dangerouslySetInnerHTML={{ __html: renderAssistantText(t.content, guideBasePath) }}
                   />
                 )}
-                {t.handoff && (
+                {t.handoff && kiosk && (
+                  <p className="inline-flex items-center gap-2 bg-green-50 border border-green-200 text-green-800 text-sm font-semibold rounded-full px-4 py-2">
+                    <MessageCircle className="w-4 h-4" />
+                    WhatsApp: {CONTACT_INFO.phoneFormatted}
+                  </p>
+                )}
+                {t.handoff && !kiosk && (
                   <a
                     href={WHATSAPP_URL}
                     target="_blank"
