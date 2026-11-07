@@ -141,6 +141,13 @@ describe('renderAssistantText', () => {
     );
   });
 
+  it('shows the WhatsApp number instead of a link on the tablet', () => {
+    const tablet = renderAssistantText('[Escríbenos](https://wa.me/34624645517)', '/guia-sala/panel');
+    expect(tablet).not.toContain('wa.me');
+    expect(tablet).toContain('624 645 517');
+    expect(renderAssistantText('[Escríbenos](https://wa.me/34624645517)', '/guia-sala')).toContain('href="https://wa.me/');
+  });
+
   it('renders bold and lists', () => {
     expect(renderAssistantText('Pulsa **Activar**:\n- uno\n- dos', '/guia-sala')).toBe(
       '<p>Pulsa <strong>Activar</strong>:</p><ul><li>uno</li><li>dos</li></ul>'

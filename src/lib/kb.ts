@@ -271,7 +271,21 @@ export function getKbDoc(slug: string, docs = loadKb()): KbDoc | null {
 /** Markdown → HTML. Los enlaces a otros .md pasan a `${basePath}/<slug>` */
 export function renderKbMarkdown(markdown: string, doc: Pick<KbDoc, 'slug' | 'file'>, basePath: string): string {
   const env = { slug: doc.slug, basePath };
-  return md.render(replaceTokens(markdown, doc.file), env);
+  const source = isKioskPath(basePath) ? whatsappAsNumber(markdown) : markdown;
+  return md.render(replaceTokens(source, doc.file), env);
+}
+
+/** Vista de la tablet de la sala (/guia-sala/panel) */
+export function isKioskPath(basePath: string): boolean {
+  return basePath === '/guia-sala/panel' || basePath.startsWith('/guia-sala/panel/');
+}
+
+/** En la tablet no hay WhatsApp instalado: los enlaces a WhatsApp pasan a mostrar el número */
+export function whatsappAsNumber(markdown: string): string {
+  return markdown.replace(
+    /\[([^\]]+)\]\(\{\{whatsapp\}\}\)/g,
+    (_m, label: string) => `${label} (WhatsApp **${CONTACT_INFO.phoneFormatted}**)`
+  );
 }
 
 md.renderer.rules.link_open = (tokens, idx, options, env, self) => {

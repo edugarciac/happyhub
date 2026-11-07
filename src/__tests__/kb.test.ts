@@ -105,6 +105,12 @@ describe('renderKbDoc', () => {
     expect(html).toContain(`href="${CONTACT_INFO.whatsapp}" target="_blank" rel="noopener noreferrer"`);
   });
 
+  it('shows the WhatsApp number instead of a link on the room tablet', () => {
+    const html = renderKbDoc(parseKbFile('operaciones/x.md', operation()), '/guia-sala/panel').sections[0].html;
+    expect(html).not.toContain('wa.me');
+    expect(html).toContain(`WhatsApp <strong>${CONTACT_INFO.phoneFormatted}</strong>`);
+  });
+
   it('gives each question an anchor id', () => {
     expect(slugifyHeading('¿Quién puede usar el Chiquipark?')).toBe('quien-puede-usar-el-chiquipark');
   });
