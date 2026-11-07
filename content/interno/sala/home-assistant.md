@@ -11,7 +11,16 @@ tags: [home assistant, panel, tablet, sala]
 
 Home Assistant controla las luces, el aire y la música de la sala, y muestra el estado del proyector. La tablet muestra el dashboard **panel-clientes** en modo kiosco (los clientes no ven la barra lateral ni la cabecera) y se abre en la red local como `homeassistant.local`.
 
-El botón **Ayuda** de la tablet abre la guía pública [/guia-sala/panel](/guia-sala/panel), que solo se puede mostrar dentro de `homeassistant.local`. Si la tablet abre Home Assistant con otra dirección, el botón Ayuda saldrá en blanco hasta añadirla en `next.config.js`.
+El botón **Ayuda** de la tablet abre la guía pública [/guia-sala/panel](/guia-sala/panel), que solo se puede mostrar dentro de Home Assistant (`homeassistant.local` o `http://192.168.100.166`). Si la tablet abre Home Assistant con otra dirección, el botón Ayuda saldrá en blanco hasta añadirla en `next.config.js`.
+
+## Direcciones en la red de la sala
+
+| Aparato | Dirección IP |
+|---|---|
+| Home Assistant | `192.168.100.166` (puerto 80: `http://192.168.100.166`) |
+| NVR (grabador de las cámaras) | `192.168.100.207` |
+
+Si alguna cambia, hay que reservarla en el router para que siempre sea la misma.
 
 ## ¿Dónde está la configuración?
 
