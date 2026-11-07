@@ -20,8 +20,11 @@ const securityHeaders = [
 
 // /guia-sala/panel se muestra dentro de un iframe en el panel de Home Assistant de la sala.
 // Solo esa ruta puede embeberse, y solo desde la web y desde Home Assistant en la red local.
-// frame-ancestors compara esquema, host y puerto exactos: HA escucha en el 8123.
+// frame-ancestors compara esquema, host y puerto exactos. HA de la sala está en 192.168.100.166,
+// puerto 80 (la tablet abre http://192.168.100.166); se dejan también el 8123 por si se vuelve a él.
 const HA_ORIGINS = [
+  'http://192.168.100.166',
+  'http://192.168.100.166:8123',
   'http://homeassistant.local:8123',
   'http://192.168.100.116:8123',
   'http://homeassistant.local',
