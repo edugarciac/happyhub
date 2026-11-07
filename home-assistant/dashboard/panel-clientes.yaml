@@ -1,3 +1,5 @@
+# Copia del panel panel-clientes de Home Assistant.
+# CONTRASEÑA-WIFI: la contraseña real de la wifi de invitados solo está en Home Assistant; este repositorio es público.
 kiosk_mode:
   non_admin_settings:
     hide_sidebar: true
@@ -31,22 +33,24 @@ views:
                   style: |
                     ha-card {
                       background: rgba(255, 255, 255, 0.90);
-                      border-radius: 20px;
-                      padding: 8px;
+                      border-radius: 16px;
+                      padding: 2px;
                     }
                 card:
                   type: markdown
                   text_only: true
                   content: >-
                     <center><img src="/local/happyhub/logo.png"
-                    width="140"></center>
+                    width="110"></center>
               - type: markdown
                 text_only: true
                 content: >
-                  <center><h1><font color="white">{{ states('input_text.evento')
+                  <center><h2><font color="white" size="6">{{ states('input_text.evento')
                   if states('input_text.evento') not in
                   ['unknown','unavailable',''] else 'Celebra momentos
-                  inolvidables' }}</font></h1></center>
+                  inolvidables' }}</font></h2>
+                  <font color="white" size="3">📶 WiFi: <b>happyhub_guests</b>
+                  · Contraseña: <b>CONTRASEÑA-WIFI</b></font></center>
               - type: custom:mod-card
                 card_mod:
                   style: |
@@ -341,7 +345,7 @@ views:
                         {% elif is_state(mp, 'playing') and t %}
                           🎵 {{ t }}{{ (' — ' ~ a) if a else '' }}
                         {% else %}
-                          Busca «HappyHub Música» en el Bluetooth de tu móvil (puede tardar un minuto)
+                          Bluetooth: «Audio HappyHub»
                         {% endif %}
                       multiline_secondary: true
                       icon: mdi:circle-medium
@@ -755,7 +759,7 @@ views:
               {% elif is_state(mp, 'playing') and t %}
                 🎵 {{ t }}{{ (' — ' ~ a) if a else '' }}
               {% else %}
-                Busca «HappyHub Música» en el Bluetooth de tu móvil (puede tardar un minuto)
+                Bluetooth: «Audio HappyHub»
               {% endif %}
             multiline_secondary: true
             icon: mdi:circle-medium

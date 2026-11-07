@@ -30,4 +30,4 @@ Enciende el equipo de sonido y, al arrancar, pone el volumen inicial. No pone m�
 ## Si algo falla
 
 - **Sale «Sonido incompleto»**: pulsa **Encender música** otra vez.
-- **Pasa más de un minuto y tu móvil no encuentra «HappyHub Música»**: [escríbenos por WhatsApp]({{whatsapp}}).
+- **Pasa más de un minuto y tu móvil no encuentra «Audio HappyHub»**: [escríbenos por WhatsApp]({{whatsapp}}).

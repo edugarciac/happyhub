@@ -36,7 +36,7 @@ Pide confirmación antes de ejecutarse.
 
 ## ¿Qué hace Liberar Bluetooth? (`script.liberar_bluetooth`)
 
-Cambia el WiiM a línea para soltar el móvil que estuviera conectado, espera 8 segundos y vuelve a Bluetooth para conectar uno nuevo («HappyHub Música»). Si se pulsa mientras está en marcha, no hace nada.
+Cambia el WiiM a línea para soltar el móvil que estuviera conectado, espera 8 segundos y vuelve a Bluetooth para conectar uno nuevo («Audio HappyHub»). Si se pulsa mientras está en marcha, no hace nada.
 
 Habla directamente con el WiiM por `rest_command` porque `dlna_dmr` no permite cambiar de entrada. Necesita que el WiiM conserve su IP: resérvala en el router.
 
